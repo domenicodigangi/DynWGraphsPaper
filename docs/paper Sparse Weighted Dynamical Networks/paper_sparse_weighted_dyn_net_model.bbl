@@ -1,0 +1,107 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Anand, van Lelyveld, Ádám Banai, Friedrich,
+  Garratt, Hałaj, Fique, Hansen, Jaramillo, Lee, Molina-Borboa, Nobili, Rajan,
+  Salakhova, Silva, Silvestri, and de~Souza}{Anand et~al.}{2017}]{ANAND2017}
+Anand, K., I.~van Lelyveld, Ádám Banai, S.~Friedrich, R.~Garratt, G.~Hałaj,
+  J.~Fique, I.~Hansen, S.~M. Jaramillo, H.~Lee, J.~L. Molina-Borboa, S.~Nobili,
+  S.~Rajan, D.~Salakhova, T.~C. Silva, L.~Silvestri, and S.~R.~S. de~Souza
+  (2017).
+\newblock The missing links: A global study on uncovering financial network
+  structures from partial data.
+\newblock {\em Journal of Financial Stability\/}.
+
+\bibitem[\protect\citeauthoryear{Betancourt, Rodríguez, and Boyd}{Betancourt
+  et~al.}{2018}]{doi:10.1080/02664763.2017.1357684}
+Betancourt, B., A.~Rodríguez, and N.~Boyd (2018).
+\newblock Investigating competition in financial markets: a sparse autologistic
+  model for dynamic network data.
+\newblock {\em Journal of Applied Statistics\/}~{\em 45\/}(7), 1157--1172.
+
+\bibitem[\protect\citeauthoryear{Billio, Casarin, and Iacopini}{Billio
+  et~al.}{2018}]{billio2018bayesian}
+Billio, M., R.~Casarin, and M.~Iacopini (2018).
+\newblock Bayesian tensor regression models.
+\newblock In {\em Mathematical and Statistical Methods for Actuarial Sciences
+  and Finance}, pp.\  149--153. Springer.
+
+\bibitem[\protect\citeauthoryear{Cimini, Squartini, Musmeci, Puliga, Gabrielli,
+  Garlaschelli, Battiston, and Caldarelli}{Cimini
+  et~al.}{2014}]{cimini2014reconstructing}
+Cimini, G., T.~Squartini, N.~Musmeci, M.~Puliga, A.~Gabrielli, D.~Garlaschelli,
+  S.~Battiston, and G.~Caldarelli (2014).
+\newblock Reconstructing topological properties of complex networks using the
+  fitness model.
+\newblock In {\em Social Informatics}, pp.\  323--333. Springer International
+  Publishing.
+
+\bibitem[\protect\citeauthoryear{Creal, Koopman, and Lucas}{Creal
+  et~al.}{2013}]{creal2013generalized}
+Creal, D., S.~J. Koopman, and A.~Lucas (2013).
+\newblock Generalized autoregressive score models with applications.
+\newblock {\em Journal of Applied Econometrics\/}~{\em 28\/}(5), 777--795.
+
+\bibitem[\protect\citeauthoryear{Giraitis, Kapetanios, Wetherilt, and
+  {\v{Z}}ike{\v{s}}}{Giraitis et~al.}{2016}]{giraitis2016estimating}
+Giraitis, L., G.~Kapetanios, A.~Wetherilt, and F.~{\v{Z}}ike{\v{s}} (2016).
+\newblock Estimating the dynamics and persistence of financial networks, with
+  an application to the sterling money market.
+\newblock {\em Journal of Applied Econometrics\/}~{\em 31\/}(1), 58--84.
+
+\bibitem[\protect\citeauthoryear{Goyal, Chhetri, and Canedo}{Goyal
+  et~al.}{2019}]{goyal2019dyngraph2vec}
+Goyal, P., S.~R. Chhetri, and A.~Canedo (2019).
+\newblock dyngraph2vec: Capturing network dynamics using dynamic graph
+  representation learning.
+\newblock {\em Knowledge-Based Systems\/}.
+
+\bibitem[\protect\citeauthoryear{Goyal, Kamra, He, and Liu}{Goyal
+  et~al.}{2018}]{goyal2018dyngem}
+Goyal, P., N.~Kamra, X.~He, and Y.~Liu (2018).
+\newblock Dyngem: Deep embedding method for dynamic graphs.
+\newblock {\em arXiv preprint arXiv:1805.11273\/}.
+
+\bibitem[\protect\citeauthoryear{Haghani and Keyvanpour}{Haghani and
+  Keyvanpour}{2017}]{haghani2017systemic}
+Haghani, S. and M.~R. Keyvanpour (2017).
+\newblock A systemic analysis of link prediction in social network.
+\newblock {\em Artificial Intelligence Review\/}, 1--35.
+
+\bibitem[\protect\citeauthoryear{Harvey}{Harvey}{2013}]{harvey_2013}
+Harvey, A.~C. (2013).
+\newblock {\em Dynamic Models for Volatility and Heavy Tails: With Applications
+  to Financial and Economic Time Series}.
+\newblock Econometric Society Monographs. Cambridge University Press.
+
+\bibitem[\protect\citeauthoryear{Perozzi, Al-Rfou, and Skiena}{Perozzi
+  et~al.}{2014}]{perozzi2014deepwalk}
+Perozzi, B., R.~Al-Rfou, and S.~Skiena (2014).
+\newblock Deepwalk: Online learning of social representations.
+\newblock In {\em Proceedings of the 20th ACM SIGKDD international conference
+  on Knowledge discovery and data mining}, pp.\  701--710. ACM.
+
+\bibitem[\protect\citeauthoryear{Rastelli}{Rastelli}{2018}]{rastelli2018sparse}
+Rastelli, R. (2018).
+\newblock The sparse latent position model for nonnegative weighted networks.
+\newblock {\em arXiv preprint arXiv:1808.09262\/}.
+
+\bibitem[\protect\citeauthoryear{Sewell and Chen}{Sewell and
+  Chen}{2015}]{sewell2015latent}
+Sewell, D.~K. and Y.~Chen (2015).
+\newblock Latent space models for dynamic networks.
+\newblock {\em Journal of the American Statistical Association\/}~{\em
+  110\/}(512), 1646--1657.
+
+\bibitem[\protect\citeauthoryear{Singer, Guy, and Radinsky}{Singer
+  et~al.}{2019}]{singer2019node}
+Singer, U., I.~Guy, and K.~Radinsky (2019).
+\newblock Node embedding over temporal graphs.
+\newblock {\em arXiv preprint arXiv:1903.08889\/}.
+
+\bibitem[\protect\citeauthoryear{Trivedi, Farajtabar, Biswal, and Zha}{Trivedi
+  et~al.}{2018}]{trivedi2018representation}
+Trivedi, R., M.~Farajtabar, P.~Biswal, and H.~Zha (2018).
+\newblock Representation learning over dynamic graphs.
+\newblock {\em arXiv preprint arXiv:1803.04051\/}.
+
+\end{thebibliography}
