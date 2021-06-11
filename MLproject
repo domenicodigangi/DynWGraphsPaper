@@ -1,0 +1,38 @@
+#########
+#Created Date: Friday June 4th 2021
+#Author: Domenico Di Gangi,  <digangidomenico@gmail.com>
+#-----
+#Last Modified: Thu Jun 10 2021
+#Modified By:  Domenico Di Gangi
+#-----
+#Description: yaml file to describe the mlflow project 
+#-----
+########
+
+
+name: dynwgraphspaper
+
+conda_env: config/conda_env.yaml
+
+entry_points:
+  simul_and_estimate_sd_model:
+    parameters:
+      n_sample:{type:int, default=50}
+      sd_par:
+        um:"rand"
+        B:{type:float, default=0.98}
+        A:{type:float, default=0.01}
+    command: "simul_sd_estimate_sd_and_save_dirBin1.py --n-sample {n_sample}"
+
+  transform_raw_world_trade_net_data:
+    command: "transform_raw_world_trade_net_data.py"
+
+
+
+  main:
+    parameters:
+      als_max_iter: {type: int, default: 10}
+      keras_hidden_units: {type: int, default: 20}
+      max_row_limit: {type: int, default: 100000}
+    command: "python main.py --als-max-iter {als_max_iter} --keras-hidden-units {keras_hidden_units}
+                             --max-row-limit {max_row_limit}"
