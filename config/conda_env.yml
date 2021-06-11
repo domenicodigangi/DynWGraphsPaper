@@ -1,0 +1,9 @@
+name: dynwgraphs_env
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - matplotlib
+  - scipy
+  - pandas
+  - pytorch
