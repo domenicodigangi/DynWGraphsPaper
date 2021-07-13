@@ -71,8 +71,8 @@ for distribution in ['lognormal']:
                                                                                   A0=A_0,
                                                                                   W0=w_0,
                                                                                   est_dis_par_un=False,
-                                                                                  opt_steps=N_steps_max,
-                                                                                  lRate=0.01,
+                                                                                  max_opt_iter=N_steps_max,
+                                                                                  lr=0.01,
                                                                                   print_flag=True, plot_flag=False,
                                                                                   print_every=10000)
 

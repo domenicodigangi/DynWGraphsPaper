@@ -39,9 +39,9 @@ for distribution in ['lognormal', 'gamma']:
                                                           est_const_dist_par=True, dim_dist_par_un=dim_dist_par_un,
                                                           est_const_beta=True, dim_beta=dim_beta,
                                                           opt_large_steps=N_steps//N_steps_iter,
-                                                          opt_steps_phi=N_steps_iter, lRate_phi=learn_rate,
-                                                          opt_steps_dist_par=N_steps_iter, lRate_dist_par=learn_rate,
-                                                          opt_steps_beta=N_steps_iter, lRate_beta=learn_rate,
+                                                          max_opt_iter_phi=N_steps_iter, lr_phi=learn_rate,
+                                                          max_opt_iter_dist_par=N_steps_iter, lr_dist_par=learn_rate,
+                                                          max_opt_iter_beta=N_steps_iter, lr_beta=learn_rate,
                                                           print_flag_phi=False, print_flag_dist_par=True,
                                                           print_flag_beta=True,
                                                           print_every=250)

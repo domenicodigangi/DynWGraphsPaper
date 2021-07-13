@@ -50,8 +50,8 @@ for dim_beta in [1, N]:
                                                                     A0=torch.cat((A0, torch.zeros(n_beta_tv))),
                                                                     W0=torch.cat((W0, torch.zeros(n_beta_tv))),
                                                                     beta_const_0= torch.zeros(dim_beta, n_reg-n_beta_tv),
-                                                                    opt_steps=N_steps,
-                                                                    lRate=learn_rate,
+                                                                    max_opt_iter=N_steps,
+                                                                    lr=learn_rate,
                                                                     print_flag=True, print_every=200,
                                                                     plot_flag=False)
 

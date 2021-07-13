@@ -55,9 +55,9 @@ for type_dgp in ['sin' ]:#'sin', 'step' # AR1 needs to be fixed
             model.ss_filt_est_beta_const(Y_T_s, X_T=X_T_dgp, beta=None, phi_T=None,
                                          est_const_beta=True, dim_beta=1,
                                          opt_large_steps=opt_large_steps, opt_n=1,
-                                         opt_steps_phi=N_steps_max//opt_large_steps, lRate_phi=0.01,
-                                         opt_steps_beta=N_steps_max//opt_large_steps, lRate_beta=0.01,
-                                         print_flag_phi=False, print_flag_beta=False, min_n_iter=10)
+                                         max_opt_iter_phi=N_steps_max//opt_large_steps, lr_phi=0.01,
+                                         max_opt_iter_beta=N_steps_max//opt_large_steps, lr_beta=0.01,
+                                         print_flag_phi=False, print_flag_beta=False, min_opt_iter=10)
 
 
         #store results ss
@@ -72,7 +72,7 @@ for type_dgp in ['sin' ]:#'sin', 'step' # AR1 needs to be fixed
         w_sd_s, B_sd_s, A_sd_s, dist_par_un_sd_s, beta_sd_s, diag_sd_s = \
             model.estimate_SD_X0(Y_T_s, X_T_dgp,
                                     dim_beta=dim_beta, n_beta_tv=0,
-                                    opt_n=1, opt_steps=N_steps_max, lRate=0.01,
+                                    opt_n=1, max_opt_iter=N_steps_max, lr=0.01,
                                     plot_flag=False, print_flag=False, print_every=2000,
                                     B0=B_0, A0=A_0, W0=w_0, beta_const_0=beta_0)
 

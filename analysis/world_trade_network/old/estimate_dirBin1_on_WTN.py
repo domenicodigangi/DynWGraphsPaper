@@ -36,8 +36,8 @@ B0 = torch.cat([torch.ones(N_BA) * 0.85, torch.ones(N_BA) * 0.85])
 A0 = torch.cat([torch.ones(N_BA) * 0.01, torch.ones(N_BA) * 0.01])
 W0 = phi_T_0.mean(dim=1)*(1-B0)
 
-W_est, B_est, A_est, dist_par_un_est,  diag = model.estimate_SD(Y_T, B0=B0, A0=A0, W0=W0, opt_steps=N_steps,
-                                                                lRate=learn_rate,
+W_est, B_est, A_est, dist_par_un_est,  diag = model.estimate_SD(Y_T, B0=B0, A0=A0, W0=W0, max_opt_iter=N_steps,
+                                                                lr=learn_rate,
                                                                 print_flag=True, print_every=200, plot_flag=False,
                                                                  est_dis_par_un=False)
 

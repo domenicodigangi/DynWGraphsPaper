@@ -43,7 +43,7 @@ N_BA = N
 model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_SD)
 opt_algo = "LBFGS"
 rel_improv_tol_SD = 1e-16
-min_n_iter_SD = 15000
+min_opt_iter_SD = 15000
 bandwidth_SD = 250
 no_improv_max_count_SD = 100
 print_every = 1000
@@ -88,7 +88,7 @@ sd_par_0_dgp = um_dgp
 #%
 #%%
 N_steps = 15000
-lRates = {"ADAMHD": [0.05], "SGDHD": [0.005], \
+lrs = {"ADAMHD": [0.05], "SGDHD": [0.005], \
           "ADAM": [0.5, 0.05 ], "LBFGS": [0.05 ]}
 n_sample = 60
 #T_sample = 500
@@ -98,7 +98,7 @@ store_par = {par_name: {opt_algo: {lr: np.zeros((2*N, n_sample)) for lr in [0.5,
            for par_name in ["W", "B", "A"]}
  
 for opt_algo in opt_algo_list:
-    for lr in lRates[opt_algo]:
+    for lr in lrs[opt_algo]:
         for T_sample in [100, 500]:
             SAVE_FOLD = './data/estimates_sim_data/'
             file_path = SAVE_FOLD + '/dirBin1_SD_consist_test_eMid_' + \

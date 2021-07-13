@@ -63,10 +63,10 @@ for type_dgp in ['ar1']:#]: #'ar1'
             #                                             est_const_dist_par=est_dist_par, dim_dist_par_un=dim_dist_par_un,
             #                                             est_const_beta=True, dim_beta=dim_beta,
             #                                             opt_large_steps=opt_large_steps, opt_n=1,
-            #                                             opt_steps_phi=N_steps_max//opt_large_steps, lRate_phi=0.01,
-            #                                             opt_steps_dist_par=N_steps_max//opt_large_steps, lRate_dist_par=0.01,
-            #                                             opt_steps_beta=N_steps_max//opt_large_steps, lRate_beta=0.01,
-            #                                             min_n_iter=20,
+            #                                             max_opt_iter_phi=N_steps_max//opt_large_steps, lr_phi=0.01,
+            #                                             max_opt_iter_dist_par=N_steps_max//opt_large_steps, lr_dist_par=0.01,
+            #                                             max_opt_iter_beta=N_steps_max//opt_large_steps, lr_beta=0.01,
+            #                                             min_opt_iter=20,
             #                                             print_flag_phi=False,
             #                                             print_flag_dist_par=False,
             #                                             print_flag_beta=False)
@@ -86,11 +86,11 @@ for type_dgp in ['ar1']:#]: #'ar1'
             w_sd_s, B_sd_s, A_sd_s, dist_par_un_sd_s, beta_sd_s, sd_par_0_s, diag_sd_s = \
                 model.estimate_SD_X0(Y_T_s.clone().detach(), X_T_dgp.clone().detach(),
                                         dim_beta=dim_beta, n_beta_tv=0, dim_dist_par_un=dim_dist_par_un,
-                                        opt_n=1, opt_steps=N_steps_max, lRate=0.005,
+                                        opt_n=1, max_opt_iter=N_steps_max, lr=0.005,
                                         plot_flag=False, print_flag=True, print_every=500,
                                         B0=B_0, A0=A_0, W0=w_0, beta_const_0=beta_0, est_dis_par_un=True,
                                         rel_improv_tol=1e-7, no_improv_max_count=50,
-                                        min_n_iter=750, bandwidth=100, small_grad_th=1e-6)
+                                        min_opt_iter=750, bandwidth=100, small_grad_th=1e-6)
 
 
             phi_T_sd_s, beta_T_sd_s = model.sd_filt(w_sd_s, B_sd_s, A_sd_s, Y_T_s, beta_const=beta_T_dgp[:, 1].view(dim_beta, n_reg),

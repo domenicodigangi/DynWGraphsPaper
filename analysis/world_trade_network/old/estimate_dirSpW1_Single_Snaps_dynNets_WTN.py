@@ -43,8 +43,8 @@ for dim_dist_par_un in [ N]:
                                               est_const_dist_par=True, dim_dist_par_un=dim_dist_par_un,
                                               est_const_beta=False, dim_beta=1,
                                               opt_large_steps= N_steps//N_steps_iter,
-                                              opt_steps_phi=N_steps_iter, lRate_phi=0.01,
-                                              opt_steps_dist_par=N_steps_iter, lRate_dist_par=learn_rate,
+                                              max_opt_iter_phi=N_steps_iter, lr_phi=0.01,
+                                              max_opt_iter_dist_par=N_steps_iter, lr_dist_par=learn_rate,
                                               print_flag_phi=False, print_flag_dist_par=False)
 
         file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_Single_Snap_est__lr_' + \

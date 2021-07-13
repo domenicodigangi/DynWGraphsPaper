@@ -58,8 +58,8 @@ def estimate_and_save_dirSpW1(N_BA, learn_rate, distribution, dim_dist_par_un, T
     W0 = torch.cat((UM0_i * (1-splitVec(B0)[0]), UM0_o *(1- splitVec(B0)[1])))
     dist_par_un_0 = dist_par_un_ss
     W_est, B_est, A_est, dist_par_un_est, diag = model.estimate_SD(Y_T_train, B0=B0, A0=A0, W0=W0,
-                                                                    opt_steps=N_steps_max,
-                                                                    lRate=learn_rate,
+                                                                    max_opt_iter=N_steps_max,
+                                                                    lr=learn_rate,
                                                                     dist_par_un=dist_par_un_0,
                                                                     dim_dist_par_un=dim_dist_par_un,
                                                                     est_dis_par_un=True,

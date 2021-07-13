@@ -42,8 +42,8 @@ model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_SD)
 # estimate SS on the first few snapshots
 
 rel_improv_tol_SS = 1e-6
-min_n_iter_SS = 20
-bandwidth_SS = min_n_iter_SS
+min_opt_iter_SS = 20
+bandwidth_SS = min_opt_iter_SS
 no_improv_max_count_SS = 20
 
 #%% SS estimates
@@ -57,7 +57,7 @@ no_improv_max_count_SS = 20
 
 #%% SD estimates
 rel_improv_tol_SD = 1e-16
-min_n_iter_SD = 15000
+min_opt_iter_SD = 15000
 bandwidth_SD = 250
 no_improv_max_count_SD = 500
 learn_rate = 0.01

@@ -45,8 +45,8 @@ for t in range(10):
 
 learn_rate = 0.01
 rel_improv_tol_SS = 1e-6
-min_n_iter_SS = 20
-bandwidth_SS = min_n_iter_SS
+min_opt_iter_SS = 20
+bandwidth_SS = min_opt_iter_SS
 no_improv_max_count_SS = 20
 phi_ss_est_T = phi_T_0
 
@@ -62,7 +62,7 @@ file_path = SAVE_FOLD + '/dirBin1_SS_est_lr_' + \
 #%% Estimate Score Driven
 N_steps = 2500
 rel_improv_tol_SD = 1e-16
-min_n_iter_SD = 500
+min_opt_iter_SD = 500
 bandwidth_SD = 250
 no_improv_max_count_SD = 5
 print_every = 100
@@ -75,8 +75,8 @@ W0 = phi_ss_est_T[:, :T_init].mean(dim=1) * (1 - B0)
 
 W_est, B_est, A_est, dist_par_un_est, sd_par_0, diag = model.estimate_SD(Y_T_train, B0=B0, A0=A0, W0=W0,
                     opt_n=opt_algo,
-                                                                                                    opt_steps=N_steps,
-                                                                                                    lRate=learn_rate,
+                                                                                                    max_opt_iter=N_steps,
+                                                                                                    lr=learn_rate,
                                                                                                     sd_par_0=phi_T_0[:, :T_init].mean(dim=1),
                                                                                                     print_flag=True, print_every=print_every,
                                                                                                     plot_flag=False,
@@ -84,7 +84,7 @@ W_est, B_est, A_est, dist_par_un_est, sd_par_0, diag = model.estimate_SD(Y_T_tra
                                                                                                     init_filt_um=False,
                                                                                                     rel_improv_tol=rel_improv_tol_SD,
                                                                                                     no_improv_max_count=no_improv_max_count_SD,
-                                                                                                    min_n_iter=min_n_iter_SD,
+                                                                                                    min_opt_iter=min_opt_iter_SD,
                                                                                                     bandwidth=bandwidth_SD,
                                                                                                     small_grad_th=1e-3)
 
@@ -118,7 +118,7 @@ def f_re(rePar):
 unPar0 = torch.cat((tens(W0), model.re2un_BA_par(torch.cat((B0, A0))))).clone().detach()
 
 #from utils import optim_torch
-out_par_1, daig_1 = optim_torch(f_un, unPar0, opt_steps=10, opt_n="LBFGS_NEW", lRate=0.01, print_every=1)
+out_par_1, daig_1 = optim_torch(f_un, unPar0, max_opt_iter=10, opt_n="LBFGS_NEW", lr=0.01, print_every=1)
 
 #%%
 

@@ -43,7 +43,7 @@ N_BA = N
 model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_SD)
 opt_algo = "LBFGS"
 rel_improv_tol_SD = 1e-16
-min_n_iter_SD = 100
+min_opt_iter_SD = 100
 bandwidth_SD = 250
 no_improv_max_count_SD = 20
 print_every = 1000
@@ -88,7 +88,7 @@ sd_par_0_dgp = um_dgp
 #%
 
 N_steps = 15000
-lRates = {"ADAMHD": [0.0001], "SGDHD": [0.005], \
+lrs = {"ADAMHD": [0.0001], "SGDHD": [0.005], \
           "ADAM": [0.1, 0.01 ], "LBFGS": [0.01 ]}
 n_sample = 40
 #T_sample = 500
@@ -98,7 +98,7 @@ store_par = {par_name: {opt_algo: {lr: np.zeros((2*N, n_sample)) for lr in [0.5,
            for par_name in ["W", "B", "A"]}
  
 for opt_algo in opt_algo_list:
-    for lr in lRates[opt_algo]:
+    for lr in lrs[opt_algo]:
         for T_sample in [ 100, 500]:
             for n in range(n_sample):
                 print(opt_algo)
@@ -112,8 +112,8 @@ for opt_algo in opt_algo_list:
                 W_est, B_est, A_est, dist_par_un_est, \
                 sd_par_0, diag = model.estimate_SD(Y_T_sample.detach(), B0=B_dgp, A0=A_dgp, W0=W_dgp,
                                                      opt_n=opt_algo,
-                                                     opt_steps=N_steps,
-                                                     lRate=tens(lr),
+                                                     max_opt_iter=N_steps,
+                                                     lr=tens(lr),
                                                      sd_par_0=sd_par_0_dgp,
                                                      print_flag=True, print_every=print_every,
                                                      plot_flag=False,
@@ -121,7 +121,7 @@ for opt_algo in opt_algo_list:
                                                      init_filt_um=False,
                                                      rel_improv_tol=rel_improv_tol_SD,
                                                      no_improv_max_count=no_improv_max_count_SD,
-                                                     min_n_iter=min_n_iter_SD,
+                                                     min_opt_iter=min_opt_iter_SD,
                                                      bandwidth=bandwidth_SD,
                                                      small_grad_th=1e-3)
 

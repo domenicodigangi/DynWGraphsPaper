@@ -31,8 +31,8 @@ for t in range(T):
 
 phi_ss_est_T, diag = model.ss_filt( Y_T,  phi_T_0=phi_T_0,
                           est_dist_par=False, est_beta=False,
-                          opt_steps=N_steps, lRate=0.01, print_flag=True, plot_flag=False, print_every=200,
-                          min_n_iter=200)
+                          max_opt_iter=N_steps, lr=0.01, print_flag=True, plot_flag=False, print_every=200,
+                          min_opt_iter=200)
 
 file_path = SAVE_FOLD + '/WTN_dirBin1_dynNet_Single_Snap_est__lr_th' + \
             str(learn_rate)  + '_N_' + str(N) + '_T_' + str(T) + \
@@ -64,11 +64,11 @@ for dim_beta in[1, N]:
     phi_ss_est_T, dist_par_un, beta_est, diag_joint = model.ss_filt_est_beta_const(Y_T,
                                        X_T=X_T, beta=torch.zeros(dim_beta,1), phi_T=phi_T_0,
                                       est_const_beta=True, dim_beta=dim_beta,
-                                      opt_large_steps=N_steps//N_steps_iter, opt_steps_phi=N_steps_iter,
-                                       lRate_phi=learn_rate_phi,
-                                      opt_steps_beta=N_steps_iter, lRate_beta=learn_rate_beta,
+                                      opt_large_steps=N_steps//N_steps_iter, max_opt_iter_phi=N_steps_iter,
+                                       lr_phi=learn_rate_phi,
+                                      max_opt_iter_beta=N_steps_iter, lr_beta=learn_rate_beta,
                                       print_flag_phi=False, print_flag_beta=True,
-                                      print_every=100, min_n_iter=20)
+                                      print_every=100, min_opt_iter=20)
 
     file_path = SAVE_FOLD + '/WTN_dirBin1_X0_dynNet_Single_Snap_est__lr_th' + \
                 str(learn_rate_phi)  + '_lt_de_' + str(learn_rate_beta) + '_N_' + str(N) + '_T_' + str(T) + \
