@@ -33,7 +33,7 @@ learn_rate = 0.01
 n_reg=X_T.shape[2]
 n_beta_tv = 0
 
-model = dirBin1_dynNet_SD(ovflw_lm=True, rescale_SD=False)
+model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=True, rescale_SD=False)
 phi_T_0 = torch.zeros(N*2, T)
 for t in range(T):
     phi_T_0[:, t] = model.start_phi_val(Y_T[:, :, t])

@@ -53,7 +53,7 @@ for filter_type, regr_flag, dim_beta, N_steps, learn_rate in list_all_models[:N_
     mod_par = load_dirBin1_models(N, T, filter_type, regr_flag, SAVE_FOLD,
                                 dim_beta=dim_beta,
                                 learn_rate=learn_rate, T_test=T_test,
-                                N_steps=N_steps, ovflw_lm=True, rescale_score=rescale_score,
+                                N_steps=N_steps, avoid_ovflw_fun_flag=True, rescale_score=rescale_score,
                                 return_last_diag=False)
     all_par_SS.append(mod_par)
     n_reg = 0
@@ -66,7 +66,7 @@ for filter_type, regr_flag, dim_beta, N_steps, learn_rate in list_all_models[N_s
     mod_par = load_dirBin1_models(N, T, filter_type, regr_flag, SAVE_FOLD,
                                 dim_beta=dim_beta,
                                 learn_rate=learn_rate, T_test=T_test,
-                                N_steps=N_steps, ovflw_lm=True, rescale_score=rescale_score,
+                                N_steps=N_steps, avoid_ovflw_fun_flag=True, rescale_score=rescale_score,
                                 return_last_diag=False)
     all_par_SD.append(mod_par)
     n_reg = 0
@@ -78,7 +78,7 @@ for filter_type, regr_flag, dim_beta, N_steps, learn_rate in list_all_models[N_s
 all_exp_Y = []
 all_phi_T = []
 for m in range(len(all_par_SS)):
-    model = dirBin1_dynNet_SD(ovflw_lm=True, rescale_SD=False)
+    model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=True, rescale_SD=False)
     phi_ss_est_T, beta_est,  \
     diag, N_steps, N_steps_iter, \
     learn_rate  = all_par_SS[m]
@@ -90,7 +90,7 @@ for m in range(len(all_par_SS)):
     all_exp_Y.append(for_Y_T)
     all_phi_T.append(phi_ss_est_T)
 for m in range(len(all_par_SD)):
-    model = dirBin1_dynNet_SD(ovflw_lm=True, rescale_SD=False)
+    model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=True, rescale_SD=False)
     W_est, B_est, A_est,\
     beta_est, sd_par_0, diag, N_steps, \
      learn_rate = all_par_SD[m]
@@ -180,7 +180,7 @@ all_par_SD[m][2]
 all_par_SD[m+1][2][ind_pl]
 #%%
 
-model = dirBin1_dynNet_SD(ovflw_lm=False, rescale_SD=False)
+model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=False, rescale_SD=False)
 model.backprop_sd = True
 phi_t = tens(phi_ss_est_T[:, 0])
 

@@ -32,7 +32,7 @@ SAVE_FOLD = './data/estimates_real_data/WTN'
 #%% SS weighted no reg
 N_steps = 10000
 learn_rate = 0.01
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 all_mod_log_likes = []
 models_info = []
 all_mod_phi_T = []
@@ -43,14 +43,14 @@ for dim_dist_par_un in [N]:
         file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_Single_Snap_est__lr_' + \
                     str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
                     '_N_steps_' + str(N_steps) + \
-                    '_ovflw_lm_' + str(ovflw_lm) + \
+                    '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                     '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
                      distribution + 'distr_' + 'dim_distr_par_' + str(dim_dist_par_un) + '.npz'
 
         ld_est = np.load(file_path, allow_pickle=True)
         phi_est_T, dist_par_un, diag= tens(ld_est["arr_0"]), tens(ld_est["arr_1"]), tens(ld_est["arr_2"])
         #plt.plot(-diag)
-        model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, distribution = distribution)
+        model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, distribution = distribution)
         like_dirSpW1_SS = model.like_seq(Y_T, phi_est_T, dist_par_un)
         all_mod_log_likes.append(like_dirSpW1_SS.item())
         models_info.append(['SS No reg', dim_dist_par_un, distribution, 0, 0, len(diag)])
@@ -67,7 +67,7 @@ for distribution in ['gamma', 'lognormal']:
     file_path = SAVE_FOLD + '/WTN_dirSpW1_X0_dynNet_Single_Snap_est__lr_' + \
                 str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
                 '_N_steps_' + str(N_steps) + \
-                '_ovflw_lm_' + str(ovflw_lm) + \
+                '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                 '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
                 '_dim_beta_' + str(dim_beta) + \
                 distribution + 'distr_' + 'dim_distr_par_' + str(dim_dist_par_un) + '.npz'
@@ -76,7 +76,7 @@ for distribution in ['gamma', 'lognormal']:
     phi_est_T, dist_par_un, beta_est, diag= tens(ld_est["arr_0"]), tens(ld_est["arr_1"]),\
                                                tens(ld_est["arr_2"]), tens(ld_est["arr_3"])
    # plt.plot(-diag)
-    model = dirSpW1_X0_dynNet_SD(ovflw_lm=ovflw_lm, distribution = distribution)
+    model = dirSpW1_X0_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, distribution = distribution)
     like_dirSpW1_SS = model.like_seq(Y_T, phi_est_T, dist_par_un, X_T = X_T, beta=beta_est)
     all_mod_log_likes.append(like_dirSpW1_SS.item())
     models_info.append(['SS With reg', dim_dist_par_un, distribution, dim_beta, 0, len(diag)])
@@ -182,7 +182,7 @@ Y_T.abs().sum()
 file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_SD_est_lr_' + \
             str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
             '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \
-            '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+            '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
             '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
             distribution + '_distr_' + '_dim_distr_par_' + str(dim_dist_par_un) + \
             'test_sam_last_' + str(T_test) + '.npz'

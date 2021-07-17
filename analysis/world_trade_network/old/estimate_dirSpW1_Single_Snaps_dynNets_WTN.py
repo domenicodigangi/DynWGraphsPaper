@@ -22,9 +22,9 @@ dist_T, scaling_infl = ld_data["dist_T"], ld_data["scaling_infl"]
 # estimate and save different sizes of dist_par
 from dirSpW1_dynNets import dirSpW1_dynNet_SD
 SAVE_FOLD = './data/estimates_real_data/WTN'
-ovflw_lm=True
+avoid_ovflw_fun_flag=True
 distribution = 'gamma'#'lognormal'
-model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, distribution=distribution)
+model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, distribution=distribution)
 N_steps = 15000
 N_steps_iter = 100
 learn_rate = 0.01
@@ -50,7 +50,7 @@ for dim_dist_par_un in [ N]:
         file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_Single_Snap_est__lr_' + \
                     str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
                     '_N_steps_' + str(N_steps) + \
-                    '_ovflw_lm_' + str(ovflw_lm) + \
+                    '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                     '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
                     distribution + 'distr_' + 'dim_distr_par_' + str(dim_dist_par_un) + '.npz'
         print(file_path)

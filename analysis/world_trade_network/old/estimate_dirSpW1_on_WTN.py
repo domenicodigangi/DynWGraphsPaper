@@ -21,7 +21,7 @@ SAVE_FOLD = './data/estimates_real_data/WTN'
 import itertools
 from dirSpW1_dynNets import dirSpW1_dynNet_SD
 
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 rescale_score = False
 
 def estimate_and_save_dirSpW1(N_BA, learn_rate, distribution, dim_dist_par_un, T_test=10, unit_measure=1e6,
@@ -38,14 +38,14 @@ def estimate_and_save_dirSpW1(N_BA, learn_rate, distribution, dim_dist_par_un, T
     file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_Single_Snap_est__lr_' + \
                 str(learn_rate_load) + '_N_' + str(N) + '_T_' + str(T) + \
                 '_N_steps_' + str(N_steps_load) + \
-                '_ovflw_lm_' + str(ovflw_lm) + \
+                '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                 '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
                 distribution + 'distr_' + 'dim_distr_par_' + str(dim_dist_par_un) + '.npz'
 
     ld_est = np.load(file_path, allow_pickle=True)
     phi_ss_est_T, dist_par_un_ss = tens(ld_est["arr_0"]), tens(ld_est["arr_1"])
 
-    model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_score, distribution=distribution)
+    model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_score, distribution=distribution)
     for t in range(T):
         phi_ss_est_T[:, t] = model.identify(phi_ss_est_T[:, t])
     mean_ss_phi = phi_ss_est_T[:, 0] #phi_ss_est_T.mean(dim=1)
@@ -69,7 +69,7 @@ def estimate_and_save_dirSpW1(N_BA, learn_rate, distribution, dim_dist_par_un, T
     file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_SD_est_lr_' + \
                 str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
                 '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \
-                '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+                '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                 '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
                 distribution + '_distr_' + '_dim_distr_par_' + str(dim_dist_par_un) + \
                 'test_sam_last_' + str(T_test) + '.npz'

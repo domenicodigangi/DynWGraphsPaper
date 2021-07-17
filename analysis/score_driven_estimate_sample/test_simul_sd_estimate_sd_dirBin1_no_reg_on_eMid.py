@@ -31,7 +31,7 @@ T = Y_T.shape[2]
 T_train = 100
 T_test = T - T_train  # T//5
 
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 rescale_SD = True
 fold_name = 'eMid'
 SAVE_FOLD_no_reg = './data/estimates_real_data/' + fold_name
@@ -40,7 +40,7 @@ N_steps = 2500
 
 #% define model and load SD estimates on real data
 N_BA = N
-model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_SD)
+model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_SD)
 opt_algo = "LBFGS"
 rel_improv_tol_SD = 1e-16
 min_opt_iter_SD = 100

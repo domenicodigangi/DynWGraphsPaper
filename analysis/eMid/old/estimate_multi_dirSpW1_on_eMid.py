@@ -22,7 +22,7 @@ N = Y_T.shape[0]
 T = Y_T.shape[2]
 T_test = T//5
 unit_measure = 1e6
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 
 
 # Define regressors
@@ -83,10 +83,10 @@ for rescale_score in [False, True]:
                                                  X_T=X_T[:, :, regs_inds[i], :], dim_beta=dim_beta, n_beta_tv=0,
                                                  unit_measure=unit_measure,
                                                  learn_rate=learn_rate, T_test=T_test,
-                                                 N_steps=N_steps, ovflw_lm=ovflw_lm, rescale_score=rescale_score,
+                                                 N_steps=N_steps, avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_score=rescale_score,
                                                  load_ss=True)
 
-        print((unit_measure,  'SS', T_test, ovflw_lm, rescale_score, fold_names_regs[i]))
+        print((unit_measure,  'SS', T_test, avoid_ovflw_fun_flag, rescale_score, fold_names_regs[i]))
 
         results = Parallel(n_jobs=1)(delayed(fun_to_iter)(filter_type, distribution, dim_dist_par, regr_flag, dim_beta,
                                                           N_steps, learn_rate)\
@@ -94,7 +94,7 @@ for rescale_score in [False, True]:
                                             in all_SS_models)
 
 
-        print((unit_measure, 'SD', T_test, ovflw_lm, rescale_score, fold_names_regs[i]))
+        print((unit_measure, 'SD', T_test, avoid_ovflw_fun_flag, rescale_score, fold_names_regs[i]))
 
         results = Parallel(n_jobs=1)(delayed(fun_to_iter)(filter_type, distribution, dim_dist_par, regr_flag, dim_beta,
                                                            N_steps, learn_rate)\

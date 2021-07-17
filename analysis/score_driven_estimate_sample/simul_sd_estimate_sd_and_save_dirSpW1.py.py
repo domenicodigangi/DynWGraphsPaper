@@ -11,7 +11,7 @@ SAVE_FOLD = './data/estimates_sim_data'
 from dirSpW1_dynNets import dirSpW1_dynNet_SD
 
 #%
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 rescale_score = False
 
 
@@ -30,7 +30,7 @@ N_BA = N
 
 for distribution in ['lognormal']:
     for T in [500]:
-        model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_score, distribution=distribution)
+        model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_score, distribution=distribution)
         #const_p = 0.1
         for const_p in [0.9,   0.25,  1/N]:
             # Sample the Dgp
@@ -91,7 +91,7 @@ for distribution in ['lognormal']:
                         '_N_' + str(N) + '_T_' + str(T) + \
                         '_const_p_' + str(const_p) + \
                         '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \
-                        '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+                        '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                         '_distr_' + distribution + '_dim_distr_par_' + str(dim_dist_par_un) + \
                         '_dim_beta_' + str(dim_beta) + \
                         '_N_sample_' + str(N_sample) + \

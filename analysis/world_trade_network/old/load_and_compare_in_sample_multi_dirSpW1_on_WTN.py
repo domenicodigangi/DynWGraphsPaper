@@ -60,7 +60,7 @@ for filter_type, distribution, dim_dist_par, regr_flag, dim_beta in list_all_mod
     mod_par = load_dirSpW1_models(N, T, distribution, dim_dist_par, filter_type, regr_flag, SAVE_FOLD,
                                 dim_beta=dim_beta, n_beta_tv=0, unit_measure=unit_measure,
                                 learn_rate=0.01, T_test=T_test,
-                                N_steps=N_steps, ovflw_lm=True, rescale_score=False,
+                                N_steps=N_steps, avoid_ovflw_fun_flag=True, rescale_score=False,
                                 return_last_diag=False)
     all_par_SS.append(mod_par)
     n_reg = 0
@@ -73,7 +73,7 @@ for filter_type, distribution, dim_dist_par, regr_flag, dim_beta in list_all_mod
     mod_par = load_dirSpW1_models(N, T, distribution, dim_dist_par, filter_type, regr_flag, SAVE_FOLD,
                                 dim_beta=dim_beta, n_beta_tv=0, unit_measure=1e6,
                                 learn_rate=0.01, T_test=T_test,
-                                N_steps=N_steps, ovflw_lm=True, rescale_score=False,
+                                N_steps=N_steps, avoid_ovflw_fun_flag=True, rescale_score=False,
                                 return_last_diag=False)
     all_par_SD.append(mod_par)
     n_reg = 0
@@ -83,7 +83,7 @@ for filter_type, distribution, dim_dist_par, regr_flag, dim_beta in list_all_mod
 
 all_log_l = []
 for m in range(len(all_par_SS)):
-    model = dirSpW1_dynNet_SD(ovflw_lm=True, distribution=list_all_models[:len(all_par_SS)][m][1], rescale_SD=False)
+    model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=True, distribution=list_all_models[:len(all_par_SS)][m][1], rescale_SD=False)
     phi_ss_est_T, dist_par_un, beta_est, \
     diag, N_steps, N_steps_iter, \
     unit_measure, learn_rate  = all_par_SS[m]
@@ -96,7 +96,7 @@ for m in range(len(all_par_SS)):
     all_log_l.append(log_l.item())
 
 for m in range(len(all_par_SD)):
-    model = dirSpW1_dynNet_SD(ovflw_lm=True, distribution=list_all_models[len(all_par_SS):][m][1], rescale_SD=False)
+    model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=True, distribution=list_all_models[len(all_par_SS):][m][1], rescale_SD=False)
     W_est, B_est, A_est, dist_par_un_est, \
     beta_est, diag, N_steps, \
     unit_measure, learn_rate = all_par_SD[m]

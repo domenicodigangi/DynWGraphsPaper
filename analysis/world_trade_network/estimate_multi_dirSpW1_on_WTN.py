@@ -44,7 +44,7 @@ X_T[~torch.isfinite(X_T)] = 0
 N = Y_T.shape[0]
 unit_measure = 1e6
 T_test = 10
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 
 for rescale_score in [False ]:
     def fun_to_iter(filter_type, distribution, dim_dist_par, regr_flag, dim_beta, N_steps, learn_rate):
@@ -55,10 +55,10 @@ for rescale_score in [False ]:
         estimate_and_save_dirSpW1_models(Y_T, distribution, dim_dist_par, filter_type, regr_flag, SAVE_FOLD,
                                          X_T=X_T, dim_beta=dim_beta, n_beta_tv=0, unit_measure=unit_measure,
                                         learn_rate=learn_rate, T_test=T_test,
-                                        N_steps=N_steps, ovflw_lm=ovflw_lm, rescale_score=rescale_score,
+                                        N_steps=N_steps, avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_score=rescale_score,
                                          load_ss_as_0=True)
 
-    print((reg_name, unit_measure,  'SS', T_test, ovflw_lm, rescale_score))
+    print((reg_name, unit_measure,  'SS', T_test, avoid_ovflw_fun_flag, rescale_score))
     all_SS_models = []
     all_SS_models.append(['SS', 'gamma', N, False, 1, 20000, 0.005])
     # all_SS_models.append(['SS', 'lognormal', N, False, 1, 20000, 0.005])
@@ -74,7 +74,7 @@ for rescale_score in [False ]:
                                         in all_SS_models)
 
 
-    print((unit_measure, 'SD', T_test, ovflw_lm, rescale_score))
+    print((unit_measure, 'SD', T_test, avoid_ovflw_fun_flag, rescale_score))
     all_SD_models = []
     all_SD_models.append(['SD', 'gamma', N, False, 1, 20000, 0.005])
     # all_SD_models.append(['SD', 'lognormal', N, False, 1, 20000, 0.005])

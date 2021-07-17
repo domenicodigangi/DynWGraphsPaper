@@ -24,7 +24,7 @@ T = Y_T.shape[2]
 T_train = 100
 T_test = T - T_train  # T//5
 
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 rescale_SD = True
 
 fold_name = 'eMid'
@@ -37,7 +37,7 @@ N_steps = 20000
 Y_T_train = Y_T[:, :, :-T_test]
 N_BA = N
 
-model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_SD)
+model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_SD)
 
 # estimate SS on the first few snapshots
 

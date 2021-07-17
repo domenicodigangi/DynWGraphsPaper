@@ -24,10 +24,10 @@ learn_rate = 0.01
 X_T = tens(dist_T).log().unsqueeze(2) # torch.tensor((dist_T - dist_T.mean())/dist_T.std()).unsqueeze(2)
 N = wtn_T.shape[0]
 T = wtn_T.shape[2]
-ovflw_lm=True
+avoid_ovflw_fun_flag=True
 
 for distribution in ['lognormal', 'gamma']:
-    model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, distribution=distribution)
+    model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, distribution=distribution)
     for dim_beta in [1, N]:
         for unit_measure in [1e6]:
             for dim_dist_par_un in [N]:
@@ -49,7 +49,7 @@ for distribution in ['lognormal', 'gamma']:
                 file_path = SAVE_FOLD + '/WTN_dirSpW1_X0_dynNet_Single_Snap_est__lr_' + \
                             str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
                             '_N_steps_' + str(N_steps) + \
-                            '_ovflw_lm_' + str(ovflw_lm) + \
+                            '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                             '_unit_' + '10e' + str(np.int(np.log10(unit_measure))) + \
                             '_dim_beta_' + str(dim_beta) + \
                             distribution + 'distr_' + 'dim_distr_par_' + str(dim_dist_par_un) + '.npz'

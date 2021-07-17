@@ -61,7 +61,7 @@ for i in range(2,3):
     def fun_to_iter(filter_type, regr_flag, dim_beta):
         estimate_and_save_dirBin1_models(Y_T, filter_type, regr_flag, SAVE_FOLD, X_T=X_T[:, :, regs_inds[i], :],
                                          dim_beta=dim_beta,
-                                         N_steps=N_steps, ovflw_lm=True, T_test=T_test)
+                                         N_steps=N_steps, avoid_ovflw_fun_flag=True, T_test=T_test)
 
     results = Parallel(n_jobs=2)(delayed(fun_to_iter)(filter_type, regr_flag, int(dim_beta))\
                                  for filter_type, regr_flag, dim_beta\

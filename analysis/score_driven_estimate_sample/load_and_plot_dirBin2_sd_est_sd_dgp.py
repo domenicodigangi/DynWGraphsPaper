@@ -12,13 +12,13 @@ from dirBin2_dynNets import dirBin2_dynNet_SD
 import matplotlib.pyplot as plt
 
 #%%
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 rescale_score = False
 distribution = 'bernoulli'
 
 torch.manual_seed(2)
 N = 8
-model = dirBin2_dynNet_SD(ovflw_lm=True, rescale_SD=False, N=N)
+model = dirBin2_dynNet_SD(avoid_ovflw_fun_flag=True, rescale_SD=False, N=N)
 
 T = 1500
 N_sample = 20
@@ -30,7 +30,7 @@ type_dgp = 'SD'
 file_path = SAVE_FOLD + '/filter_sd_dgp_dirBin2' + \
             '_N_' + str(N) + '_T_' + str(T) + \
             '_N_steps_' + str(N_steps_max)  + \
-            '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+            '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
             '_N_sample_' + str(N_sample) + \
             '_type_dgp_' + type_dgp + \
             '.npz'
@@ -103,7 +103,7 @@ plt.axvline(sd_cov_est[2])
 
 
 #%% test scores
-model = dirBin2_dynNet_SD(ovflw_lm=True, rescale_SD=False, N=N)
+model = dirBin2_dynNet_SD(avoid_ovflw_fun_flag=True, rescale_SD=False, N=N)
 
 s=0
 w, B, A = 10*tens(w_sd_all[s]).unsqueeze(-1), tens(B_sd_all[s]).unsqueeze(-1), tens(A_sd_all[s]).unsqueeze(-1)

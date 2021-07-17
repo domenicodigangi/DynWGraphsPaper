@@ -27,7 +27,7 @@ X_T = tens(dist_T).log().unsqueeze(2)#torch.tensor((dist_T - dist_T.mean())/dist
 N = Y_T.shape[0]
 N_steps = 20000
 
-# print((unit_measure,  'SS', T_test, ovflw_lm, rescale_score))
+# print((unit_measure,  'SS', T_test, avoid_ovflw_fun_flag, rescale_score))
 #
 # all_models = []
 # #all_models.append(['SS', False, 1])
@@ -43,7 +43,7 @@ N_steps = 20000
 # for rescale_score in [True]:
 #     def fun_to_iter(filter_type, regr_flag, dim_beta):
 #         estimate_and_save_dirBin1_models(Y_T, filter_type, regr_flag, SAVE_FOLD, X_T=X_T, dim_beta=dim_beta,
-#                                          N_steps=N_steps, ovflw_lm=True, T_test=10, rescale_score=rescale_score)
+#                                          N_steps=N_steps, avoid_ovflw_fun_flag=True, T_test=10, rescale_score=rescale_score)
 #
 #
 #     results = Parallel(n_jobs=1)(delayed(fun_to_iter)(filter_type, regr_flag, dim_beta)\
@@ -60,7 +60,7 @@ all_models.append(['SD', True, 1])
 for rescale_score in [False]:
     def fun_to_iter(filter_type, regr_flag, dim_beta):
         estimate_and_save_dirBin1_models(Y_T, filter_type, regr_flag, SAVE_FOLD, X_T=X_T, dim_beta=dim_beta,
-                                         N_steps=N_steps, ovflw_lm=True, T_test=10, rescale_score=rescale_score)
+                                         N_steps=N_steps, avoid_ovflw_fun_flag=True, T_test=10, rescale_score=rescale_score)
 
 
     results = Parallel(n_jobs=1)(delayed(fun_to_iter)(filter_type, regr_flag, dim_beta)\
