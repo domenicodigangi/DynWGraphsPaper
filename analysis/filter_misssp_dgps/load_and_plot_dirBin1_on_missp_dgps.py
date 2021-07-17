@@ -2,25 +2,31 @@
 Estimate directed sparse weighted model on WTN data
 """
 
-import sys
-import numpy as np
-import torch
-sys.path.append("./src/")
-from utils import splitVec, tens
-SAVE_FOLD = './data/estimates_sim_data'
-from dirBin1_dynNets import dirBin1_dynNet_SD
-import matplotlib.pyplot as plt
 
 #%%
-ovflw_lm = True
-rescale_score = False
-distribution = 'bernoulli'
+import os
+import numpy as np
+from numpy.core.fromnumeric import size
+import torch
+from pathlib import Path
+import pickle
+import copy
+import matplotlib.pyplot as plt
+import matplotlib
+# matplotlib.rcParams['text.usetex'] = True
+import dynwgraphs
+from dynwgraphs.utils.tensortools import tens, splitVec
+from dynwgraphs.dirGraphs1_dynNets import  dirBin1_sequence_ss, dirBin1_SD, dirSpW1_SD
+import importlib
+import torch
+from torch.functional import split
+importlib.reload(dynwgraphs)
 
-model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_score, distribution=distribution)
+
+#%%
 
 
-N = 30
-T = 60
+
 degb = tens([5, N-5])
 type_dgp = 'sin'
 n_reg = 1
@@ -39,7 +45,7 @@ N_BA = N
 file_path = SAVE_FOLD + '/filter_missp_dgp_dirBin1'+ \
             '_N_' + str(N) + '_T_' + str(T) + \
             '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \
-            '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+            '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
             '_distr_' + distribution + \
             '_dim_beta_' + str(dim_beta) + \
             '_N_sample_' + str(N_sample) + \

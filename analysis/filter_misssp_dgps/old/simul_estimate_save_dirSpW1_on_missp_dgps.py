@@ -12,9 +12,9 @@ from dirSpW1_dynNets import dirSpW1_dynNet_SD
 N = 30
 T = 100
 rescale_score = False
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 distribution = 'lognormal'#'gamma'##'' #  #
-model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_score, distribution=distribution)
+model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_score, distribution=distribution)
 
 for type_dgp in ['ar1']:#]: #'ar1'
     n_reg = 2
@@ -81,7 +81,7 @@ for type_dgp in ['ar1']:#]: #'ar1'
             B_0 = 0.95 * torch.ones(2*N)
             A_0 = 0.001 * torch.ones(2*N)
             w_0 = phi_T_0.mean(dim=1) * (1-B_0)
-            model = dirSpW1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_score, distribution=distribution)
+            model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_score, distribution=distribution)
 
             w_sd_s, B_sd_s, A_sd_s, dist_par_un_sd_s, beta_sd_s, sd_par_0_s, diag_sd_s = \
                 model.estimate_SD_X0(Y_T_s.clone().detach(), X_T_dgp.clone().detach(),
@@ -110,7 +110,7 @@ for type_dgp in ['ar1']:#]: #'ar1'
                     '_N_' + str(N) + '_T_' + str(T) + \
                     '_const_p_' + str(const_p) + \
                     '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \
-                    '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+                    '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                     '_distr_' + distribution + '_dim_distr_par_' + str(dim_dist_par_un) + \
                     '_dim_beta_' + str(dim_beta) + \
                     '_N_sample_' + str(N_sample) + \

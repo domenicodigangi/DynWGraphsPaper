@@ -10,11 +10,11 @@ SAVE_FOLD = './data/estimates_sim_data'
 from utils import tens
 from dirBin1_dynNets import dirBin1_dynNet_SD
 
-ovflw_lm = True
+avoid_ovflw_fun_flag = True
 rescale_score = False
 distribution = 'bernoulli'
 
-model = dirBin1_dynNet_SD(ovflw_lm=ovflw_lm, rescale_SD=rescale_score, distribution=distribution)
+model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=avoid_ovflw_fun_flag, rescale_SD=rescale_score, distribution=distribution)
 
 N = 30
 T = 100
@@ -99,7 +99,7 @@ for type_dgp in ['sin' ]:#'sin', 'step' # AR1 needs to be fixed
     file_path = SAVE_FOLD + '/filter_missp_dgp_dirBin1'+ \
                 '_N_' + str(N) + '_T_' + str(T) + \
                 '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \
-                '_resc_score_' + str(rescale_score) + '_ovflw_lm_' + str(ovflw_lm) + \
+                '_resc_score_' + str(rescale_score) + '_avoid_ovflw_fun_flag_' + str(avoid_ovflw_fun_flag) + \
                 '_distr_' + distribution + \
                 '_dim_beta_' + str(dim_beta) + \
                 '_N_sample_' + str(N_sample) + \
