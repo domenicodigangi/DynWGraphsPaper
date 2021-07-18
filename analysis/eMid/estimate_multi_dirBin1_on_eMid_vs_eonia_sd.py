@@ -47,6 +47,15 @@ save_path.mkdir(parents=True, exist_ok=True)
 
 #%% Score driven binary phi_T
 estimate_flag = False
+model_bin_0 = dirBin1_sequence_ss(Y_T,  T_train=T_train) 
+
+model_bin_0.opt_options_ss_seq["max_opt_iter"] = 11
+model_bin_0.estimate_ss_seq_joint()
+
+model_bin_0.par_l_to_opt[0].requires_grad
+
+#%% Score driven binary phi_T
+estimate_flag = False
 model_bin_0 = dirBin1_SD(Y_T,  T_train=T_train) 
 
 model_bin_0.run(estimate_flag, save_path)
