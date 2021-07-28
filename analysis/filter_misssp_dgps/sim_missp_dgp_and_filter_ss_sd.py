@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 import click
 
 #%%
-def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=""):
+def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix = ""):
     
     loss_fun = nn.MSELoss()
     phi_T_filt = mod_filt.par_list_to_matrix_T(mod_filt.phi_T)
@@ -56,7 +56,7 @@ def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=""):
     else:
         mse_dist_par_un = 0
     
-    mse_dict = {f"mse_phi_{suffix}":mse_phi, f"mse_all_phi_{suffix}":mse_all_phi, f"mse_beta_{suffix}":mse_beta, f"mse_dist_par_un_{suffix}":mse_dist_par_un}
+    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un}
 
     return mse_dict
 
@@ -121,8 +121,8 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, experimen
 
                 # compute mse for each model and log it 
                 phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1e-3 
-                mse_dict_sd = filt_err(mod_dgp, mod_sd, phi_to_exclude, suffix="sd")
-                mse_dict_ss = filt_err(mod_dgp, mod_ss, phi_to_exclude, suffix="ss")
+                mse_dict_sd = filt_err(mod_dgp, mod_sd, phi_to_exclude, suffix="sd", prefix=k_mod_dgp)
+                mse_dict_ss = filt_err(mod_dgp, mod_ss, phi_to_exclude, suffix="ss", prefix=k_mod_dgp)
 
                 mlflow.log_metrics(mse_dict_sd) 
                 mlflow.log_metrics(mse_dict_ss) 
@@ -155,10 +155,10 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, experimen
 @click.command()
 #"Simulate missp dgp and estimate sd and ss filters"
 @click.option("--n_sim", help="Number of simulations", type=int)
-@click.option("--max_opt_iter", help="max number of opt iter", type=int, default = 5000)
+@click.option("--max_opt_iter", help="max number of opt iter", type=int, default = 15000)
 @click.option("--n_nodes", help="Number of nodes", type=int, default=50)
 @click.option("--n_time_steps", help="Number of time steps", type=int, default = 100)
-@click.option("--type_dgp_phi_bin", help="what kind of dgp should phi_T follow ", type=str, default = "AR")
+@click.option("--type_dgp_phi_bin", help="what kind of dgp should phi_T follow. AR or const_unif_prob", type=str, default = "AR")
 @click.option("--ext_reg_bin_options", help="Options for external regressors and model specification. In order : 1 number of external regressors,  2 size of beta(One for all, N : one per node (both in and out), 2N : two per node, one for in and one for out links), 3 beta_tv (should the regression coefficients, of both dgp and filter, be time varying ?), 4 type_dgp_beta_bin (what kind of dgp should beta_T follow) ", type=(int, str, bool, str), default = (0, "one", False, "AR"))
 
 @click.option("--exclude_weights", help="shall we run the sim only for the binary case? ", type=bool, default = False)
