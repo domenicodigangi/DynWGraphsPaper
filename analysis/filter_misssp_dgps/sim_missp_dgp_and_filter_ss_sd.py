@@ -11,21 +11,16 @@ Created on Saturday July 10th 2021
 
 #%% import packages
 from pathlib import Path
-import argparse
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import dynwgraphs
 from dynwgraphs.utils.tensortools import strIO_from_tens_T, tens, splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import  dirBin1_sequence_ss, dirBin1_SD, dirSpW1_SD, dirSpW1_sequence_ss
-from dynwgraphs.utils.dgps import get_test_w_seq, get_dgp_model, get_default_tv_dgp_par
-import importlib
+from dynwgraphs.utils.dgps import get_dgp_model
 import tempfile
 from pathlib import Path
-from time import sleep
 
-from torch.functional import split
-importlib.reload(dynwgraphs)
 import mlflow
 from joblib import Parallel, delayed
 from torch import nn
@@ -147,10 +142,7 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, experimen
             mlflow.log_artifacts(tmp_path)
 
 
-
-   
-
-
+#%%
 
 @click.command()
 #"Simulate missp dgp and estimate sd and ss filters"
@@ -226,7 +218,13 @@ def run_parallel_simulations(**kwargs):
     run_par_dict = {"dgp_par": dgp_par, "max_opt_iter": kwargs["max_opt_iter"]}
 
 
-    Parallel(n_jobs=kwargs["n_jobs"])(delayed(sample_estimate_and_log)(mod_dgp, run_par_dict, run_data_dict, experiment) for _ in range(kwargs["n_sim"]))
+    def try_one_run(mod_dgp, run_par_dict, run_data_dict, experiment):
+        try:
+            sample_estimate_and_log(mod_dgp, run_par_dict, run_data_dict, experiment)
+        except:
+            logger.warning("Run failed")
+
+    Parallel(n_jobs=kwargs["n_jobs"])(delayed(try_one_run)(mod_dgp, run_par_dict, run_data_dict, experiment) for _ in range(kwargs["n_sim"]))
 
 
 #%% Run
