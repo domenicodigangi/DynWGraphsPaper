@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: ddg-utils
+Version: 0.0.1
+Summary: A small package for utilities
+Home-page: UNKNOWN
+Author: Domenico Di Gangi
+Author-email: digangidomenico@gmail.com
+License: UNKNOWN
+Project-URL: Bug Tracker, 
+Description: This is a package to colect some functions that I (ddg) find useful.
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
