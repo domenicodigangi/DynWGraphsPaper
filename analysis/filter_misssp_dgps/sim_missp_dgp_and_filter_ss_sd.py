@@ -27,6 +27,7 @@ from torch import nn
 import logging 
 logger = logging.getLogger(__name__)
 import click
+from ddg_utils.mlflow import get_and_set_experiment
 
 #%%
 def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix = ""):
@@ -178,21 +179,7 @@ def run_parallel_simulations(**kwargs):
     if not kwargs["exclude_weights"]:
         experiment_name +=  f" weighted {str(dgp_set_w)}"
 
-    experiment = mlflow.get_experiment_by_name(experiment_name)
-    if experiment is None:
-        client = mlflow.tracking.MlflowClient()
-        experiment_id = client.create_experiment(experiment_name)
-        experiment = client.get_experiment(experiment_id)
-
-
-
-    mlflow.set_experiment(experiment_name)
-    print("Name: {}".format(experiment.name))
-    print("Experiment_id: {}".format(experiment.experiment_id))
-    print("Artifact Location: {}".format(experiment.artifact_location))
-    print("Tags: {}".format(experiment.tags))
-    print("Lifecycle_stage: {}".format(experiment.lifecycle_stage))
-
+    get_and_set_experiment(experiment_name)
 
     T = kwargs["n_time_steps"]
     N = kwargs["n_nodes"]

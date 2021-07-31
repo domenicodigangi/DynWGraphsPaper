@@ -18,6 +18,11 @@ from mlflow.tracking.fluent import _get_experiment_id
 import logging 
 logger = logging.getLogger(__name__)
 
+import os
+from urllib.request import url2pathname
+from urllib.parse import urlparse, unquote
+
+
 # functions from https://github.com/mlflow/mlflow/blob/master/examples/multistep_workflow/main.py
 
 def _already_ran(entry_point_name, parameters, git_commit, experiment_id=None):
@@ -98,3 +103,11 @@ def _get_and_set_experiment(experiment_name):
 
 
     return experiment
+
+
+def uri_to_path(uri):
+    parsed = urlparse(uri)
+    host = "{0}{0}{mnt}{0}".format(os.path.sep, mnt=parsed.netloc)
+    return os.path.normpath(
+        os.path.join(host, url2pathname(unquote(parsed.path)))
+    )
