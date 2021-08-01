@@ -23,30 +23,32 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 from pathlib import Path
-from ddg_utils.mlflow import _get_and_set_experiment
+from ddg_utils.mlflow import _get_and_set_experiment, get_fold_namespace
 
 import pandas as pd
-
+import pickle
 
 
 
 @click.command()
-# load process and log data as artifact
+@click.option("--experiment_name", type=str, default="application_eMid" )
 @click.option("--load_path_emid", help="where is the original emid data located?", type=str, default="../../../../data/emid_data/juliaFiles/Weekly_eMid_Data_from_2009_06_22_to_2015_02_27.jld" )
 @click.option("--load_path_eonia", help="where is the eonia rate data located?", type=str, default="../../../../data/emid_data/csvFiles/eonia_rates.csv" )
 
 def load_and_log_data(**kwargs):
+
+    experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
+
 
     with mlflow.start_run() as run:
         # save files in temp folder, then log them as artifacts in mlflow and delete temp fold
         with tempfile.TemporaryDirectory() as tmpdirname:
 
             # set artifacts folders and subfolders
-            tmp_path = Path(tmpdirname)
-            data_fold = tmp_path / "data"
-            data_fold.mkdir(exist_ok=True)
-           
+            tmp_fns = get_fold_namespace(tmpdirname, ["data"])
+            
             logger.info(f"loading eMid data from {kwargs['load_path_emid']}")
+            data_to_save = {}
 
             ld_data = h5py.File(kwargs['load_path_emid'], "r")
             # load networks
@@ -56,6 +58,7 @@ def load_and_log_data(**kwargs):
             years_obs = np.array(ld_data["years"]).astype(int)
             nodes = np.array(ld_data["banksIDs"])
             Y_T = w_mat_T[:, :, 2:]
+            data_to_save["Y_T"] = Y_T
             N = Y_T.shape[0]
             T = Y_T.shape[2]
             obs_dates = [datetime.datetime(year, month, day ) for year, month, day in zip(years_obs, months_obs, days_obs)]
@@ -75,6 +78,9 @@ def load_and_log_data(**kwargs):
             eonia_week = df.resample('W').mean()
             eonia_week.index.weekday.unique()
             all_dates = np.array(eonia_week.index)
+            data_to_save["all_dates"] = all_dates
+            data_to_save["eonia_week"] = eonia_week
+            data_to_save["nodes"] = nodes
 
 
             dens_T  = (Y_T>0).mean(axis=(0, 1))
@@ -85,11 +91,13 @@ def load_and_log_data(**kwargs):
             ax.plot( all_dates, dens_T/dens_T.mean())
             mlflow.log_figure(fig,  "eMid_dens.png")
 
-            np.savez(data_fold / "eMid_numpy.npz", Y_T, all_dates, eonia_week, nodes)
+            np.savez(tmp_fns.data / "eMid_numpy.npz", Y_T, all_dates, eonia_week, nodes)
+
+            pickle.dump(data_to_save, open(tmp_fns.data / "emid_data.pkl", "wb"))
                 
             
             # log all files and sub-folders in temp fold as artifacts            
-            mlflow.log_artifacts(tmp_path)
+            mlflow.log_artifacts(tmp_fns.main)
 
    
 

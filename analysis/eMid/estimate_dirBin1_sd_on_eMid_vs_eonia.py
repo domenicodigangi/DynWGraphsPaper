@@ -23,7 +23,7 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 from pathlib import Path
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path
+from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace
 from dynwgraphs.utils.tensortools import tens, splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import  dirBin1_sequence_ss, dirBin1_SD, dirSpW1_sequence_ss, dirSpW1_SD
 
@@ -35,27 +35,39 @@ import pandas as pd
 
 @click.command()
 @click.option("--experiment_name", type=str, default="application_eMid" )
-@click.option("--max_opt_iter", default=10000, type=int)
-@click.option("--size_beta_t", default="0", type=str)
+@click.option("--max_opt_iter", default=11, type=int)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--bin_or_w", default = "bin", type=str)
+@click.option("--regressor_name", default = "eonia", type=str)
 
-
-def estimate_mod(**kwargs):
+def estimate_multi_models(**kwargs):
 
     experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
 
+    #load data
     with mlflow.start_run() as run:
+
+        mod_0_run, filt_kwargs_0 = estimate_mod( str_size_beta_t = "0", beta_tv = False, **kwargs)
+    
+        mod_1_run, filt_kwargs_1 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
+        
+        mod_2_run, filt_kwargs_2 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_1, "load_path": uri_to_path(mod_1_run.info.artifact_uri)})
+        
+
+
+
+def estimate_mod(**kwargs):
+    logger.info(kwargs)
+    with mlflow.start_run(nested=True) as run:
         with tempfile.TemporaryDirectory() as tmpdirname:
 
-            mlflow.log_params(kwargs)
+            pars_to_log = {k:v for k, v in kwargs.items() if not "prev_mod" in k}
+            mlflow.log_params(pars_to_log)
 
-            # set artifacts folders and subfolders
-            tmp_path = Path(tmpdirname)
-            tb_fold = tmp_path / "tb_logs"
-            tb_fold.mkdir(exist_ok=True)
-
+            # temp fold 
+            tmp_fns = get_fold_namespace(tmpdirname, ["tb_logs"])
+            
             load_and_log_data_run = _get_or_run("load_and_log_data", {}, None)
             load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
 
@@ -72,23 +84,41 @@ def estimate_mod(**kwargs):
 
             T_train =  int(kwargs["train_fract"] * T)
            
-            if kwargs["size_beta_t"] == "0":
-                filt_kwargs = {}
+            if kwargs["str_size_beta_t"] == "0":
+                filt_kwargs = {"T_train" : T_train}
             else:
-                filt_kwargs = {"size_beta_t":kwargs["size_beta_t"], "X_T" : X_T, "beta_tv":kwargs["beta_tv"]}
-    
+                filt_kwargs = {"X_T" : X_T, "beta_tv":kwargs["beta_tv"], "T_train" : T_train}
+                if kwargs["str_size_beta_t"] == "1":
+                    filt_kwargs["size_beta_t"] = 1
+                elif kwargs["str_size_beta_t"] == "N":
+                    filt_kwargs["size_beta_t"] = N
+                elif kwargs["str_size_beta_t"] == "2N":
+                    filt_kwargs["size_beta_t"] = 2*N
+
+
             logger.info(f" start estimates {kwargs['bin_or_w']}")
 
             #estimate models and log parameters and hpar optimization
             if kwargs["bin_or_w"] == "bin":
-                mod_sd = dirBin1_SD(Y_T, **filt_kwargs)
                 mod_ss = dirBin1_sequence_ss(Y_T, **filt_kwargs)
+                mod_sd = dirBin1_SD(Y_T, **filt_kwargs)
+                if "prev_mod" in kwargs.keys():
+                    prev_filt_kwargs = kwargs["prev_mod"]["filt_kwargs"]
+                    prev_mod_sd = dirBin1_SD(Y_T, **prev_filt_kwargs)
+                    prev_mod_sd.load_par(kwargs["prev_mod"]["load_path"])
+                    mod_sd.init_par_from_prev_model(prev_mod_sd)
+                    
             elif kwargs["bin_or_w"] == "w":
-                mod_sd = dirSpW1_SD(Y_T, **filt_kwargs)
                 mod_ss = dirSpW1_sequence_ss(Y_T, **filt_kwargs)
+                mod_sd = dirSpW1_SD(Y_T, **filt_kwargs)
+                if "prev_mod" in kwargs.keys():
+                    prev_filt_kwargs = kwargs["prev_mod"]["filt_kwargs"]
+                    prev_mod_sd = dirSpW1_SD(Y_T, **prev_filt_kwargs)
+                    prev_mod_sd.load_par(kwargs["prev_mod"]["load_path"])
+                    mod_sd.init_par_from_prev_model(prev_mod_sd)
             else:
                 raise
-                
+            
             filt_models = {"sd":mod_sd, "ss":mod_ss}
 
             in_sample_fit = {}
@@ -97,46 +127,48 @@ def estimate_mod(**kwargs):
             for k_filt, mod in filt_models.items():
                 mod.opt_options["max_opt_iter"] = kwargs["max_opt_iter"]
 
-                _, h_par_opt = mod.estimate(tb_save_fold=tb_fold)
+                _, h_par_opt = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 
-                mlflow.log_params({f"{kwargs['bin_or_w']}_{k_filt}_{key}": val for key, val in h_par_opt.items()})
-                mlflow.log_params({f"{kwargs['bin_or_w']}_{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if key not in h_par_opt.keys()})
+                mlflow.log_params({f"{kwargs['bin_or_w']}_{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
+                mlflow.log_params({f"{kwargs['bin_or_w']}_{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
 
-                mod.save_parameters(save_path=tmp_path)
+                mod.save_parameters(save_path=tmp_fns.main)
                 
 
                 # compute mse for each model and log it 
-                in_sample_fit[f"{k_filt}_log_like_T"] = mod.log_like_T()
-                in_sample_fit[f"{k_filt}_BIC"] = mod.log_like_T()
+                in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
+                in_sample_fit[f"{k_filt}_BIC"] = mod.loglike_seq_T().item()
                 
-                out_sample_fit[f"{k_filt}_out_of_sample"] = mod.out_sample_eval()
+                out_sample_fit[f"{k_filt}_out_of_sample"] = mod.out_of_sample_eval()
 
+                try:
+                    # log plots that can be useful for quick visual diagnostic 
+                    mlflow.log_figure(mod.plot_phi_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_all.png")
 
-                # log plots that can be useful for quick visual diagnostic 
-                mlflow.log_figure(mod.plot_phi_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_all.png")
+                    phi_to_exclude = strIO_from_tens_T(mod.Y_T) < 1e-3 
+                    i=torch.where(~splitVec(phi_to_exclude)[0])[0][0]
 
-                phi_to_exclude = strIO_from_tens_T(mod.Y_T) < 1e-3 
-                i=torch.where(~splitVec(phi_to_exclude)[0])[0][0]
-
-                mlflow.log_figure(mod.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_phi_ind_{i}.png")
-                
-                mlflow.log_figure(mod_ss.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_ss_filt_phi_ind_{i}.png")
-                
-                if mod.any_beta_tv():
-                    mlflow.log_figure(mod.plot_beta_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_beta_T.png")
+                    mlflow.log_figure(mod.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_phi_ind_{i}.png")
+                    
+                    mlflow.log_figure(mod_ss.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_ss_filt_phi_ind_{i}.png")
+                    
+                    if mod.any_beta_tv():
+                        mlflow.log_figure(mod.plot_beta_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_beta_T.png")
+                except:
+                    logger.error("Error in producing or saving figures")
 
             mlflow.log_metrics(in_sample_fit) 
             mlflow.log_metrics(out_sample_fit) 
             
         
             # log all files and sub-folders in temp fold as artifacts            
-            mlflow.log_artifacts(tmp_path)
+            mlflow.log_artifacts(tmp_fns.main)
 
-
+    return run, filt_kwargs
 
 #%% Run
 if __name__ == "__main__":
-    estimate_mod()
+    estimate_multi_models()
 
 # %%
 
@@ -174,4 +206,4 @@ if __name__ == "__main__":
 
 #%% Run
 if __name__ == "__main__":
-    load_and_log_data()
+    estimate_mod()

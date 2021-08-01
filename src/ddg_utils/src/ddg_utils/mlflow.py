@@ -111,3 +111,23 @@ def uri_to_path(uri):
     return os.path.normpath(
         os.path.join(host, url2pathname(unquote(parsed.path)))
     )
+
+
+from pathlib import Path
+from types import SimpleNamespace
+
+
+
+def get_fold_namespace(dirname, subfolds_list):
+    """
+    create required subfolders and return namsepace
+            create required subfolders and return namsepace)
+    """
+    fns = SimpleNamespace()
+    # set artifacts folders and subfolders
+    fns.main = Path(dirname)
+    for sub in subfolds_list:
+        fns.__dict__[sub] = fns.main / sub
+        fns.__dict__[sub].mkdir(exist_ok=True)
+
+    return fns
