@@ -35,7 +35,7 @@ import pandas as pd
 
 @click.command()
 @click.option("--experiment_name", type=str, default="application_eMid" )
-@click.option("--max_opt_iter", default=11, type=int)
+@click.option("--max_opt_iter", default=11000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--bin_or_w", default = "bin", type=str)
@@ -53,6 +53,10 @@ def estimate_multi_models(**kwargs):
         mod_1_run, filt_kwargs_1 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
         
         mod_2_run, filt_kwargs_2 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_1, "load_path": uri_to_path(mod_1_run.info.artifact_uri)})
+        
+        mod_3_run, filt_kwargs_3 = estimate_mod(**kwargs, str_size_beta_t = "2N", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
+        
+        mod_4_run, filt_kwargs_4 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_3, "load_path": uri_to_path(mod_3_run.info.artifact_uri)})
         
 
 
@@ -137,7 +141,7 @@ def estimate_mod(**kwargs):
 
                 # compute mse for each model and log it 
                 in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
-                in_sample_fit[f"{k_filt}_BIC"] = mod.loglike_seq_T().item()
+                in_sample_fit[f"{k_filt}_BIC"] = mod.get_BIC().item()
                 
                 out_sample_fit[f"{k_filt}_out_of_sample"] = mod.out_of_sample_eval()
 
