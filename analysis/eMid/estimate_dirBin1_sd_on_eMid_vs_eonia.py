@@ -43,6 +43,9 @@ import pandas as pd
 @click.option("--regressor_name", default = "eonia", type=str)
 
 def estimate_multi_models(**kwargs):
+    if kwargs["max_opt_iter"] < 500:
+        logger.warning("Too few opt iter. assuming this is a test run")
+        kwargs["experiment_name"] = "test"
 
     experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
 
