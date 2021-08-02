@@ -34,8 +34,9 @@ import pandas as pd
 #%%
 
 @click.command()
-@click.option("--experiment_name", type=str, default="application_eMid" )
+@click.option("--experiment_name", type=str, default="eMid_application" )
 @click.option("--max_opt_iter", default=11000, type=int)
+@click.option("--opt_n", default="ADAMHD", type=str)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--bin_or_w", default = "bin", type=str)
@@ -47,6 +48,8 @@ def estimate_multi_models(**kwargs):
 
     #load data
     with mlflow.start_run() as run:
+        logger.info(kwargs)
+        mlflow.log_params(kwargs)
 
         mod_0_run, filt_kwargs_0 = estimate_mod( str_size_beta_t = "0", beta_tv = False, **kwargs)
     
@@ -56,7 +59,7 @@ def estimate_multi_models(**kwargs):
         
         mod_3_run, filt_kwargs_3 = estimate_mod(**kwargs, str_size_beta_t = "2N", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
         
-        mod_4_run, filt_kwargs_4 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_3, "load_path": uri_to_path(mod_3_run.info.artifact_uri)})
+        mod_4_run, filt_kwargs_4 = estimate_mod(**kwargs, str_size_beta_t = "2N", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_3, "load_path": uri_to_path(mod_3_run.info.artifact_uri)})
         
 
 
@@ -72,7 +75,7 @@ def estimate_mod(**kwargs):
             # temp fold 
             tmp_fns = get_fold_namespace(tmpdirname, ["tb_logs"])
             
-            load_and_log_data_run = _get_or_run("load_and_log_data", {}, None)
+            load_and_log_data_run = _get_or_run("load_and_log_data", {"experiment_name":kwargs["experiment_name"]}, None)
             load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
 
             load_file = Path(load_path) / "data" / "eMid_numpy.npz" 
@@ -89,7 +92,7 @@ def estimate_mod(**kwargs):
             T_train =  int(kwargs["train_fract"] * T)
            
             if kwargs["str_size_beta_t"] == "0":
-                filt_kwargs = {"T_train" : T_train}
+                filt_kwargs = {"T_train" : T_train, "max_opt_iter":kwargs["max_opt_iter"], "opt_n":kwargs["opt_n"]}
             else:
                 filt_kwargs = {"X_T" : X_T, "beta_tv":kwargs["beta_tv"], "T_train" : T_train}
                 if kwargs["str_size_beta_t"] == "1":
@@ -129,12 +132,10 @@ def estimate_mod(**kwargs):
             out_sample_fit = {}
 
             for k_filt, mod in filt_models.items():
-                mod.opt_options["max_opt_iter"] = kwargs["max_opt_iter"]
-
                 _, h_par_opt = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 
-                mlflow.log_params({f"{kwargs['bin_or_w']}_{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
-                mlflow.log_params({f"{kwargs['bin_or_w']}_{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
+                mlflow.log_params({f"{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
+                mlflow.log_params({f"{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
 
                 mod.save_parameters(save_path=tmp_fns.main)
                 
@@ -143,7 +144,8 @@ def estimate_mod(**kwargs):
                 in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
                 in_sample_fit[f"{k_filt}_BIC"] = mod.get_BIC().item()
                 
-                out_sample_fit[f"{k_filt}_out_of_sample"] = mod.out_of_sample_eval()
+                for k, v in mod.out_of_sample_eval().items():
+                    out_sample_fit[f"{k_filt}_out_of_sample_{k}"] = v 
 
                 try:
                     # log plots that can be useful for quick visual diagnostic 
