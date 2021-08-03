@@ -19,7 +19,6 @@ import dynwgraphs
 from dynwgraphs.utils.tensortools import tens, splitVec
 from dynwgraphs.dirGraphs1_dynNets import  dirBin1_sequence_ss, dirBin1_SD, dirSpW1_SD
 import mlflow
-import click
 import importlib
 from torch.functional import split
 importlib.reload(dynwgraphs)
@@ -47,56 +46,58 @@ N, _, T = Y_T.shape
 X_T = tens(np.tile(eonia_w.T, (N, N, 1, 1)))
 T_train =  int(train_fract * T)
 
-max_opt_iter = 15000
+max_opt_iter = 10
 #%% Score driven binary phi_T
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter}
 
 model_bin_0 = dirBin1_SD(Y_T, **filt_kwargs)
-
 # model_bin_0.estimate()
-model_bin_0.load_par( uri_to_path("file:///D:/pCloud/Dynamic_Networks/repos/DynWGraphsPaper/analysis/eMid/mlruns/1/2eeeee68399e4ff8bcdfea9f4b8c6f01/artifacts/")) 
+
+run_0 = mlflow.get_run(run_id = "8e9bd87be0fd4e39a0a76b9097e9aa6a")
+model_bin_0.load_par( uri_to_path(run_0.info.artifact_uri)) 
 
 model_bin_0.plot_phi_T()
+model_bin_0.beta_T
 model_bin_0.out_of_sample_eval()
+model_bin_0.loglike_seq_T()
 
 #%% Score driven binary phi_T with const regr
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":1, "beta_tv":False}
 
 model_bin_1 = dirBin1_SD(Y_T, **filt_kwargs)
-model_bin_1.init_par_from_model_without_beta(model_bin_0)
-model_bin_1.estimate_sd()
-model_bin_1.beta_T[0].is_leaf
-model_bin_1.phi_T[0].is_leaf
+# model_bin_1.init_par_from_model_without_beta(model_bin_0)
+# model_bin_1.estimate_sd()
+
+run_1 = mlflow.get_run(run_id = "1e1fb37e2e36472faff090a13a96ee0e")
+model_bin_1.load_par( uri_to_path(run_1.info.artifact_uri)) 
+
+
+model_bin_1.beta_T
+model_bin_1.loglike_seq_T()
+model_bin_1.out_of_sample_eval()
+
+
+
+
 
 #%% Score driven binary phi_T with time varying regr
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":1, "beta_tv":True}
 
 model_bin_2 = dirBin1_SD(Y_T, **filt_kwargs)
-model_bin_2.init_par_from_model_with_const_par(model_bin_1)
+# model_bin_2.init_par_from_model_with_const_par(model_bin_1)
+# model_bin_2.estimate()
+run_2 = mlflow.get_run(run_id = "")
+model_bin_2.load_par( uri_to_path(run_2.info.artifact_uri)) 
 
-model_bin_2.roll_sd_filt_train()
-
-model_bin_2.get_unc_mean(model_bin_2.sd_stat_par_un_beta)
-model_bin_2.un2re_A_par(model_bin_2.sd_stat_par_un_beta["A"])
-model_bin_2.loglike_seq_T()
-model_bin_1.loglike_seq_T()
-model_bin_2.plot_beta_T()
-
-#%% Score driven weighted phi_T
+#%% Score driven binary phi_T with const 
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":2*N, "beta_tv":False}
 
 model_bin_3 = dirBin1_SD(Y_T, **filt_kwargs)
-model_bin_3.init_par_from_model_without_beta(model_bin_0)
-model_bin_3.beta_T
+run_3 = mlflow.get_run(run_id = "3857fb74659b4717b90cfb1318965d7e")
+model_bin_3.load_par( uri_to_path(run_3.info.artifact_uri)) 
 
-model_bin_3.estimate_sd()
-model_bin_3.par_dict_to_save
-
-
-model_bin_3.loglike_seq_T()
-model_bin_3.plot_phi_T()
-model_bin_0.loglike_seq_T()
-model_bin_0.plot_phi_T()
+# model_bin_3.init_par_from_model_without_beta(model_bin_0)
+# model_bin_3.estimate_sd()
 
 
 
@@ -124,21 +125,3 @@ model_w_2.load_or_est(estimate_flag, save_path)
 
 
 # %%
-
-dates = all_dates[:T_train]
-_, _, beta_bin = model_bin_2.get_seq_latent_par()
-_, _, beta_w = model_w_2.get_seq_latent_par()
-
-fig, ax1 = plt.subplots(figsize = (10, 6))
-ax2 = ax1.twinx()
-
-ax1.plot(dates, beta_bin.squeeze(), 'g-')
-ax2.plot(dates, beta_w.squeeze(), 'b-')
-
-ax1.set_ylabel(r'$\beta_{bin}$', color='b', size=20)
-ax2.set_ylabel(r'$\beta_w$', color='g', size=20)
-ax1.tick_params(axis='x', labelrotation=45)
-ax1.grid()
-plt.show()
-# %%
-
