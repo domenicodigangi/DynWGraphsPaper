@@ -31,7 +31,7 @@ import pickle
 
 
 @click.command()
-@click.option("--experiment_name", type=str, default="application_eMid" )
+@click.option("--experiment_name", type=str, default="eMid_application" )
 @click.option("--load_path_emid", help="where is the original emid data located?", type=str, default="../../../../data/emid_data/juliaFiles/Weekly_eMid_Data_from_2009_06_22_to_2015_02_27.jld" )
 @click.option("--load_path_eonia", help="where is the eonia rate data located?", type=str, default="../../../../data/emid_data/csvFiles/eonia_rates.csv" )
 
@@ -58,7 +58,9 @@ def load_and_log_data(**kwargs):
             years_obs = np.array(ld_data["years"]).astype(int)
             nodes = np.array(ld_data["banksIDs"])
             Y_T = w_mat_T[:, :, 2:]
+            Y_tm1_T = w_mat_T[:, :,1:-1]
             data_to_save["Y_T"] = Y_T
+            data_to_save["Y_tm1_T"] = Y_tm1_T
             N = Y_T.shape[0]
             T = Y_T.shape[2]
             obs_dates = [datetime.datetime(year, month, day ) for year, month, day in zip(years_obs, months_obs, days_obs)]
@@ -91,7 +93,7 @@ def load_and_log_data(**kwargs):
             ax.plot( all_dates, dens_T/dens_T.mean())
             mlflow.log_figure(fig,  "eMid_dens.png")
 
-            np.savez(tmp_fns.data / "eMid_numpy.npz", Y_T, all_dates, eonia_week, nodes)
+            # np.savez(tmp_fns.data / "eMid_numpy.npz", Y_T, all_dates, eonia_week, nodes)
 
             pickle.dump(data_to_save, open(tmp_fns.data / "emid_data.pkl", "wb"))
                 

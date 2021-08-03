@@ -23,43 +23,60 @@ import importlib
 from torch.functional import split
 importlib.reload(dynwgraphs)
 from ddg_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run
-
-
+from mlflow.tracking.client import MlflowClient
+from mlflow.entities import ViewType
+import pickle
 #%% 
 unit_meas = 1e4
 train_fract = 3/4
-experiment_name = f"application_eMid"
+experiment_name = f"eMid_application"
 
 experiment = _get_and_set_experiment(experiment_name)
 
 load_and_log_data_run = _get_or_run("load_and_log_data", {}, None)
+
 load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
 
-load_file = Path(load_path) / "data" / "eMid_numpy.npz" 
+load_file = Path(load_path) / "data" / "eMid_data.pkl" 
 
-ld_data = np.load(load_file, allow_pickle=True)
+ld_data = pickle.load(open(load_file, "rb"))
 
-eMid_w_T, all_dates, eonia_w, nodes = ld_data["arr_0"], ld_data["arr_1"], ld_data["arr_2"], ld_data["arr_3"]
-
-Y_T = tens(eMid_w_T / unit_meas) 
+Y_T = tens(ld_data["Y_T"] / unit_meas) 
+Y_tm1_T = tens(ld_data["Y_tm1_T"] / unit_meas) 
 N, _, T = Y_T.shape
-X_T = tens(np.tile(eonia_w.T, (N, N, 1, 1)))
+X_T = tens(np.tile(ld_data["eonia_week"].T, (N, N, 1, 1)))
 T_train =  int(train_fract * T)
+from types import SimpleNamespace
+net_stats = SimpleNamespace()
+net_stats.__dict__.update({
+    "avg_degs_i":(eMid_w_T >0).sum(axis = (0)).mean(axis=1),
+    "avg_degs_o":(eMid_w_T >0).sum(axis = (1)).mean(axis=1),
+    "avg_str_i":(eMid_w_T).sum(axis = (0)).mean(axis=1),
+    "avg_str_o":(eMid_w_T).sum(axis = (1)).mean(axis=1),
+    "eonia_T":eonia_w
+})
 
 max_opt_iter = 10
 #%% Score driven binary phi_T
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter}
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "beta_tv": False}
 
 model_bin_0 = dirBin1_SD(Y_T, **filt_kwargs)
 # model_bin_0.estimate()
 
-run_0 = mlflow.get_run(run_id = "8e9bd87be0fd4e39a0a76b9097e9aa6a")
+filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '0' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_0 = runs[0] if len(runs) == 1 else None
+
 model_bin_0.load_par( uri_to_path(run_0.info.artifact_uri)) 
 
 model_bin_0.plot_phi_T()
 model_bin_0.beta_T
 model_bin_0.out_of_sample_eval()
 model_bin_0.loglike_seq_T()
+
+model_bin_0.plot_phi_T()
 
 #%% Score driven binary phi_T with const regr
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":1, "beta_tv":False}
@@ -68,7 +85,12 @@ model_bin_1 = dirBin1_SD(Y_T, **filt_kwargs)
 # model_bin_1.init_par_from_model_without_beta(model_bin_0)
 # model_bin_1.estimate_sd()
 
-run_1 = mlflow.get_run(run_id = "1e1fb37e2e36472faff090a13a96ee0e")
+filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_1 = runs[0] if len(runs) == 1 else None
+
 model_bin_1.load_par( uri_to_path(run_1.info.artifact_uri)) 
 
 
@@ -77,51 +99,158 @@ model_bin_1.loglike_seq_T()
 model_bin_1.out_of_sample_eval()
 
 
-
-
-
 #%% Score driven binary phi_T with time varying regr
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":1, "beta_tv":True}
 
 model_bin_2 = dirBin1_SD(Y_T, **filt_kwargs)
 # model_bin_2.init_par_from_model_with_const_par(model_bin_1)
 # model_bin_2.estimate()
-run_2 = mlflow.get_run(run_id = "")
+filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_2 = runs[0] if len(runs) == 1 else None
+
 model_bin_2.load_par( uri_to_path(run_2.info.artifact_uri)) 
 
 #%% Score driven binary phi_T with const 
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":2*N, "beta_tv":False}
 
 model_bin_3 = dirBin1_SD(Y_T, **filt_kwargs)
-run_3 = mlflow.get_run(run_id = "3857fb74659b4717b90cfb1318965d7e")
+filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_3 = runs[0] if len(runs) == 1 else None
+
 model_bin_3.load_par( uri_to_path(run_3.info.artifact_uri)) 
+
+beta_in, beta_out = splitVec(model_bin_3.beta_T[0].detach())
+
+plt.scatter(beta_in, beta_out)
 
 # model_bin_3.init_par_from_model_without_beta(model_bin_0)
 # model_bin_3.estimate_sd()
 
+#%% Score driven binary phi_T with tv beta
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":2*N, "beta_tv":True}
+
+model_bin_4 = dirBin1_SD(Y_T, **filt_kwargs)
+filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_4 = runs[0] if len(runs) == 1 else None
+model_bin_4.load_par( uri_to_path(run_4.info.artifact_uri)) 
+
+plt.scatter(model_bin_3.beta_T[0].detach(), model_bin_4.beta_T[0].detach())
 
 
-#%% Score driven weighted phi_T with constant beta
-estimate_flag = False
+#%% Score driven weighted phi_T
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "beta_tv":False}
 
-model_w_1 = dirSpW1_SD(Y_T, T_train=T_train, X_T=X_T,  size_beta_t=1, beta_tv=[False]) # 
+model_w_0 = dirSpW1_SD(Y_T, **filt_kwargs)
+# model_w_0.estimate()
 
-model_w_1.load_or_est(estimate_flag, save_path)
+filter_string = f"parameters.bin_or_w = 'w' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '0' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_0 = runs[0] if len(runs) == 1 else None
+model_w_0.load_par( uri_to_path(run_0.info.artifact_uri)) 
+
+model_w_0.plot_phi_T()
+model_w_0.beta_T
+model_w_0.out_of_sample_eval()
+
+#%% Score driven weighted phi_T with const regr
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":1, "beta_tv":False}
+
+model_w_1 = dirSpW1_SD(Y_T, **filt_kwargs)
+# model_w_1.init_par_from_model_without_beta(model_w_0)
+# model_w_1.estimate_sd()
+
+filter_string = f"parameters.bin_or_w = 'w' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+run_1 = runs[0] if len(runs) == 1 else None
+model_w_1.load_par( uri_to_path(run_1.info.artifact_uri)) 
 
 
-#%% Score driven weighted phi_T with time varying beta
-estimate_flag = False
+model_w_1.beta_T
+model_w_1.loglike_seq_T()
+model_w_1.out_of_sample_eval()
 
-model_w_2 = dirSpW1_SD(Y_T, T_train=T_train, X_T=X_T,  size_beta_t=1, beta_tv=[True]) # 
 
-model_w_2.sd_stat_par_un_beta["A"].data = model_w_2.re2un_A_par(torch.ones(1)*0.000001)
+#%% Score driven weighted phi_T with time varying regr
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":1, "beta_tv":True}
 
-model_w_2.opt_options_sd["lr"] = 0.001
-model_w_2.opt_options_sd["opt_n"] = "LBFGS"
-
+model_w_2 = dirSpW1_SD(Y_T, **filt_kwargs)
 # model_w_2.init_par_from_model_with_const_par(model_w_1)
+# model_w_2.estimate()
+filter_string = f"parameters.bin_or_w = 'w' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "
 
-model_w_2.load_or_est(estimate_flag, save_path)
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
 
+run_2 = runs[0] if len(runs) == 1 else None
+model_w_2.load_par( uri_to_path(run_2.info.artifact_uri)) 
+model_w_2.out_of_sample_eval()
+
+
+#%% Score driven weighted phi_T with const 
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":2*N, "beta_tv":False}
+
+model_w_3 = dirSpW1_SD(Y_T, **filt_kwargs)
+filter_string = f"parameters.bin_or_w = 'w' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_3 = runs[0] if len(runs) == 1 else None
+model_w_3.load_par( uri_to_path(run_3.info.artifact_uri)) 
+
+beta_const = model_w_3.beta_T[0].detach()
+beta_in, beta_out = splitVec(beta_const)
+
+#%% Explore results
+plt.plot(beta_in, beta_out, ".")
+plt.loglog(net_stats.avg_str_i, beta_in, ".")
+plt.loglog(net_stats.avg_str_i, -beta_in, ".")
+plt.loglog(net_stats.avg_str_o, beta_out, ".")
+plt.loglog(net_stats.avg_str_o, -beta_out, ".")
+
+#%%
+val, inds = torch.topk(beta_out, 25, dim=0)
+k = 3
+i = inds[k]
+fig, ax = model_w_0.plot_phi_T(i = i)
+model_w_3.plot_phi_T(i = i, fig_ax = (fig, ax))
+
+model_w_3.plot_phi_T()
+model_w_0.plot_phi_T()
+
+# plt.plot(net_stats.eonia_T)
+beta_in[i]
+beta_out[i]
+
+# model_w_3.init_par_from_model_without_beta(model_w_0)
+# model_w_3.estimate_sd()
+
+#%% Score driven weighted phi_T with tv beta
+filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":2*N, "beta_tv":True}
+
+model_w_4 = dirSpW1_SD(Y_T, **filt_kwargs)
+filter_string = f"parameters.bin_or_w = 'w' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "
+
+runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
+
+run_4 = runs[0] if len(runs) == 1 else None
+model_w_4.load_par( uri_to_path(run_4.info.artifact_uri)) 
+
+plt.scatter(model_w_3.beta_T[0].detach(), model_w_4.beta_T[0].detach())
+
+
+
+# model_w_4.init_par_from_model_without_beta(model_w_0)
+# model_w_4.estimate_sd()
 
 # %%
