@@ -12,3 +12,5 @@ runs/
 tb_logs/
 
 data_dynwgraphs_model/
+
+.vscode/
