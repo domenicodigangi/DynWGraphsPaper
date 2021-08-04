@@ -68,7 +68,7 @@ for mod_info in list_all_models:
 inds_gamma = [mod[1] == 'gamma' for mod in list_all_models]
 inds_logn = [not  mod[1] == 'gamma' for mod in list_all_models]
 
-#%% load all estimates
+# %% load all estimates
 all_par_SS = []
 n_pars = []
 for filter_type, distribution, dim_dist_par, regr_flag, dim_beta, N_steps, learn_rate, SAVE_FOLD in \
@@ -97,7 +97,7 @@ for filter_type, distribution, dim_dist_par, regr_flag, dim_beta, N_steps, learn
     if regr_flag:
         n_reg = X_T.shape[2]
     n_pars.append(3*2*N + dim_dist_par + dim_beta * n_reg)
-#%% Filter all
+# %% Filter all
 all_exp_Y = []
 all_phi_T = []
 for m in range(len(all_par_SS)):
@@ -133,7 +133,7 @@ for m in range(len(all_par_SD)):
     all_phi_T.append(phi_sd_est_T)
 
 
-#%% Compute Gof measures in and out of sample
+# %% Compute Gof measures in and out of sample
 def gof_measures_w(obs, pred, n_rem=1):
     diff = (obs - pred).sort()[0]
     diff = diff[n_rem:-n_rem]
@@ -164,7 +164,7 @@ mod_x_labels = [str(list_all_models[i][0]) + ' ' + str(list_all_models[i][4]) fo
 max_Y = np.array([Y.max().log10().round().item() for Y in all_exp_Y] )
 max_Y_train = np.array([Y[:, :, :T_train].max().log10().round().item() for Y in all_exp_Y] )
 
-#%%
+# %%
 print(gof_test[inds_gamma, 1])
 print(max_Y[inds_gamma])
 print(gof_test[inds_logn, 1])
@@ -183,7 +183,7 @@ plt.legend(['Gamma In Sample', 'Lognormal In Sample', 'Gamma Out of Sample', 'Lo
 plt.grid()
 plt.tight_layout()
 
-#%%
+# %%
 plt.close()
 plt.plot(all_par_SD[2][6])
 all_par_SD[2][1]
@@ -191,7 +191,7 @@ all_par_SD[3][4]
 all_par_SS[2][2]
 
 
-#%%
+# %%
 m=0
 ind_pl = 55
 plt.close('all')
@@ -209,7 +209,7 @@ all_par_SD[m][2].max()
 
 
 # all_par_SD[m+1][2][ind_pl]
-#%%
+# %%
 
 model = dirSpW1_dynNet_SD(avoid_ovflw_fun_flag=False, distribution=list_all_models[len(all_par_SS):][m][1], rescale_SD=False)
 model.backprop_sd = True
@@ -229,10 +229,10 @@ plt.plot(A_est)
 plt.plot(A_est, phi_sd_est_T.std(dim=1).detach(), '.')
 plt.plot(phi_sd_est_T.transpose(0,1))
 
-#%%
+# %%
 #
 
-#%%
+# %%
 N_plot = 50
 plt.close('all')
 plt.figure()
@@ -244,21 +244,21 @@ plt.plot(all_phi_T[6].detach().numpy().transpose()[:, 0:N_plot], '--')
 # plt.figure()
 # plt.plot(all_phi_T[7].detach().numpy().transpose()[:, 0:N_plot])
 
-#%%
-#%%
+# %%
+# %%
 
 plt.close()
 x = tens(range(-50, 50))/10
 #plt.plot(all_y, Y_T.sum(dim=(0,1)).log())
 plt.plot(x, 1- ((x).tanh()**2))
 
-#%%
+# %%
 
 
 
 
 
-#%%
+# %%
 
 import statsmodels.api as sm
 
@@ -302,7 +302,7 @@ def ecdf(x, log=True):
         x = torch.sort(x.view(-1))[0]
         p = tens(1. * np.arange(x.shape[0]) / (x.shape[0] - 1))
         plt.plot(x, p)
-#%%
+# %%
 
 T_test = 10
 T_train = T-T_test
@@ -336,7 +336,7 @@ for m_plot in range(4):
 
 
 
-#%%
+# %%
 
 #plt.close()
 ecdf(log_res_T.abs(), log=False)

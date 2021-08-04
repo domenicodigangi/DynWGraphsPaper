@@ -11,7 +11,7 @@ SAVE_FOLD = './data/estimates_sim_data'
 from dirSpW1_dynNets import dirSpW1_dynNet_SD
 import matplotlib.pyplot as plt
 
-#%%
+# %%
 avoid_ovflw_fun_flag = True
 rescale_score = True
 distribution = 'lognormal'
@@ -58,7 +58,7 @@ model.cond_exp_Y(tens(w_dgp/(1-B_dgp))).sum()
 
 tens(Y_T_dgp_all[:, :, 0, 0]).sum()
 
-#%%
+# %%
 plt.close()
 plt.figure(figsize=(10, 7))
 plt.subplot(3, 1, 1)
@@ -75,7 +75,7 @@ plt.axvline(A_dgp[0], color='r')
 plt.legend( ['A DGP', 'A EST'])
 plt.suptitle('SD estimates of SD DGP, T = ' + str(T) +', N = ' + str(N) +  ', Distribution = ' + distribution + ', Rescaling = ' + str(rescale_score) +  '  P-link = ' + str(const_p))
 
-#%%
+# %%
 
 
 

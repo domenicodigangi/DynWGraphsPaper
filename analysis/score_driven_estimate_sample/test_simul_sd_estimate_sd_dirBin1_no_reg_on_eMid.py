@@ -97,7 +97,7 @@ opt_algo_list = ["ADAM"] # ["LBFGS"] # ["ADAMHD"] # ["LBFGS"] #["SGDHD"] #  ], ]
 store_par = {par_name: {opt_algo: {lr: np.zeros((2*N, n_sample)) for lr in [0.5, 0.05, 0.005]} for opt_algo in opt_algo_list}
            for par_name in ["W", "B", "A"]}
 
-#%%
+# %%
 print_every = 1
 opt_algo = opt_algo_list[0]
 lr = lrs[opt_algo][0]

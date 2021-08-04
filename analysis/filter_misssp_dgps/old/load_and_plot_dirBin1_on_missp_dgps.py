@@ -3,7 +3,7 @@ Estimate directed sparse weighted model on WTN data
 """
 
 
-#%%
+# %%
 import os
 import numpy as np
 from numpy.core.fromnumeric import size
@@ -23,7 +23,7 @@ from torch.functional import split
 importlib.reload(dynwgraphs)
 
 
-#%%
+# %%
 
 
 
@@ -60,7 +60,7 @@ l_dat["arr_2"], l_dat["arr_3"], l_dat["arr_4"], l_dat["arr_5"], l_dat["arr_6"], 
 l_dat["arr_9"], l_dat["arr_10"], l_dat["arr_11"]
 
 
-#%%
+# %%
 plt.close()
 i_plot = 1
 plt.plot(phi_T_ss_all[i_plot, :, :], '.b', markersize=0.5)
@@ -68,7 +68,7 @@ plt.plot(phi_T_sd_all[i_plot, :, :], '-r', linewidth=0.5)
 plt.plot(phi_T_dgp[i_plot, :], '-k', linewidth=5)
 plt.legend(['Single Snapshot', 'Score Driven', 'DGP'])
 
-#%%
+# %%
 
 
 

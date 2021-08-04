@@ -53,7 +53,7 @@ inds_gamma = [  mod[1]=='gamma' for mod in list_all_models]
 inds_logn = [not  mod[1]=='gamma' for mod in list_all_models]
 
 
-#%% load all estimates
+# %% load all estimates
 all_par_SS = []
 n_pars = []
 for filter_type, distribution, dim_dist_par, regr_flag, dim_beta in list_all_models[:6]:
@@ -109,7 +109,7 @@ for m in range(len(all_par_SD)):
                                       beta_const=None, X_T=None, dist_par_un=tens(dist_par_un_est))
     all_log_l.append(log_l.item())
 
-#%%
+# %%
 from scipy.stats import chi2
 #from utils import likel_ratio_p_val
 def likel_ratio_p_val(logl_0, logl_1, df):
@@ -125,7 +125,7 @@ p_value = chi2.sf(G, df)
 print(list_all_models[ind_0], list_all_models[ind_1])
 print(G, chi2.mean(df), df, p_value)
 
-#%% AIC and BIC
+# %% AIC and BIC
 def model_selec_crit(log_like, k, n):
     aic = 2*k - 2*log_like
     aic_c = aic + (2*k**2 + 2*k)/(n-k-1)
@@ -163,10 +163,10 @@ plt.tight_layout()
 plt.legend(['AIC', 'BIC'])
 plt.grid()
 
-#%%
+# %%
 
 
-#%%
+# %%
 
 
 

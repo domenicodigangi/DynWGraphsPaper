@@ -29,7 +29,7 @@ T = Y_T.shape[2]
 
 SAVE_FOLD = './data/estimates_real_data/WTN'
 
-#%% SS weighted no reg
+# %% SS weighted no reg
 N_steps = 10000
 learn_rate = 0.01
 avoid_ovflw_fun_flag = True
@@ -84,7 +84,7 @@ for distribution in ['gamma', 'lognormal']:
     all_mod.append(model)
     all_mod_beta.append(beta_est)
 
-#%% general data analysis
+# %% general data analysis
 
 import statsmodels.api as sm
 
@@ -131,7 +131,7 @@ def ecdf(x, log=True):
         x = torch.sort(x.view(-1))[0]
         p = tens(1. * np.arange(x.shape[0]) / (x.shape[0] - 1))
         plt.plot(x, p)
-#%%
+# %%
 
 T_test = 10
 T_train = T-T_test
@@ -165,7 +165,7 @@ for m_plot in range(4):
 
 
 
-#%%
+# %%
 
 #plt.close()
 ecdf(log_res_T.abs(), log=False)
@@ -178,7 +178,7 @@ ecdf_log(Y_T)
 res_T.abs().sum()
 Y_T.abs().sum()
 
-#%%
+# %%
 file_path = SAVE_FOLD + '/WTN_dirSpW1_dynNet_SD_est_lr_' + \
             str(learn_rate) + '_N_' + str(N) + '_T_' + str(T) + \
             '_N_steps_' + str(N_steps_max) + '_N_BA_' + str(N_BA) + \

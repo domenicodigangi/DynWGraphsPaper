@@ -24,7 +24,7 @@ obs_dates = [datetime.datetime(year, month, day ) for year, month, day in zip(ye
 obs_dates = np.array(obs_dates).astype(np.datetime64)
 obs_dates=obs_dates[2:]
 
-#%% load eonia data
+# %% load eonia data
 import pandas as pd
 df = pd.read_csv("../../data/emid_data/csvFiles/eonia_rates.csv", skiprows=5, header=None,
                  usecols=[0, 1], names=['date', 'rate_eonia'])
@@ -41,14 +41,14 @@ all_dates = np.array(eonia_week.index)
 obs_dates.shape
 all_dates.shape
 
-#%%
+# %%
 dens_T  = (Y_T>0).mean(axis=(0, 1))
 plt.close()
 plt.plot( all_dates, np.array(eonia_week.values))
 plt.plot(all_dates, dens_T/dens_T.mean()*eonia_week.iloc[100].values)
 
 
-#%%
+# %%
 save_path = "../../data/emid_data/numpyFiles/eMid_numpy"
 np.savez(save_path, Y_T, all_dates, eonia_week, nodes)
 

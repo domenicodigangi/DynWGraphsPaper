@@ -18,7 +18,7 @@ X_T = torch.tensor(dist_T/dist_T.mean())
 N = wtn_T.shape[0]
 T = wtn_T.shape[2]
 
-#%%
+# %%
 dens_T = torch.zeros(0)
 for t in range(T):
     Y_t = Y_T[:, :, t]
@@ -47,12 +47,12 @@ for t in y_plot:
     #plt.close()
     plt.hist(torch.log10(y_t), alpha=0.3)
 plt.legend(all_y[y_plot])
-#%%
+# %%
 A_T = tens(Y_T>0)
 plt.close()
 plt.hist(A_T.sum(dim=2).view(-1)/T)
 
-#%%
+# %%
 for t in range(T):
     Y_t = Y_T[:, :, t]
     A_t = tens(Y_t>0)

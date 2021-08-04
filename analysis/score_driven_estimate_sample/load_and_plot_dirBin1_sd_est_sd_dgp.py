@@ -11,7 +11,7 @@ SAVE_FOLD = './data/estimates_sim_data'
 from dirBin1_dynNets import dirBin1_dynNet_SD
 import matplotlib.pyplot as plt
 
-#%%
+# %%
 avoid_ovflw_fun_flag = True
 rescale_score = False
 distribution = 'bernoulli'
@@ -51,7 +51,7 @@ tens(l_dat["arr_2"]), tens(l_dat["arr_3"]), tens(l_dat["arr_4"]), tens(l_dat["ar
 phi_T, beta_sd_T, Y_T_s = model.sd_dgp(w_dgp, B_dgp, A_dgp, p_T=None, beta_const=None, X_T=None, N=N, T=T)
 
 Y_T_dgp.sum()
-#%%
+# %%
 
 delta_w = w_sd_all - np.tile(w_dgp, (N_sample, 1)).transpose()
 
@@ -64,9 +64,9 @@ plt.hist(delta_w)
 i_plot = 11
 #plt.plot(delta_w[i_plot, :])
 
-#%%
+# %%
 
-#%%
+# %%
 s=1
 i_plot = 1
 
@@ -78,7 +78,7 @@ phi_T_est, o = model.sd_filt(tens(w_dgp), tens(B_dgp), tens(A_dgp), tens(Y_T_dgp
 plt.plot(phi_T_dgp.detach().numpy().transpose(), '.b', markersize=0.5)
 
 
-#%%
+# %%
 
 
 

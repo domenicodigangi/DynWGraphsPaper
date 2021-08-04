@@ -9,7 +9,7 @@ Created on Saturday July 10th 2021
 
 """
 
-#%% import packages
+# %% import packages
 from pathlib import Path
 import torch
 import numpy as np
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 import click
 from ddg_utils.mlflow import get_and_set_experiment
 
-#%%
+# %%
 def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix = ""):
     
     loss_fun = nn.MSELoss()
@@ -143,7 +143,7 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, experimen
             mlflow.log_artifacts(tmp_path)
 
 
-#%%
+# %%
 
 @click.command()
 #"Simulate missp dgp and estimate sd and ss filters"
@@ -214,7 +214,7 @@ def run_parallel_simulations(**kwargs):
     Parallel(n_jobs=kwargs["n_jobs"])(delayed(try_one_run)(mod_dgp, run_par_dict, run_data_dict, experiment) for _ in range(kwargs["n_sim"]))
 
 
-#%% Run
+# %% Run
 if __name__ == "__main__":
     run_parallel_simulations()
 

@@ -46,7 +46,7 @@ all_names = []
 for mod_info in list_all_models:
     all_names.append(mod_info[0] +  ' ' + str(mod_info[4]) )
 
-#%% load all estimates
+# %% load all estimates
 all_par_SS = []
 n_pars = []
 for filter_type, regr_flag, dim_beta, N_steps, learn_rate in list_all_models[:N_ss_mod]:
@@ -74,7 +74,7 @@ for filter_type, regr_flag, dim_beta, N_steps, learn_rate in list_all_models[N_s
         n_reg = X_T.shape[2]
     n_pars.append(3*2*N + dim_beta * n_reg)
 
-#%% Filter all
+# %% Filter all
 all_exp_Y = []
 all_phi_T = []
 for m in range(len(all_par_SS)):
@@ -107,11 +107,11 @@ for m in range(len(all_par_SD)):
     all_exp_Y.append(for_Y_T)
     all_phi_T.append(phi_sd_est_T)
 
-#%%
+# %%
 all_par_SD[1][3]
 all_par_SS[1][1]
 
-#%% Compute GOF measures
+# %% Compute GOF measures
 import sklearn.metrics as skl_metr
 [exp_Y.min() for exp_Y in all_exp_Y]
 
@@ -152,7 +152,7 @@ max_Y = np.array([Y.max().log10().round().item() for Y in all_exp_Y] )
 max_Y_train = np.array([Y[:, :, :T_train].max().log10().round().item() for Y in all_exp_Y] )
 
 print(gof_test)
-#%%
+# %%
 plt.close()
 plt.figure(figsize=(15, 8))
 plt.plot(np.array(mod_x_labels), gof_train, '-*')
@@ -165,7 +165,7 @@ plt.grid()
 plt.tight_layout()
 
 
-#%%
+# %%
 m=0
 ind_pl = 8
 plt.close('all')
@@ -178,7 +178,7 @@ s_i_T = Y_T[ind_pl, :, :].sum(dim=0)
 all_par_SD[m][2]
 [ind_pl]
 all_par_SD[m+1][2][ind_pl]
-#%%
+# %%
 
 model = dirBin1_dynNet_SD(avoid_ovflw_fun_flag=False, rescale_SD=False)
 model.backprop_sd = True
@@ -198,10 +198,10 @@ plt.plot(A_est)
 plt.plot(A_est, phi_sd_est_T.std(dim=1).detach(), '.')
 plt.plot(phi_sd_est_T.transpose(0,1))
 
-#%%
+# %%
 #
 
-#%%
+# %%
 N_plot = 22
 plt.close('all')
 plt.figure()
@@ -213,21 +213,21 @@ plt.plot(all_phi_T[1].detach().numpy().transpose()[:, 0:N_plot], '--')
 # plt.figure()
 # plt.plot(all_phi_T[7].detach().numpy().transpose()[:, 0:N_plot])
 
-#%%
-#%%
+# %%
+# %%
 
 plt.close()
 x = tens(range(-50, 50))/10
 #plt.plot(all_y, Y_T.sum(dim=(0,1)).log())
 plt.plot(x, 1- ((x).tanh()**2))
 
-#%%
+# %%
 
 
 
 
 
-#%%
+# %%
 
 import statsmodels.api as sm
 
@@ -271,7 +271,7 @@ def ecdf(x, log=True):
         x = torch.sort(x.view(-1))[0]
         p = tens(1. * np.arange(x.shape[0]) / (x.shape[0] - 1))
         plt.plot(x, p)
-#%%
+# %%
 
 T_test = 10
 T_train = T-T_test
@@ -305,7 +305,7 @@ for m_plot in range(4):
 
 
 
-#%%
+# %%
 
 #plt.close()
 ecdf(log_res_T.abs(), log=False)

@@ -35,7 +35,7 @@ for df in reader:
     edges = edges.append(edges_it)
 
 
-#%%Convert to Weighted adjacency matrices
+# %%Convert to Weighted adjacency matrices
 # first assign an integer to each node and create edge list using those
 nodes_init, inds = np.unique(np.hstack((edges['origin'], edges['dest'])), return_inverse=True)
 orig, dest = np.split(inds, 2)
@@ -51,7 +51,7 @@ for t, y in enumerate(all_y):
                                    shape=(N, N)).todense()
 
 
-#%% import  geographical distances and colony contingency relations
+# %% import  geographical distances and colony contingency relations
 grav_data_init = pd.read_stata("../../data/world trade web/gravdata_cepii/gravdata.dta",
                           columns=["iso3_o", "iso3_d", "year", "contig", "distw", "colony"])
 
@@ -68,7 +68,7 @@ grav_data_init["iso3_d"].loc[grav_data_init["iso3_d"] == 'tmp'] = 'tls'
 #list countries present in gravity data
 nodes_grav_init = np.unique(np.hstack((grav_data_init['iso3_o'], grav_data_init['iso3_d'])))
 
-#%% compare nodes in grav data with nodes in net data and remove those not present in net data
+# %% compare nodes in grav data with nodes in net data and remove those not present in net data
 df1 = pd.DataFrame(data={'name': nodes_init, 'ind': range(nodes_init.shape[0]) })
 df2 = pd.DataFrame(data={'name': nodes_grav_init, 'ind': range(nodes_grav_init.shape[0]) })
 #list of countries that are present in both datasets
@@ -128,7 +128,7 @@ colony = colony_T[:, :, -3]
 
 
 
-#%% load US consumer index and prepare coefficients to adjust for inflation
+# %% load US consumer index and prepare coefficients to adjust for inflation
 #load consumer price index to account for inflation
 inf_df = pd.read_csv("../../data/world trade web/CPIAUCNS.csv")
 inf_df["year"] = inf_df["DATE"].apply(lambda x: np.int(x[:4]))
@@ -139,7 +139,7 @@ infl_scaling = (inf_df.loc[(inf_df["year"] >= all_y[0]) & (inf_df["year"] <= all
 
 scaling_infl = pd.DataFrame(data ={'year': all_y, 'scaling': (infl_scaling[-1]/infl_scaling)})
 
-#%% select and remove very small import exporters
+# %% select and remove very small import exporters
 tot_in = (wtn_T * infl_scaling).sum(axis=(0, 2))
 tot_out = (wtn_T * infl_scaling).sum(axis=(1, 2))
 imp_plus_exp_thr = 50*1e9
@@ -156,7 +156,7 @@ contig_large = contig[~inds_small]
 dist_large_T = pop_row_cols_mat_seq(inds_small,dist_T)
 
 
-#%%
+# %%
 
 save_path = "./data/world_trade_network/world_trade_net_T"
 np.savez(save_path, wtn_T=wtn_large_T, all_y=all_y, nodes=nodes_large, dist_T=dist_large_T, contig=contig_large,

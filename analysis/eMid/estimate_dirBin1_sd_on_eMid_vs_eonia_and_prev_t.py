@@ -9,29 +9,22 @@ Created on Saturday July 31st 2021
 
 
 
-#%% import packages
+# %% import packages
 import mlflow
 import torch
 import click
 import logging
-logger = logging.getLogger(__name__)
-from torch.functional import split
 import tempfile
-import datetime
-import pandas as pd
-import numpy as np
-import h5py
-import matplotlib.pyplot as plt
 from pathlib import Path
 from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace
-from dynwgraphs.utils.tensortools import tens, splitVec, strIO_from_tens_T
-from dynwgraphs.dirGraphs1_dynNets import  dirBin1_sequence_ss, dirBin1_SD, dirSpW1_sequence_ss, dirSpW1_SD
+from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
+from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss
+import pickle
+from eMid_data_utils import get_obs_and_regr_mat_eMid
 
-import pandas as pd
+logger = logging.getLogger(__name__)
 
-
-
-#%%
+# %%
 
 @click.command()
 @click.option("--experiment_name", type=str, default="eMid_application" )
@@ -40,7 +33,7 @@ import pandas as pd
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--bin_or_w", default = "bin", type=str)
-@click.option("--regressor_name", default = "eonia", type=str)
+@click.option("--regressor_name", default = ["eonia"], type=str, multiple=True)
 
 def estimate_multi_models(**kwargs):
     if kwargs["max_opt_iter"] < 500:
@@ -54,7 +47,7 @@ def estimate_multi_models(**kwargs):
         logger.info(kwargs)
         mlflow.log_params(kwargs)
 
-        mod_0_run, filt_kwargs_0 = estimate_mod( str_size_beta_t = "0", beta_tv = False, **kwargs)
+        mod_0_run, filt_kwargs_0 = estimate_mod(str_size_beta_t = "0", beta_tv = False, **kwargs)
     
         mod_1_run, filt_kwargs_1 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
         
@@ -73,6 +66,8 @@ def estimate_mod(**kwargs):
         with tempfile.TemporaryDirectory() as tmpdirname:
 
             pars_to_log = {k:v for k, v in kwargs.items() if not "prev_mod" in k}
+            pars_to_log["regressor_name"] = "-".join(pars_to_log["regressor_name"])
+
             mlflow.log_params(pars_to_log)
 
             # temp fold 
@@ -81,18 +76,22 @@ def estimate_mod(**kwargs):
             load_and_log_data_run = _get_or_run("load_and_log_data", {"experiment_name":kwargs["experiment_name"]}, None)
             load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
 
-            load_file = Path(load_path) / "data" / "eMid_numpy.npz" 
+            load_file = Path(load_path) / "data" / "eMid_data.pkl" 
 
-            ld_data = np.load(load_file, allow_pickle=True)
-
-            eMid_w_T, all_dates, eonia_w, nodes = ld_data["arr_0"], ld_data["arr_1"], ld_data["arr_2"], ld_data["arr_3"]
+            ld_data = pickle.load(open(load_file, "rb"))
 
             unit_meas = kwargs["unit_meas"]
-            Y_T = tens(eMid_w_T / unit_meas) 
+
+
+            # regr_list = ["eonia", "Atm1"]
+            regr_list = ["eonia"]
+            Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
+
             N, _, T = Y_T.shape
-            X_T = tens(np.tile(eonia_w.T, (N, N, 1, 1)))
 
             T_train =  int(kwargs["train_fract"] * T)
+
+
            
             if kwargs["str_size_beta_t"] == "0":
                 filt_kwargs = {"T_train" : T_train, "max_opt_iter":kwargs["max_opt_iter"], "opt_n":kwargs["opt_n"]}
@@ -175,7 +174,7 @@ def estimate_mod(**kwargs):
 
     return run, filt_kwargs
 
-#%% Run
+# %% Run
 if __name__ == "__main__":
     estimate_multi_models()
 

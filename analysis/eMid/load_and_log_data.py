@@ -10,12 +10,11 @@ Created on Wednesday July 7th 2021
 """
 
 
-#%% import packages
+# %% import packages
 import mlflow
 import click
 import logging
-logger = logging.getLogger(__name__)
-from torch.functional import split
+import torch
 import tempfile
 import datetime
 import pandas as pd
@@ -24,10 +23,11 @@ import h5py
 import matplotlib.pyplot as plt
 from pathlib import Path
 from ddg_utils.mlflow import _get_and_set_experiment, get_fold_namespace
-
 import pandas as pd
 import pickle
-
+from dynwgraphs.utils.tensortools import tens
+from types import SimpleNamespace
+logger = logging.getLogger(__name__)
 
 
 @click.command()
@@ -39,58 +39,60 @@ def load_and_log_data(**kwargs):
 
     experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
 
-
     with mlflow.start_run() as run:
-        # save files in temp folder, then log them as artifacts in mlflow and delete temp fold
+        # save files in temp folder, then log them as artifacts 
+        # in mlflow and delete temp fold
         with tempfile.TemporaryDirectory() as tmpdirname:
 
             # set artifacts folders and subfolders
             tmp_fns = get_fold_namespace(tmpdirname, ["data"])
-            
+
             logger.info(f"loading eMid data from {kwargs['load_path_emid']}")
             data_to_save = {}
 
             ld_data = h5py.File(kwargs['load_path_emid'], "r")
             # load networks
-            w_mat_T= np.transpose(np.array(ld_data["YeMidWeekly_T"]), axes=(1, 2, 0)).astype(float)
+            w_mat_T = np.transpose(np.array(ld_data["YeMidWeekly_T"]),
+                                   axes=(1, 2, 0)).astype(float)
             days_obs = np.array(ld_data["days"]).astype(int)
             months_obs = np.array(ld_data["months"]).astype(int)
             years_obs = np.array(ld_data["years"]).astype(int)
             nodes = np.array(ld_data["banksIDs"])
-            Y_T = w_mat_T[:, :, 2:]
-            Y_tm1_T = w_mat_T[:, :,1:-1]
-            data_to_save["Y_T"] = Y_T
-            data_to_save["Y_tm1_T"] = Y_tm1_T
-            N = Y_T.shape[0]
-            T = Y_T.shape[2]
-            obs_dates = [datetime.datetime(year, month, day ) for year, month, day in zip(years_obs, months_obs, days_obs)]
+                    
+            data_to_save["nodes"] = nodes
+            
+            Y_all_T = tens(w_mat_T)
+            data_to_save["YeMidWeekly_T"] = Y_all_T
+
+       
+            obs_dates = [datetime.datetime(year, month, day) 
+                         for year, month, day in
+                         zip(years_obs, months_obs, days_obs)]
             obs_dates = np.array(obs_dates).astype(np.datetime64)
-            obs_dates=obs_dates[2:]
-
-
+            obs_dates = obs_dates
 
             logger.info(f"loading eonia data from {kwargs['load_path_eonia']}")
             df = pd.read_csv(kwargs['load_path_eonia'], skiprows=5, header=None, usecols=[0, 1], names=['date', 'rate_eonia'])
-
             df = df.set_index(pd.to_datetime(df['date'])).drop(columns='date')
             df = df.loc[:obs_dates[0]]
-            df = df.loc[ obs_dates[-1] :]
-            df =df.sort_values(by='date')
+            df = df.loc[obs_dates[-1]:]
+            df = df.sort_values(by='date')
             # weekly frequency eonia rates
             eonia_week = df.resample('W').mean()
             eonia_week.index.weekday.unique()
             all_dates = np.array(eonia_week.index)
+            
             data_to_save["all_dates"] = all_dates
-            data_to_save["eonia_week"] = eonia_week
-            data_to_save["nodes"] = nodes
+            
+            data_to_save["eonia_T"] = tens(np.array(eonia_week.T))
 
 
-            dens_T  = (Y_T>0).mean(axis=(0, 1))
+            dens_T = (Y_all_T > 0).detach().numpy().mean(axis=(0, 1))
             fig, ax = plt.subplots()
             ax.plot( all_dates, np.array(eonia_week.values))
             mlflow.log_figure(fig,  "eonia_rate.png")
             fig, ax = plt.subplots()
-            ax.plot( all_dates, dens_T/dens_T.mean())
+            ax.plot(all_dates, dens_T/dens_T.mean())
             mlflow.log_figure(fig,  "eMid_dens.png")
 
             # np.savez(tmp_fns.data / "eMid_numpy.npz", Y_T, all_dates, eonia_week, nodes)
@@ -104,6 +106,6 @@ def load_and_log_data(**kwargs):
    
 
 
-#%% Run
+# %% Run
 if __name__ == "__main__":
     load_and_log_data()

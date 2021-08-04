@@ -86,7 +86,7 @@ np.savez(file_path, w_dgp.detach(), B_dgp.detach(), A_dgp.detach(),
 
 #
 #
-#%%
+# %%
 # import matplotlib.pyplot as plt
 # plt.close('all')
 # plt.figure()
