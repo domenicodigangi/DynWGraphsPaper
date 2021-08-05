@@ -26,7 +26,7 @@ importlib.reload(dynwgraphs)
 # %%
 unit_meas = 1e4
 train_fract = 3/4
-experiment_name = "eMid_application"
+experiment_name = "eMid_application_old"
 
 experiment = _get_and_set_experiment(experiment_name)
 
@@ -38,8 +38,8 @@ load_file = Path(load_path) / "data" / "eMid_data.pkl"
 
 ld_data = pickle.load(open(load_file, "rb"))
 
-# regr_list = ["eonia", "Atm1"]
 regr_list = ["eonia"]
+regr_list = ["eonia", "Atm1"]
 Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
 
 N, _, T = Y_T.shape
@@ -52,17 +52,14 @@ filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
 
 model_bin_0 = dirBin1_SD(Y_T, **filt_kwargs)
 # model_bin_0.estimate()
-
 filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '0' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
+    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '0' "
 "-".join(regr_list)
 
 runs = MlflowClient().search_runs(
     experiment_ids=experiment.experiment_id, filter_string=filter_string) 
 
-run_0 = runs[0] if len(runs) == 1 else None
+run_0 = runs[0] if len(runs) >= 1 else None
 
 model_bin_0.load_par(uri_to_path(run_0.info.artifact_uri)) 
 
@@ -79,8 +76,10 @@ filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
                "opt_n": "ADAM"}
 
 model_bin_1 = dirBin1_SD(Y_T, **filt_kwargs)
-model_bin_1.init_par_from_model_without_beta(model_bin_0)
-# model_bin_1.estimate()
+
+model_bin_1.init_par_from_lower_model(model_bin_0)
+
+model_bin_1.estimate()
 
 model_bin_1.beta_T
 
@@ -121,6 +120,9 @@ run_2 = runs[0] if len(runs) == 1 else None
 
 model_bin_2.load_par( uri_to_path(run_2.info.artifact_uri)) 
 
+model_bin_2.init_par_from_lower_model(model_bin_1)
+
+
 # %% Score driven binary phi_T with consts
 filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
                "X_T": X_T, "size_beta_t": 2*N, "beta_tv": False}
@@ -137,6 +139,8 @@ runs = MlflowClient().search_runs(
 run_3 = runs[0] if len(runs) == 1 else None
 
 model_bin_3.load_par( uri_to_path(run_3.info.artifact_uri)) 
+
+model_bin_3.init_par_from_lower_model(model_bin_0)
 
 beta_in, beta_out = splitVec(model_bin_3.beta_T[0].detach())
 
@@ -160,6 +164,8 @@ runs = MlflowClient().search_runs(
 
 run_4 = runs[0] if len(runs) == 1 else None
 model_bin_4.load_par(uri_to_path(run_4.info.artifact_uri))
+
+model_bin_4.init_par_from_lower_model(model_bin_3)
 
 plt.scatter(model_bin_3.beta_T[0].detach(), model_bin_4.beta_T[0].detach())
 

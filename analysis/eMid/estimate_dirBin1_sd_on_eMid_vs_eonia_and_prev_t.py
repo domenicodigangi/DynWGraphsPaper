@@ -61,12 +61,13 @@ def estimate_multi_models(**kwargs):
 
 
 def estimate_mod(**kwargs):
-    logger.info(kwargs)
+    pars_to_log = {k:v for k, v in kwargs.items() if not "prev_mod" in k}
+    pars_to_log["regressor_name"] = "-".join(pars_to_log["regressor_name"])
+    logger.info(pars_to_log)
+
     with mlflow.start_run(nested=True) as run:
         with tempfile.TemporaryDirectory() as tmpdirname:
 
-            pars_to_log = {k:v for k, v in kwargs.items() if not "prev_mod" in k}
-            pars_to_log["regressor_name"] = "-".join(pars_to_log["regressor_name"])
 
             mlflow.log_params(pars_to_log)
 
@@ -83,8 +84,7 @@ def estimate_mod(**kwargs):
             unit_meas = kwargs["unit_meas"]
 
 
-            # regr_list = ["eonia", "Atm1"]
-            regr_list = ["eonia"]
+            regr_list = kwargs["regressor_name"]
             Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
 
             N, _, T = Y_T.shape
@@ -115,7 +115,7 @@ def estimate_mod(**kwargs):
                     prev_filt_kwargs = kwargs["prev_mod"]["filt_kwargs"]
                     prev_mod_sd = dirBin1_SD(Y_T, **prev_filt_kwargs)
                     prev_mod_sd.load_par(kwargs["prev_mod"]["load_path"])
-                    mod_sd.init_par_from_prev_model(prev_mod_sd)
+                    mod_sd.init_par_from_lower_model(prev_mod_sd)
                     
             elif kwargs["bin_or_w"] == "w":
                 mod_ss = dirSpW1_sequence_ss(Y_T, **filt_kwargs)
@@ -124,7 +124,7 @@ def estimate_mod(**kwargs):
                     prev_filt_kwargs = kwargs["prev_mod"]["filt_kwargs"]
                     prev_mod_sd = dirSpW1_SD(Y_T, **prev_filt_kwargs)
                     prev_mod_sd.load_par(kwargs["prev_mod"]["load_path"])
-                    mod_sd.init_par_from_prev_model(prev_mod_sd)
+                    mod_sd.init_par_from_lower_model(prev_mod_sd)
             else:
                 raise
             
@@ -134,10 +134,11 @@ def estimate_mod(**kwargs):
             out_sample_fit = {}
 
             for k_filt, mod in filt_models.items():
-                _, h_par_opt = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
+                _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
+                mlflow.log_metrics({f"{k_filt}_{key}": val for key, val in opt_metrics.items()})
 
                 mod.save_parameters(save_path=tmp_fns.main)
                 
