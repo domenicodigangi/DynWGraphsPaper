@@ -16,7 +16,7 @@ import click
 import logging
 import tempfile
 from pathlib import Path
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace
+from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_test_exp
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss
 import pickle
@@ -36,9 +36,7 @@ logger = logging.getLogger(__name__)
 @click.option("--regressor_name", default=["eonia"], type=str, multiple=True)
 
 def estimate_multi_models(**kwargs):
-    if kwargs["max_opt_iter"] < 500:
-        logger.warning("Too few opt iter. assuming this is a test run")
-        kwargs["experiment_name"] = "test"
+    check_test_exp(kwargs)
 
     experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
 
