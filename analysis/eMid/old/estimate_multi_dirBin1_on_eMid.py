@@ -48,7 +48,7 @@ SAVE_FOLD_no_reg = './data/estimates_real_data/' + fold_name
 N_steps = 20000
 
 
-#%%
+# %%
 for i in range(2,3):
     SAVE_FOLD = SAVE_FOLD_no_reg + '/' + fold_names_regs[i]
     try:

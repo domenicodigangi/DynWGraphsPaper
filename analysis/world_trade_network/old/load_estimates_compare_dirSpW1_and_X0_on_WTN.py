@@ -28,7 +28,7 @@ T = Y_T.shape[2]
 
 SAVE_FOLD = './data/estimates_real_data/WTN'
 
-#%% SS weighted no reg
+# %% SS weighted no reg
 N_steps = 10000
 learn_rate = 0.01
 avoid_ovflw_fun_flag = True
@@ -79,7 +79,7 @@ for distribution in ['gamma', 'lognormal']:
 
 
 
-#%%Score driven estimates without regressors
+# %%Score driven estimates without regressors
 all_mod_log_likes = []
 models_info = []
 rescale_score = False
@@ -113,7 +113,7 @@ for distribution in ['gamma', 'lognormal']:
 
     models_info.append(['SD No reg', dim_dist_par_un, distribution, 0, N_BA, len(diag)])
     all_mod_log_likes.append(like_dirSpW1_SD.item())
-#%% Score driven estimates with regressors
+# %% Score driven estimates with regressors
 N_steps = 7000
 dim_beta = N
 dim_dist_par_un = 1
@@ -145,7 +145,7 @@ for distribution in ['gamma']:
 
 
 all_mod_log_likes
-#%%
+# %%
 tmp = np.array(diag)
 rel_diff = np.diff(tmp)/tmp[1:]
 def moving_average(a, n=3) :
@@ -155,7 +155,7 @@ def moving_average(a, n=3) :
 
 plt.plot(moving_average(rel_diff,500))
 
-#%%
+# %%
 def model_selec_crit(log_like, k, n):
     aic = 2*k - 2*log_like
     aic_c = aic + (2*k**2 + 2*k)/(n-k-1)
@@ -181,12 +181,12 @@ plt.plot(all_names, all_info_crit[:, [0, 2]], '-*')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.legend(['AIC', 'BIC'])
-#%%
+# %%
 model_selec_crit(like_dirSpW1_X0_1_SS, 2*N*T +1, N*(N-1)*T)
 model_selec_crit(like_dirSpW1_SD_it.detach().numpy(), 2*N*3, N_obs)
 
 
-#%%
+# %%
 model.check_tot_exp_W_seq(Y_T, torch.tensor(phi_ss_est_T))
 ratios_ss_T = model.check_tot_exp_W_seq(Y_T, torch.tensor(phi_ss_est_T))
 t=0
@@ -196,7 +196,7 @@ E_Y_t = model.cond_exp_Y(tens(phi_ss_est_T[:, t]))
 plt.plot(torch.log(Y_t[A_t]),  torch.log(E_Y_t[A_t]), '.')
 
 
-#%% Approximate checks on the estimates
+# %% Approximate checks on the estimates
 ratios_sd_T = model.check_tot_exp_W_seq(Y_T, torch.tensor(phi_sd_est_T))
 plt.plot(all_y, ratios_ss_T)
 plt.plot(all_y, ratios_sd_T)
@@ -207,7 +207,7 @@ dens_scale=dens/dens.mean()
 plt.plot(all_y,  dens_scale+(ratios_ss_T[0]- dens_scale[0]))
 
 
-#%%
+# %%
 W = torch.tensor(W_est)
 B = torch.tensor(B_est)
 A = torch.tensor(A_est)
@@ -219,7 +219,7 @@ model.update_dynw_par(Y_T[:,:,0], phi_est_sd_2[:, 0], model.identify(W), B, A)
 tmp = model.identify(phi_est_sd_2[:, 0])
 
 
-#%% Comparison SS Binary versions
+# %% Comparison SS Binary versions
 from dirBin1_dynNets import dirBin1_dynNet_SD, dirBin1_X0_dynNet_SD
 A_T = tens(Y_T>0)
 dim_delta = 1
@@ -247,7 +247,7 @@ theta_ss_est_T, diag = tens(ld_est["arr_0"]), ld_est["arr_1"]
 dirBin1_dynNet_SD().like_seq(A_T, theta_ss_est_T)
 dirBin1_X0_dynNet_SD().like_seq(A_T, theta_X0_ss_est_T, X_T=X_T, delta=delta_est)
 
-#%% Comparison SD Binary versions
+# %% Comparison SD Binary versions
 A_T = tens(Y_T>0)
 N_BA = N
 dim_delta = N

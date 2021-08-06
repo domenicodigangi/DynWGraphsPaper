@@ -30,7 +30,7 @@ SAVE_FOLD = SAVE_FOLD_no_reg
 N_steps = 20000
 
 
-#%%   # if score driven estimate only on the observations that are not in the test sample
+# %%   # if score driven estimate only on the observations that are not in the test sample
 Y_T_train = Y_T[:, :, :-T_test]
 N_BA = N
 
@@ -59,7 +59,7 @@ file_path = SAVE_FOLD + '/dirBin1_SS_est_lr_' + \
 #plt.plot(phi_ss_est_T.transpose(0, 1).detach())
 #np.savez(file_path, phi_ss_est_T.detach(), None, None)
 
-#%% Estimate Score Driven
+# %% Estimate Score Driven
 N_steps = 2500
 rel_improv_tol_SD = 1e-16
 min_opt_iter_SD = 500
@@ -95,7 +95,7 @@ print(file_path)
 np.savez(file_path, W_est.detach(), B_est.detach(), A_est.detach(), None,
          sd_par_0.detach(), diag, N_steps, learn_rate)
 
-#%%
+# %%
 sd_par_0 = phi_T_0[:, :T_init].mean(dim=1)
 rePar_0 = torch.cat((tens(W0), torch.cat((B0, A0)))).clone().detach()
 n = n_b = n_a = W0.shape[0]
@@ -120,7 +120,7 @@ unPar0 = torch.cat((tens(W0), model.re2un_BA_par(torch.cat((B0, A0))))).clone().
 #from utils import optim_torch
 out_par_1, daig_1 = optim_torch(f_un, unPar0, max_opt_iter=10, opt_n="LBFGS_NEW", lr=0.01, print_every=1)
 
-#%%
+# %%
 
 
 unPar_est = torch.cat((tens(W_est), model.re2un_BA_par(torch.cat((B_est, A_est))))).clone().detach()

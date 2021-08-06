@@ -11,7 +11,7 @@ SAVE_FOLD = './data/estimates_sim_data'
 from dirBin2_dynNets import dirBin2_dynNet_SD
 import matplotlib.pyplot as plt
 
-#%%
+# %%
 avoid_ovflw_fun_flag = True
 rescale_score = False
 distribution = 'bernoulli'
@@ -45,7 +45,7 @@ w_dgp, B_dgp, A_dgp, w_sd_all, B_sd_all, A_sd_all,\
 Y_T_dgp = tens(l_dat["arr_0"]), tens(l_dat["arr_1"]), \
 tens(l_dat["arr_2"]), tens(l_dat["arr_3"]), tens(l_dat["arr_4"]), tens(l_dat["arr_5"]), tens(l_dat["arr_6"])
 
-#%%
+# %%
 # plt.subplot(3, 1, 1)
 # plt.hist(w_sd_all)
 # plt.axvline(w_dgp)
@@ -56,7 +56,7 @@ tens(l_dat["arr_2"]), tens(l_dat["arr_3"]), tens(l_dat["arr_4"]), tens(l_dat["ar
 # plt.hist(A_sd_all)
 # plt.axvline(A_dgp)
 
-#%% compute numerical variance covariance of estimators
+# %% compute numerical variance covariance of estimators
 from torch.autograd import grad
 
 sd_par_est = np.stack((w_sd_all, B_sd_all, A_sd_all), axis=0)
@@ -66,7 +66,7 @@ sd_cov_est = np.cov(sd_par_est).diagonal()
 
 
 
-#%%
+# %%
 N_plot = 20
 hess_diag = torch.zeros(3, N_sample)
 
@@ -87,7 +87,7 @@ for s in range(N_plot):
     hess_diag[:, s] = drv2
 
 
-#%%
+# %%
 # plt.close('all')
 plt.figure()
 sd_est_var = 1/hess_diag[:, :N_plot].sqrt()
@@ -102,7 +102,7 @@ plt.hist(sd_est_var[2, :])
 plt.axvline(sd_cov_est[2])
 
 
-#%% test scores
+# %% test scores
 model = dirBin2_dynNet_SD(avoid_ovflw_fun_flag=True, rescale_SD=False, N=N)
 
 s=0
@@ -114,7 +114,7 @@ model.score_t(Y_t, w, backprop=True)
 
 
 
-#%%
+# %%
 
 delta_w = w_sd_all - np.tile(w_dgp, (N_sample, 1)).transpose()
 
@@ -125,9 +125,9 @@ plt.hist(delta_w)
 i_plot = 11
 #plt.plot(delta_w[i_plot, :])
 
-#%%
+# %%
 
-#%%
+# %%
 s=1
 i_plot = 1
 
@@ -139,7 +139,7 @@ phi_T_est, o = model.sd_filt(tens(w_dgp), tens(B_dgp), tens(A_dgp), tens(Y_T_dgp
 plt.plot(phi_T_dgp.detach().numpy().transpose(), '.b', markersize=0.5)
 
 
-#%%
+# %%
 
 
 

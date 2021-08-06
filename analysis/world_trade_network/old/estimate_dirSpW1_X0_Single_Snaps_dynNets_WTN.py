@@ -14,7 +14,7 @@ wtn_T, all_y, nodes= ld_data["wtn_T"], ld_data["all_y"], ld_data["nodes"]
 dist_T, scaling_infl = ld_data["dist_T"], ld_data["scaling_infl"]
 
 
-#%% estimate and save different sizes of dist_par
+# %% estimate and save different sizes of dist_par
 from dirSpW1_dynNets import  dirSpW1_dynNet_SD
 SAVE_FOLD = './data/estimates_real_data/WTN'
 

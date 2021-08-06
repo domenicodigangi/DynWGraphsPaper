@@ -1,15 +1,3 @@
-#########
-#Created Date: Friday June 4th 2021
-#Author: Domenico Di Gangi,  <digangidomenico@gmail.com>
-#-----
-#Last Modified: Thu Jun 10 2021
-#Modified By:  Domenico Di Gangi
-#-----
-#Description: yaml file to describe the mlflow project 
-#-----
-########
-
-
 name: dynwgraphspaper
 
 conda_env: config/conda_env.yaml
@@ -29,10 +17,7 @@ entry_points:
 
 
 
-  main:
+  emid_analysis_main:
     parameters:
-      als_max_iter: {type: int, default: 10}
-      keras_hidden_units: {type: int, default: 20}
-      max_row_limit: {type: int, default: 100000}
     command: "python main.py --als-max-iter {als_max_iter} --keras-hidden-units {keras_hidden_units}
                              --max-row-limit {max_row_limit}"

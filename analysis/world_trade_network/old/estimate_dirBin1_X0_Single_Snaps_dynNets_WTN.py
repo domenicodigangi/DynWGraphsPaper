@@ -19,7 +19,7 @@ T = wtn_T.shape[2]
 learn_rate_phi = 0.01
 Y_T = tens(wtn_T > 0)
 
-#%% estimate and save No regressors
+# %% estimate and save No regressors
 from dirBin1_dynNets import  dirBin1_dynNet_SD
 SAVE_FOLD = './data/estimates_real_data/WTN'
 

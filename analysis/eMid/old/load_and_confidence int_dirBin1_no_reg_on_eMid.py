@@ -3,7 +3,7 @@
 Estimate dirBin1 on eMid data.
 
 """
-#%%
+# %%
 import sys
 sys.path.append("./src/")
 
@@ -46,7 +46,7 @@ min_opt_iter_SS = 20
 bandwidth_SS = min_opt_iter_SS
 no_improv_max_count_SS = 20
 
-#%% SS estimates
+# %% SS estimates
 # file_path = SAVE_FOLD + '/dirBin1_SS_est_lr_' + \
 #             str(learn_rate) + '_N_' + str(N) + '_T_' + str(0) + \
 #             '_N_steps_' + str(N_steps) + \
@@ -55,7 +55,7 @@ no_improv_max_count_SS = 20
 
 
 
-#%% SD estimates
+# %% SD estimates
 rel_improv_tol_SD = 1e-16
 min_opt_iter_SD = 15000
 bandwidth_SD = 250
@@ -97,7 +97,7 @@ plt.plot(g_norm)
 plt.plot([d[0] for d in diag])
 
 
-#%%
+# %%
 
 # cap the unconditional means from below
 inds_to_cap = um_est <-10
@@ -129,7 +129,7 @@ axs[0].plot(phi_T[ tens(A_est).sort()[1][-10:], :].transpose(0, 1).detach())
 axs[1].plot(phi_T_mod.transpose(0, 1).detach())
 
 
-#%% Robust estimate of covariance of static parameters
+# %% Robust estimate of covariance of static parameters
 
 Y_T_fun = Y_T_train
 
@@ -150,7 +150,7 @@ def zero_grads(parTuple):
 parTuple = (W_est, B_est, A_est, sd_par_0)
 
 
-#%%
+# %%
 from torch.autograd.functional import hessian
 from torch.autograd import grad
 
@@ -187,7 +187,7 @@ def mat_A_for_cov(Y_T_fun, parTuple):
 covB, covA = mat_A_for_cov(Y_T_fun, parTuple)
 
 
-#%%
+# %%
 covA0 = covA.mean(dim=2)
 covB0 = covB.mean(dim=2)
 

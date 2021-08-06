@@ -1,0 +1,6 @@
+name: dynwgraphspaper_emid_analysis
+
+entry_points:
+
+  load_and_log_data:
+    command: "python load_and_log_data.py"

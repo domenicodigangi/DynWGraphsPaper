@@ -77,7 +77,7 @@ def estimate_and_save_dirSpW1(N_BA, learn_rate, distribution, dim_dist_par_un, T
     np.savez(file_path, W_est.detach(), B_est.detach(), A_est.detach(), dist_par_un_est.detach(),
              diag, N_steps_max, unit_measure, learn_rate)
 
-#%%
+# %%
 results = Parallel(n_jobs=2)(delayed(estimate_and_save_dirSpW1)(N_BA, lr, distribution, dim_dist_par_un,
                                                                 T_test, unit_measure, N_steps_max) \
                              for N_BA, lr, distribution, dim_dist_par_un, T_test, unit_measure, N_steps_max\

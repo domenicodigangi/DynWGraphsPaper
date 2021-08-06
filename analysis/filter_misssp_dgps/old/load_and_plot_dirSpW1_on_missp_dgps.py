@@ -11,7 +11,7 @@ SAVE_FOLD = './data/estimates_sim_data'
 from dirSpW1_dynNets import dirSpW1_dynNet_SD
 import matplotlib.pyplot as plt
 
-#%%
+# %%
 avoid_ovflw_fun_flag = True
 rescale_score = True
 distribution = 'gamma'
@@ -64,7 +64,7 @@ for const_p in list_const_p:
 
 print(mse_sd, mse_ss)
 #plt.hist(model.cond_exp_Y(tens(phi_T_dgp[:, 80])).view(-1).log10(), alpha=0.2)
-#%%
+# %%
 #plt.close()
 
 i_plot = 15
@@ -81,10 +81,10 @@ ax[1].hist(beta_sd_all[0, :, :].reshape(-1), alpha=0.2)
 ax[1].axvline(1)
 ax[1].legend(['beta dgp', 'beta SS', 'beta SD'])
 
-#%%
+# %%
 mse_sd
 mse_ss
-#%%
+# %%
 plt.close()
 s = 0
 A_s = A_sd_all[:, s]
@@ -97,13 +97,13 @@ plt.plot(phi_T_sd_s[inds, :].transpose())
 A_s[inds]
 
 
-#%%
+# %%
 
 
 
 
 
-#%%
+# %%
 
 
 

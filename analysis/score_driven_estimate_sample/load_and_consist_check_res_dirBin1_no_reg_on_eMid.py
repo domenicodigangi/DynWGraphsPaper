@@ -86,7 +86,7 @@ sd_par_0_dgp = um_dgp
 #    plt.plot(Y_T.sum(dim=(0,1)))
 
 #%
-#%%
+# %%
 N_steps = 15000
 lrs = {"ADAMHD": [0.05], "SGDHD": [0.005], \
           "ADAM": [0.5, 0.05 ], "LBFGS": [0.05 ]}

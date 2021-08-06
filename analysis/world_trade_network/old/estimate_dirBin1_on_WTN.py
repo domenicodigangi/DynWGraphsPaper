@@ -19,7 +19,7 @@ N = Y_T.shape[0]
 T = Y_T.shape[2]
 SAVE_FOLD = './data/estimates_real_data/WTN'
 
-#%%  Weighted Estimates No regressors
+# %%  Weighted Estimates No regressors
 from dirBin1_dynNets import dirBin1_dynNet_SD
 
 N_steps = 15000

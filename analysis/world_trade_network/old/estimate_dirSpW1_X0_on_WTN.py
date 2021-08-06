@@ -90,11 +90,11 @@ def estimate_and_save_dirSpW1_X0(N_BA, learn_rate, distribution, dim_dist_par_un
              diag, N_steps_max, unit_measure, learn_rate)
 
 
-#%%
+# %%
 results = Parallel(n_jobs=2)(delayed(estimate_and_save_dirSpW1_X0)(N_BA, lr, distribution, dim_dist_par_un, dim_beta,
                                                                    T_test, unit_measure, N_steps_max) \
                      for N_BA, lr, distribution, dim_dist_par_un, dim_beta, T_test, unit_measure, N_steps_max \
                      in itertools.product([N], [0.01], ['lognormal', 'gamma'], [N], [N, 1], [10], [1e6], [15000]))
 
-#%%
+# %%
 estimate_and_save_dirSpW1_X0(N,0.1,'lognormal', 1,1,30,1e6, 30)
