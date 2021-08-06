@@ -27,13 +27,13 @@ logger = logging.getLogger(__name__)
 # %%
 
 @click.command()
-@click.option("--experiment_name", type=str, default="eMid_application" )
+@click.option("--experiment_name", type=str, default="eMid_application")
 @click.option("--max_opt_iter", default=11000, type=int)
 @click.option("--opt_n", default="ADAMHD", type=str)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
-@click.option("--bin_or_w", default = "bin", type=str)
-@click.option("--regressor_name", default = ["eonia"], type=str, multiple=True)
+@click.option("--bin_or_w", default="bin", type=str)
+@click.option("--regressor_name", default=["eonia"], type=str, multiple=True)
 
 def estimate_multi_models(**kwargs):
     if kwargs["max_opt_iter"] < 500:
@@ -43,19 +43,19 @@ def estimate_multi_models(**kwargs):
     experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
 
     #load data
-    with mlflow.start_run() as run:
+    with mlflow.start_run(experiment_id=experiment.experiment_id) as run:
         logger.info(kwargs)
         mlflow.log_params(kwargs)
 
-        mod_0_run, filt_kwargs_0 = estimate_mod(str_size_beta_t = "0", beta_tv = False, **kwargs)
+        mod_0_run, filt_kwargs_0 = estimate_mod(str_size_beta_t="0", beta_tv=False, **kwargs)
     
-        mod_1_run, filt_kwargs_1 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
+        mod_1_run, filt_kwargs_1 = estimate_mod(**kwargs, str_size_beta_t="1", beta_tv=False, prev_mod={"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
         
-        mod_2_run, filt_kwargs_2 = estimate_mod(**kwargs, str_size_beta_t = "1", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_1, "load_path": uri_to_path(mod_1_run.info.artifact_uri)})
+        mod_2_run, filt_kwargs_2 = estimate_mod(**kwargs, str_size_beta_t="1", beta_tv=True, prev_mod={"filt_kwargs": filt_kwargs_1, "load_path": uri_to_path(mod_1_run.info.artifact_uri)})
         
-        mod_3_run, filt_kwargs_3 = estimate_mod(**kwargs, str_size_beta_t = "2N", beta_tv = False, prev_mod = {"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
+        mod_3_run, filt_kwargs_3 = estimate_mod(**kwargs, str_size_beta_t="2N", beta_tv=False, prev_mod={"filt_kwargs": filt_kwargs_0, "load_path": uri_to_path(mod_0_run.info.artifact_uri)})
         
-        mod_4_run, filt_kwargs_4 = estimate_mod(**kwargs, str_size_beta_t = "2N", beta_tv = True, prev_mod = {"filt_kwargs": filt_kwargs_3, "load_path": uri_to_path(mod_3_run.info.artifact_uri)})
+        mod_4_run, filt_kwargs_4 = estimate_mod(**kwargs, str_size_beta_t="2N", beta_tv=True, prev_mod={"filt_kwargs": filt_kwargs_3, "load_path": uri_to_path(mod_3_run.info.artifact_uri)})
         
 
 
@@ -67,11 +67,9 @@ def estimate_mod(**kwargs):
 
     with mlflow.start_run(nested=True) as run:
         with tempfile.TemporaryDirectory() as tmpdirname:
-
-
             mlflow.log_params(pars_to_log)
 
-            # temp fold 
+            # temp fold
             tmp_fns = get_fold_namespace(tmpdirname, ["tb_logs"])
             
             load_and_log_data_run = _get_or_run("load_and_log_data", {"experiment_name":kwargs["experiment_name"]}, None)
@@ -83,27 +81,24 @@ def estimate_mod(**kwargs):
 
             unit_meas = kwargs["unit_meas"]
 
-
             regr_list = kwargs["regressor_name"]
+    
             Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
 
             N, _, T = Y_T.shape
 
             T_train =  int(kwargs["train_fract"] * T)
-
-
            
             if kwargs["str_size_beta_t"] == "0":
-                filt_kwargs = {"T_train" : T_train, "max_opt_iter":kwargs["max_opt_iter"], "opt_n":kwargs["opt_n"]}
+                filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"]}
             else:
-                filt_kwargs = {"X_T" : X_T, "beta_tv":kwargs["beta_tv"], "T_train" : T_train}
+                filt_kwargs = {"X_T": X_T, "beta_tv": kwargs["beta_tv"], "T_train": T_train}
                 if kwargs["str_size_beta_t"] == "1":
                     filt_kwargs["size_beta_t"] = 1
                 elif kwargs["str_size_beta_t"] == "N":
                     filt_kwargs["size_beta_t"] = N
                 elif kwargs["str_size_beta_t"] == "2N":
                     filt_kwargs["size_beta_t"] = 2*N
-
 
             logger.info(f" start estimates {kwargs['bin_or_w']}")
 
@@ -128,7 +123,7 @@ def estimate_mod(**kwargs):
             else:
                 raise
             
-            filt_models = {"sd":mod_sd, "ss":mod_ss}
+            filt_models = {"sd": mod_sd, "ss": mod_ss}
 
             in_sample_fit = {}
             out_sample_fit = {}
@@ -151,7 +146,7 @@ def estimate_mod(**kwargs):
                     out_sample_fit[f"{k_filt}_out_of_sample_{k}"] = v 
 
                 try:
-                    # log plots that can be useful for quick visual diagnostic 
+                    # log plots that can be useful for quick visual diagnostic
                     mlflow.log_figure(mod.plot_phi_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_all.png")
 
                     phi_to_exclude = strIO_from_tens_T(mod.Y_T) < 1e-3 
