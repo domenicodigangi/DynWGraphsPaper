@@ -6,24 +6,19 @@
 Created on Saturday July 31st 2021
 
 """
-
-
-
 import mlflow
 from mlflow.utils import mlflow_tags
 from mlflow.entities import RunStatus
-
 from mlflow.tracking.fluent import _get_experiment_id
-
 import logging 
-logger = logging.getLogger(__name__)
-
 import os
 from urllib.request import url2pathname
 from urllib.parse import urlparse, unquote
 
+logger = logging.getLogger(__name__)
 
 # functions from https://github.com/mlflow/mlflow/blob/master/examples/multistep_workflow/main.py
+
 
 def _already_ran(entry_point_name, parameters, git_commit, experiment_id=None):
     """Best-effort detection of if a run with the given entrypoint name,
@@ -131,3 +126,9 @@ def get_fold_namespace(dirname, subfolds_list):
         fns.__dict__[sub].mkdir(exist_ok=True)
 
     return fns
+
+
+def check_test_exp(kwargs):
+    if kwargs["max_opt_iter"] < 500:
+        logger.warning("Too few opt iter. assuming this is a test run")
+        kwargs["experiment_name"] = "test"
