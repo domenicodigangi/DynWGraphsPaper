@@ -10,10 +10,12 @@ import mlflow
 from mlflow.utils import mlflow_tags
 from mlflow.entities import RunStatus
 from mlflow.tracking.fluent import _get_experiment_id
+from mlflow.tracking.client import MlflowClient
 import logging 
 import os
 from urllib.request import url2pathname
 from urllib.parse import urlparse, unquote
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -132,3 +134,14 @@ def check_test_exp(kwargs):
     if kwargs["max_opt_iter"] < 500:
         logger.warning("Too few opt iter. assuming this is a test run")
         kwargs["experiment_name"] = "test"
+
+
+def dict_from_run(r):
+    return {**r.data.params, **r.data.metrics, **r.data.tags, **dict(r.info)}
+
+
+def get_df_exp(experiment):
+    all_runs = MlflowClient().search_runs(experiment.experiment_id)
+
+    df = pd.DataFrame([dict_from_run(r) for r in all_runs])
+    return df
