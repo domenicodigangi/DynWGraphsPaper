@@ -26,7 +26,7 @@ importlib.reload(dynwgraphs)
 # %%
 unit_meas = 1e4
 train_fract = 3/4
-experiment_name = "eMid_application_old"
+experiment_name = "eMid_application"
 
 experiment = _get_and_set_experiment(experiment_name)
 
