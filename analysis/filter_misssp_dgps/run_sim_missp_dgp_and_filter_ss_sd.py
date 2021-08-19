@@ -210,11 +210,12 @@ def _run_parallel_simulations(**kwargs):
 
     with mlflow.start_run(experiment_id=experiment.experiment_id) as parent_run:
 
-        parent_runs_par = drop_keys(kwargs, ["type_tv_dgp_phi", "type_tv_dgp_beta", "beta_dgp_set", "beta_filt_set", "dgp_ext_reg"])
+        parent_runs_par = drop_keys(kwargs, ["type_tv_dgp_phi", "type_tv_dgp_beta", "beta_dgp_set", "beta_filt_set", "phi_dgp_set", "phi_filt_set", "dgp_ext_reg"])
         mlflow.log_params(parent_runs_par)
 
+        mlflow.log_params({f"{key}_dgp_bin": val for key, val in dgp_set_bin.items() if key != "X_T"})
         if not kwargs["exclude_weights"]:
-            mlflow.log_params({f"{key}_w": val for key, val in dgp_set_w.items() if key != "X_T"})
+            mlflow.log_params({f"{key}_dgp_w": val for key, val in dgp_set_w.items() if key != "X_T"})
 
         # define binary dgp and filter par
         logger.info(dgp_set_bin)
@@ -239,8 +240,8 @@ def _run_parallel_simulations(**kwargs):
         def try_one_run(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par):
             sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
             try:
-                # pass
-                sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
+                pass
+                # sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
             except Exception as e:
                 logger.warning(f"Run failed : \n {e}")
 
@@ -291,34 +292,37 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 
                         _, h_par_opt, stats_opt = mod_filt.estimate(tb_save_fold=tb_fold)
 
-                        mlflow.log_params({f"{bin_or_w}_{k_filt}_{key}": val for key, val in h_par_opt.items()})
-                        mlflow.log_params({f"{bin_or_w}_{k_filt}_{key}": val for key, val in stats_opt.items()})
-                        mlflow.log_params({f"{bin_or_w}_{k_filt}_{key}": val for key, val in mod_filt.get_info_dict().items() if key not in h_par_opt.keys()})
+                        mlflow.log_params({f"filt_{bin_or_w}_{k_filt}_{key}": val for key, val in h_par_opt.items()})
+                        mlflow.log_metrics({f"filt_{bin_or_w}_{k_filt}_{key}": val for key, val in stats_opt.items()})
+                        mlflow.log_params({f"filt_{bin_or_w}_{k_filt}_{key}": val for key, val in mod_filt.get_info_dict().items() if key not in h_par_opt.keys()})
 
                         mod_filt.save_parameters(save_path=tmp_path)
                     
                         # compute mse for each model and log it 
                         phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1e-3 
+
                         mse_dict = filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=k_filt, prefix=bin_or_w)
                         mlflow.log_metrics(mse_dict) 
                     
                         # log plots that can be useful for quick visual diagnostic 
                         mlflow.log_figure(mod_filt.plot_phi_T()[0], f"fig/{bin_or_w}_{k_filt}_filt_all.png")
+                        i_plot = torch.where(~splitVec(phi_to_exclude)[0])[0][0]
 
-                        i = torch.where(~splitVec(phi_to_exclude)[0])[0][0]
-
-                        mlflow.log_figure(mod_filt.plot_phi_T(i=i, fig_ax= mod_dgp.plot_phi_T(i=i))[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i}.png")
+                        mlflow.log_figure(mod_filt.plot_phi_T(i=i_plot, fig_ax= mod_dgp.plot_phi_T(i=i_plot))[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i_plot}.png")
 
                         if mod_dgp.X_T is not None:
+                            mlflow.log_metric(f"{bin_or_w}_avg_beta_dgp", get_avg_beta(mod_dgp))
                             fig = plt.figure() 
                             plt.plot(mod_dgp.X_T[0,0,:,:].T, figure=fig)
                             mlflow.log_figure(fig, f"fig/{bin_or_w}_X_0_0_T.png")
+                            
                         if mod_dgp.any_beta_tv():
                             plot_dgp_fig_ax = mod_dgp.plot_beta_T()
                             mlflow.log_figure(plot_dgp_fig_ax[0], f"fig/{bin_or_w}_sd_filt_beta_T.png")
-                        if mod_filt.any_beta_tv():
-                            mlflow.log_figure(mod_filt.plot_beta_T(fig_ax=plot_dgp_fig_ax)[0], f"fig/{bin_or_w}_{k_filt}_filt_beta_T.png")
-                            
+                        if mod_filt.beta_T is not None:
+                            if mod_filt.any_beta_tv():
+                                mlflow.log_figure(mod_filt.plot_beta_T(fig_ax=plot_dgp_fig_ax)[0], f"fig/{bin_or_w}_{k_filt}_filt_beta_T.png")
+                                
                 # log all files and sub-folders in temp fold as artifacts            
                 mlflow.log_artifacts(tmp_path)
 
@@ -349,10 +353,20 @@ def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix=""):
         mse_dist_par_un = loss_fun(dist_par_un_T_dgp, dist_par_un_T_filt).item()
     else:
         mse_dist_par_un = 0
+
+    avg_beta = get_avg_beta(mod_filt)
     
-    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un}
+    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un, f"{prefix}_avg_beta_{suffix}":avg_beta}
 
     return mse_dict
+
+def get_avg_beta(mod):
+    if mod.beta_T is not None:
+        _,  _, beta_T = mod.get_seq_latent_par()
+        avg_beta = beta_T.mean().item()
+    else:
+        avg_beta = None
+    return avg_beta
 
 
 

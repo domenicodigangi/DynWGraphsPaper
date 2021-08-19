@@ -136,12 +136,26 @@ def check_test_exp(kwargs):
         kwargs["experiment_name"] = "test"
 
 
-def dict_from_run(r):
-    return {**r.data.params, **r.data.metrics, **r.data.tags, **dict(r.info)}
+def dicts_from_run(r):
+    dict_par = {"run_id": r.info.run_id, **r.data.params}
+    dict_metrics = {"run_id": r.info.run_id, **r.data.metrics}
+    dict_info = {**dict(r.info), **r.data.tags }
+
+    return {"info": dict_info, "metrics": dict_metrics, "par": dict_par}    
 
 
 def get_df_exp(experiment):
     all_runs = MlflowClient().search_runs(experiment.experiment_id)
 
-    df = pd.DataFrame([dict_from_run(r) for r in all_runs])
-    return df
+    list_info = []
+    list_par = []
+    list_metrics = []
+    for r in all_runs:
+        d = dicts_from_run(r)
+        list_info.append(d["info"])
+        list_par.append(d["par"])
+        list_metrics.append(d["metrics"])
+
+    dfs = {"info": pd.DataFrame(list_info), "par": pd.DataFrame(list_par), "metrics": pd.DataFrame(list_metrics)}
+
+    return dfs

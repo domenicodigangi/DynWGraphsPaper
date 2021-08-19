@@ -15,9 +15,15 @@ entry_points:
   transform_raw_world_trade_net_data:
     command: "transform_raw_world_trade_net_data.py"
 
+  run_sim_missp_dgp_and_filter_ss_sd:
+    n_sample:{type:int, default=50}
+    
+    command: "python ...."      
 
+
+  load_missp_filter_and_average:
 
   emid_analysis_main:
     parameters:
-    command: "python main.py --als-max-iter {als_max_iter} --keras-hidden-units {keras_hidden_units}
-                             --max-row-limit {max_row_limit}"
+    
+    

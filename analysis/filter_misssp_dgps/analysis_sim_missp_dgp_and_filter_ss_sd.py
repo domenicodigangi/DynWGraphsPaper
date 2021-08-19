@@ -18,7 +18,7 @@ from dynwgraphs.utils.dgps import get_dgp_mod_and_par
 import mlflow
 import logging
 import ddg_utils
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path, dict_from_run
+from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
 from ddg_utils import drop_keys, pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import pandas as pd
@@ -38,12 +38,14 @@ experiment = _get_and_set_experiment("filter missp dgp")
 
 df_0 = get_df_exp(experiment)
 
+MlflowClient().search_runs(experiment.experiment_id)
+
 df_0["status"].value_counts()
 df_0 = df_0[df_0["status"] == "FINISHED"]
 df_0 = df_0[~df_0["bin_sd_actual_n_opt_iter"].isna()]
 
 
-group_cols = ["beta_dgp_set_bin", "beta_filt_set_bin",  "type_tv_dgp_ext_reg", "type_tv_dgp_phi_bin", "type_tv_dgp_beta_bin"]
+group_cols = ["beta_dgp_set_bin", "beta_filt_set_bin",  "type_tv_dgp_ext_reg", "type_tv_dgp_phi_bin", "type_tv_dgp_beta_bin", "phi_dgp_set_bin", "phi_filt_set_bin"]
 
 
 print(df_0.groupby(group_cols).count()["run_id"])
@@ -66,7 +68,7 @@ mod_dgp = get_filt_mod(bin_or_w, Y_T, X_T, dgp_dict)["ss"]
 mod_dgp.load_par(str(load_path / "dgp"))
 
 filt_dict = eval(row_run["filt_bin"])
-mod_filt = get_filt_mod(bin_or_w, Y_T, X_T, filt_dict)["sd"]
+mod_filt = get_filt_mod(bin_or_w, Y_T, X_T, filt_dict)["ss"]
 mod_filt.load_par(str(load_path))
 
 phi_to_exclude = strIO_from_tens_T(Y_T>0) < 1e-3 
