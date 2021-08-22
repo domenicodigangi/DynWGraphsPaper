@@ -36,41 +36,41 @@ click_args = {}
 
 click_args["max_opt_iter"] = 10000
 click_args["n_nodes"] = 50
-click_args["n_time_steps"] = 100
-click_args["frac_time_steps_train"] = 0.75
+click_args["n_time_steps"] = 150
+click_args["frac_time_steps_train"] = 0.9
 
 
-click_args["phi_dgp_set_type_tv"] = ("AR", "ref_mat", 0.98, 0.1)
-click_args["phi_dgp_set_type_tv_bin"] = (None, None, None, None)
-click_args["phi_dgp_set_type_tv_w"] = (None, None, None, None)
+click_args["phi_set_dgp_type_tv"] = ("AR", "ref_mat", 0.98, 0.1)
+click_args["phi_set_dgp_type_tv_bin"] = (None, None, None, None)
+click_args["phi_set_dgp_type_tv_w"] = (None, None, None, None)
 
 
-click_args["phi_dgp_set"] = ("2N", True)
-click_args["phi_dgp_set_bin"] = (None, None)
-click_args["phi_dgp_set_w"] = (None, None)
+click_args["phi_set_dgp"] = ("2N", True)
+click_args["phi_set_bin_dgp"] = (None, None)
+click_args["phi_set_w_dgp"] = (None, None)
 
 
-click_args["phi_filt_set"] = ("2N", True)# click_args["phi_dgp_set"] #  #
-click_args["phi_filt_set_bin"] = (None, None)
-click_args["phi_filt_set_w"] = (None, None)
+click_args["phi_set_filt"] = ("2N", False)# click_args["phi_set_dgp"] #  #
+click_args["phi_set_bin_filt"] = (None, None)
+click_args["phi_set_w_filt"] = (None, None)
 
-click_args["beta_dgp_set"] = (2, "one", False)#(0, None, False)
-click_args["beta_dgp_set_bin"] = (None, None, None)
-click_args["beta_dgp_set_w"] = (None, None, None)
-
-
-click_args["beta_filt_set"] = click_args["beta_dgp_set"] # (1, "one", False)
-click_args["beta_filt_set_bin"] = (None, None, None)
-click_args["beta_filt_set_w"] = (None, None, None)
+click_args["beta_set_dgp"] = (1, "2N", False)#(0, None, False)
+click_args["beta_set_bin_dgp"] = (None, None, None)
+click_args["beta_set_w_dgp"] = (None, None, None)
 
 
-click_args["beta_dgp_set_type_tv"] = ("AR", 1, 0, 0)
-click_args["beta_dgp_set_type_tv_bin"] = (None, None, None, None)
-click_args["beta_dgp_set_type_tv_w"] = (None, None, None, None)
+click_args["beta_set_filt"] = (1, "2N", False)#click_args["beta_set_dgp"] # 
+click_args["beta_set_bin_filt"] = (None, None, None)
+click_args["beta_set_w_filt"] = (None, None, None)
 
-click_args["type_tv_ext_reg_dgp_set"] = ("uniform", "AR", 1, 0, 0.1)
-click_args["type_tv_ext_reg_dgp_set_bin"] = (None, None, None, None, None)
-click_args["type_tv_ext_reg_dgp_set_w"] = (None, None, None, None, None)
+
+click_args["beta_set_dgp_type_tv"] = ("AR", 1, 0, 0)
+click_args["beta_set_dgp_type_tv_bin"] = (None, None, None, None)
+click_args["beta_set_dgp_type_tv_w"] = (None, None, None, None)
+
+click_args["ext_reg_dgp_set_type_tv"] = ("uniform", "AR", 1, 0, 0.1)
+click_args["ext_reg_dgp_set_type_tv_bin"] = (None, None, None, None, None)
+click_args["ext_reg_dgp_set_type_tv_w"] = (None, None, None, None, None)
 
 
 
@@ -118,7 +118,7 @@ dgp_fold.mkdir(exist_ok=True)
 tb_fold = tmp_path / "tb_logs"
 tb_fold.mkdir(exist_ok=True)
 
-bin_or_w = "bin" 
+bin_or_w = "w" 
 mod_dgp = mod_dgp_dict[bin_or_w]
 logger.info(f" start estimates {bin_or_w}")
 

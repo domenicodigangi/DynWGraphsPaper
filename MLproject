@@ -12,7 +12,7 @@ entry_points:
       n_sim: {type: int, default: 80}
       n_jobs: {type: int, default: 2}
      
-    command: "python .\\analysis\\filter_missp_dgps\\run_sim_missp_dgp_and_filter_ss_sd.py --phi_dgp_set 2N True --phi_filt_set 2N True --n_sim {n_sim} --n_jobs {n_jobs}"
+    command: "python .\\analysis\\filter_missp_dgps\\run_sim_missp_dgp_and_filter_ss_sd.py --phi_set_dgp 2N True --phi_set_filt 2N True --n_sim {n_sim} --n_jobs {n_jobs}"
 
   test_path: 
     command: "pwd"

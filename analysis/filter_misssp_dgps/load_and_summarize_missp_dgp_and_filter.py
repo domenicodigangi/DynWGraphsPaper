@@ -39,7 +39,7 @@ importlib.reload(ddg_utils)
 # def load_avg_save(**kwargs):
 #     pass
 
-experiment = _get_and_set_experiment("sim missp filter")
+experiment = _get_and_set_experiment("Table 1")
 
 dfs = get_df_exp(experiment)
 
@@ -50,7 +50,7 @@ df_i = dfs["info"][ind_fin]
 df_p = dfs["par"][ind_fin]
 df_m = dfs["metrics"][ind_fin]
 
-group_cols = ["beta_dgp_set_bin", "beta_filt_set_bin",  "type_tv_ext_reg_dgp_set", "phi_dgp_set_type_tv_bin", "beta_dgp_set_type_tv_bin", "phi_dgp_set_bin", "phi_filt_set_bin"]
+group_cols = ["beta_set_bin_dgp", "beta_set_bin_filt",  "ext_reg_dgp_set_type_tv", "phi_set_dgp_type_tv_bin", "beta_set_dgp_type_tv_bin", "phi_set_bin_dgp", "phi_set_bin_filt"]
 
 # check that each group contains elements with the same settings for non grouping columns
 df = df_p.drop(columns = ['run_id', 'n_sim', 'n_jobs']).groupby(group_cols).nunique() > 1
@@ -65,23 +65,23 @@ else:
 
 df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
 
-mse_cols = lambda ss_or_sd: [f"bin_mse_phi_{ss_or_sd}", f"w_mse_phi_{ss_or_sd}", f"bin_mse_beta_{ss_or_sd}", f"w_mse_beta_{ss_or_sd}"]
+eval_cols = lambda ss_or_sd: [f"bin_mse_phi_{ss_or_sd}", f"w_mse_phi_{ss_or_sd}", f"bin_mse_beta_{ss_or_sd}", f"w_mse_beta_{ss_or_sd}", f"filt_bin_{ss_or_sd}_auc_score", f"filt_w_{ss_or_sd}_mse", f"filt_w_{ss_or_sd}_mse_log"]
 
 beta_cols = lambda ss_or_sd: [f"bin_avg_beta_{ss_or_sd}", f"w_avg_beta_{ss_or_sd}"]
 
 #%%
-if False:
-    all_cols = mse_cols("sd") + mse_cols("ss")
+if True:
+    all_cols = eval_cols("sd") 
     df[all_cols] = df[all_cols].clip(lower=df.quantile(0.05), upper=df.quantile(0.95), axis=1)
 
 
-df.groupby(group_cols).mean()[mse_cols("sd")]
-df.groupby(group_cols).count()[mse_cols("sd")]
+df.groupby(group_cols).mean()[eval_cols("sd")]
+df.groupby(group_cols).count()[eval_cols("sd")]
 [d[["filt_bin_sd_optimizer"]].value_counts() for k, d in df.groupby(group_cols)]
-df.groupby(group_cols).mean()[mse_cols("ss")]
-df.groupby(group_cols).mean()[mse_cols]
+df.groupby(group_cols).mean()[eval_cols("ss")]
+df.groupby(group_cols).mean()[eval_cols]
 
-[d[mse_cols("sd")].hist() for k, d in df.groupby(group_cols)]
+[d[eval_cols("sd")].hist() for k, d in df.groupby(group_cols)]
 [d[beta_cols("sd")].hist() for k, d in df.groupby(group_cols)]
 [d[beta_cols("sd")].hist() for k, d in df.groupby(group_cols)]
 [print((k, d[avg_cols ])) for k, d in df.groupby(group_cols)]
@@ -120,7 +120,7 @@ fig_ax = plt.subplots(2, 1)
 mod_dgp.plot_phi_T(i=i, fig_ax=fig_ax)
 
 
-phi_T,  _, beta_T = mod_filt.get_seq_latent_par()
+phi_T,  _, beta_T = mod_filt.get_time_series_latent_par()
 
 
 mod_dgp.beta_T

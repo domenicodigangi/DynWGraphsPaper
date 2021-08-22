@@ -39,43 +39,43 @@ importlib.reload(dynwgraphs)
 @click.option("--n_sim", help="Number of simulations", type=int, default=2)
 @click.option("--max_opt_iter", help="max number of opt iter", type=int, default=15000)
 @click.option("--n_nodes", help="Number of nodes", type=int, default=50)
-@click.option("--n_time_steps", help="Number of time steps", type=int, default=100)
-@click.option("--frac_time_steps_train", help="Number of time steps used for training", type=float, default=0.75)
+@click.option("--n_time_steps", help="Number of time steps", type=int, default=150)
+@click.option("--frac_time_steps_train", help="Number of time steps used for training", type=float, default=0.9)
 
 
-@click.option("--phi_dgp_set_type_tv", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=("AR", "ref_mat", 0.98, 0.2))
-@click.option("--phi_dgp_set_type_tv_bin", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
-@click.option("--phi_dgp_set_type_tv_w", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
+@click.option("--phi_set_dgp_type_tv", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=("AR", "ref_mat", 0.98, 0.1))
+@click.option("--phi_set_dgp_type_tv_bin", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
+@click.option("--phi_set_dgp_type_tv_w", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
 
 
-@click.option("--phi_dgp_set", help="1 - How many fitnesses? one (Erdos-Reny), N (undirected model), 2N (directed).   2 - Should they be Time varying ? True of False  ", type=(str, bool), default=("2N", False))
-@click.option("--phi_dgp_set_bin", help="Same as phi_dgp_set for bin parameters ", type=(str, bool), default=(None, None))
-@click.option("--phi_dgp_set_w", help="Same as phi_dgp_set for w parameters ", type=(str, bool), default=(None, None))
+@click.option("--phi_set_dgp", help="1 - How many fitnesses? one (Erdos-Reny), N (undirected model), 2N (directed).   2 - Should they be Time varying ? True of False  ", type=(str, bool), default=("2N", False))
+@click.option("--phi_set_bin_dgp", help="Same as phi_set_dgp for bin parameters ", type=(str, bool), default=(None, None))
+@click.option("--phi_set_w_dgp", help="Same as phi_set_dgp for w parameters ", type=(str, bool), default=(None, None))
 
 
-@click.option("--phi_filt_set", help="1 - How many fitnesses? one (Erdos-Reny), N (undirected model), 2N (directed).   2 - Should they be Time varying ? True of False  ", type=(str, bool), default=("2N", False))
-@click.option("--phi_filt_set_bin", help="Same as phi_filt_set for bin parameters ", type=(str, bool), default=(None, None))
-@click.option("--phi_filt_set_w", help="Same as phi_filt_set for w parameters ", type=(str, bool), default=(None, None))
+@click.option("--phi_set_filt", help="1 - How many fitnesses? one (Erdos-Reny), N (undirected model), 2N (directed).   2 - Should they be Time varying ? True of False  ", type=(str, bool), default=("2N", False))
+@click.option("--phi_set_bin_filt", help="Same as phi_set_filt for bin parameters ", type=(str, bool), default=(None, None))
+@click.option("--phi_set_w_filt", help="Same as phi_set_filt for w parameters ", type=(str, bool), default=(None, None))
 
 
-@click.option("--beta_dgp_set", help="Options for specification of external regressors' parameters. In order : 1 number of external regressors,  2 size of beta(One for all, N : one per node (both in and out), 2N : two per node, one for in and one for out links), 3 beta_tv (should the regression coefficients, of both dgp and filter, be time varying ?)) ", type=(int, str, bool), default=(1, "one", False))
-@click.option("--beta_dgp_set_bin", help="Same as beta_dgp_set for bin parameters ", type=(int, str, bool), default=(None, None, None))
-@click.option("--beta_dgp_set_w", help="Same as beta_dgp_set for w parameters ", type=(int, str, bool), default=(None, None, None))
+@click.option("--beta_set_dgp", help="Options for specification of external regressors' parameters. In order : 1 number of external regressors,  2 size of beta(One for all, N : one per node (both in and out), 2N : two per node, one for in and one for out links), 3 beta_tv (should the regression coefficients, of both dgp and filter, be time varying ?)) ", type=(int, str, bool), default=(1, "one", False))
+@click.option("--beta_set_bin_dgp", help="Same as beta_set_dgp for bin parameters ", type=(int, str, bool), default=(None, None, None))
+@click.option("--beta_set_w_dgp", help="Same as beta_set_dgp for w parameters ", type=(int, str, bool), default=(None, None, None))
 
 
-@click.option("--beta_filt_set", help="Same as beta_dgp_set for filter specification ", type=(int, str, bool), default=(1, "one", False))
-@click.option("--beta_filt_set_bin", help="Same as beta_filt_set for bin parameters ", type=(int, str, bool), default=(None, None, None))
-@click.option("--beta_filt_set_w", help="Same as beta_filt_set for w parameters ", type=(int, str, bool), default=(None, None, None))
+@click.option("--beta_set_filt", help="Same as beta_set_dgp for filter specification ", type=(int, str, bool), default=(1, "one", False))
+@click.option("--beta_set_bin_filt", help="Same as beta_set_filt for bin parameters ", type=(int, str, bool), default=(None, None, None))
+@click.option("--beta_set_w_filt", help="Same as beta_set_filt for w parameters ", type=(int, str, bool), default=(None, None, None))
 
 
-@click.option("--beta_dgp_set_type_tv", help="If time varyng, how should beta par evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, float, float, float), default=("AR", 1, 0, 0))
-@click.option("--beta_dgp_set_type_tv_bin", help="Same as beta_dgp_set_type_tv for bin", type=(str, float, float, float), default=(None, None, None, None))
-@click.option("--beta_dgp_set_type_tv_w", help="Same as beta_dgp_set_type_tv for w", type=(str, float, float, float), default=(None, None, None, None))
+@click.option("--beta_set_dgp_type_tv", help="If time varyng, how should beta par evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, float, float, float), default=("AR", 1, 0, 0))
+@click.option("--beta_set_dgp_type_tv_bin", help="Same as beta_set_dgp_type_tv for bin", type=(str, float, float, float), default=(None, None, None, None))
+@click.option("--beta_set_dgp_type_tv_w", help="Same as beta_set_dgp_type_tv for w", type=(str, float, float, float), default=(None, None, None, None))
 
 
-@click.option("--type_tv_ext_reg_dgp_set", help="How should external regressorrs evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, str, float, float, float), default=("uniform", "AR", 1, 0, 0.1))
-@click.option("--type_tv_ext_reg_dgp_set_bin", help="Same as type_tv_ext_reg_dgp_set for bin", type=(str, str, float, float, float), default=(None, None, None, None, None))
-@click.option("--type_tv_ext_reg_dgp_set_w", help="Same as type_tv_ext_reg_dgp_set for w", type=(str, str, float, float, float), default=(None, None, None, None, None))
+@click.option("--ext_reg_dgp_set_type_tv", help="How should external regressorrs evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, str, float, float, float), default=("uniform", "AR", 1, 0, 0.1))
+@click.option("--ext_reg_dgp_set_type_tv_bin", help="Same as ext_reg_dgp_set_type_tv for bin", type=(str, str, float, float, float), default=(None, None, None, None, None))
+@click.option("--ext_reg_dgp_set_type_tv_w", help="Same as ext_reg_dgp_set_type_tv for w", type=(str, str, float, float, float), default=(None, None, None, None, None))
 
 
 @click.option("--exclude_weights", help="shall we run the sim only for the binary case? ", type=bool, default=False)
@@ -115,10 +115,10 @@ def cli_beta_set_to_mod_kwargs_dict(phi_set, reg_set, max_opt_iter, T_train):
     beta_out_dict["size_beta_t"] = reg_set_dict["size_beta_t"]
     beta_out_dict["beta_tv"] = [reg_set_dict["all_beta_tv"] for p in range(beta_out_dict["n_ext_reg"])]
     if reg_set_dict["n_ext_reg"] == 0:
-        if beta_out_dict["size_beta_t"] not in [None, 0]:
-            raise Exception("If n_ext_reg is zero beta should not have a size")
-        if beta_out_dict["size_beta_t"] not in [None, False]:
-            raise Exception("If n_ext_reg is zero there are no betas to be time varying")
+        if beta_out_dict["size_beta_t"] not in [None, 0, "0"]:
+            raise Exception(f"If n_ext_reg is zero beta should not have  size {beta_out_dict['size_beta_t']}")
+        if beta_out_dict["beta_tv"] not in [None, False, "False", "[]", []]:
+            raise Exception(f"If n_ext_reg is zero there are no betas to be time varying {beta_out_dict['beta_tv']}")
    
     else:
         if reg_set_dict["size_beta_t"] in [None, 0]:
@@ -135,36 +135,36 @@ def get_dgp_and_filt_set_from_cli_options(kwargs, bin_or_w):
 
     logger.info("using common external regressor settings for binary and weighted parameters")
     
-    if kwargs[f"phi_dgp_set_{bin_or_w}"][0] is None:
-        kwargs[f"phi_dgp_set_{bin_or_w}"] = kwargs["phi_dgp_set"]
+    if kwargs[f"phi_set_{bin_or_w}_dgp"][0] is None:
+        kwargs[f"phi_set_{bin_or_w}_dgp"] = kwargs["phi_set_dgp"]
 
-    if kwargs[f"phi_filt_set_{bin_or_w}"][0] is None:
-        kwargs[f"phi_filt_set_{bin_or_w}"] = kwargs["phi_filt_set"]    
+    if kwargs[f"phi_set_{bin_or_w}_filt"][0] is None:
+        kwargs[f"phi_set_{bin_or_w}_filt"] = kwargs["phi_set_filt"]    
 
-    if kwargs[f"beta_dgp_set_{bin_or_w}"][0] is None:
-        kwargs[f"beta_dgp_set_{bin_or_w}"] = kwargs[f"beta_dgp_set"]
+    if kwargs[f"beta_set_{bin_or_w}_dgp"][0] is None:
+        kwargs[f"beta_set_{bin_or_w}_dgp"] = kwargs[f"beta_set_dgp"]
 
-    if kwargs[f"beta_filt_set_{bin_or_w}"][0] is None:
-        kwargs[f"beta_filt_set_{bin_or_w}"] = kwargs[f"beta_filt_set"]
+    if kwargs[f"beta_set_{bin_or_w}_filt"][0] is None:
+        kwargs[f"beta_set_{bin_or_w}_filt"] = kwargs[f"beta_set_filt"]
 
-    dgp_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_dgp_set_{bin_or_w}"], kwargs[f"beta_dgp_set_{bin_or_w}"], max_opt_iter=kwargs["max_opt_iter"], T_train=kwargs["T_train"])
+    dgp_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_set_{bin_or_w}_dgp"], kwargs[f"beta_set_{bin_or_w}_dgp"], max_opt_iter=kwargs["max_opt_iter"], T_train=kwargs["T_train"])
 
-    filt_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_filt_set_{bin_or_w}"], kwargs[f"beta_filt_set_{bin_or_w}"], max_opt_iter=kwargs["max_opt_iter"], T_train=kwargs["T_train"])
+    filt_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_set_{bin_or_w}_filt"], kwargs[f"beta_set_{bin_or_w}_filt"], max_opt_iter=kwargs["max_opt_iter"], T_train=kwargs["T_train"])
 
-    if kwargs[f"phi_dgp_set_type_tv_{bin_or_w}"][0] is None:
-         kwargs[f"phi_dgp_set_type_tv_{bin_or_w}"] = kwargs[f"phi_dgp_set_type_tv"]
+    if kwargs[f"phi_set_dgp_type_tv_{bin_or_w}"][0] is None:
+         kwargs[f"phi_set_dgp_type_tv_{bin_or_w}"] = kwargs[f"phi_set_dgp_type_tv"]
 
-    dgp_set[f"phi_dgp_set_type_tv"] = kwargs[f"phi_dgp_set_type_tv_{bin_or_w}"]
+    dgp_set[f"phi_set_dgp_type_tv"] = kwargs[f"phi_set_dgp_type_tv_{bin_or_w}"]
 
-    if kwargs[f"beta_dgp_set_type_tv_{bin_or_w}"][0] is None:
-         kwargs[f"beta_dgp_set_type_tv_{bin_or_w}"] = kwargs[f"beta_dgp_set_type_tv"]
+    if kwargs[f"beta_set_dgp_type_tv_{bin_or_w}"][0] is None:
+         kwargs[f"beta_set_dgp_type_tv_{bin_or_w}"] = kwargs[f"beta_set_dgp_type_tv"]
 
-    dgp_set[f"beta_dgp_set_type_tv"] = kwargs[f"beta_dgp_set_type_tv_{bin_or_w}"]
+    dgp_set[f"beta_set_dgp_type_tv"] = kwargs[f"beta_set_dgp_type_tv_{bin_or_w}"]
 
-    if kwargs[f"type_tv_ext_reg_dgp_set_{bin_or_w}"][0] is None:
-         kwargs[f"type_tv_ext_reg_dgp_set_{bin_or_w}"] = kwargs[f"type_tv_ext_reg_dgp_set"]
+    if kwargs[f"ext_reg_dgp_set_type_tv_{bin_or_w}"][0] is None:
+         kwargs[f"ext_reg_dgp_set_type_tv_{bin_or_w}"] = kwargs[f"ext_reg_dgp_set_type_tv"]
 
-    dgp_set[f"type_tv_ext_reg_dgp_set"] = kwargs[f"type_tv_ext_reg_dgp_set_{bin_or_w}"]
+    dgp_set[f"ext_reg_dgp_set_type_tv"] = kwargs[f"ext_reg_dgp_set_type_tv_{bin_or_w}"]
 
     dgp_set["bin_or_w"] = bin_or_w
     filt_set["bin_or_w"] = bin_or_w
@@ -214,17 +214,14 @@ def _run_parallel_simulations(**kwargs):
 
     with mlflow.start_run(experiment_id=experiment.experiment_id) as parent_run:
 
-        parent_runs_par = drop_keys(kwargs, ["phi_dgp_set_type_tv", "beta_dgp_set_type_tv", "beta_dgp_set", "beta_filt_set", "phi_dgp_set", "phi_filt_set", "ext_reg_dgp_set"])
+        parent_runs_par = drop_keys(kwargs, ["phi_set_dgp_type_tv", "beta_set_dgp_type_tv", "beta_set_dgp", "beta_set_filt", "phi_set_dgp", "phi_set_filt", "ext_reg_dgp_set"])
         mlflow.log_params(parent_runs_par)
 
-        # mlflow.log_params({f"{key}_dgp_bin": val for key, val in dgp_set_bin.items() if key != "X_T"})
-        # if not kwargs["exclude_weights"]:
-        #     mlflow.log_params({f"{key}_dgp_w": val for key, val in dgp_set_w.items() if key != "X_T"})
-
+      
         # define binary dgp and filter par
         mod_dgp_bin, Y_reference_bin = get_dgp_mod_and_par(N=N, T=T, dgp_set_dict=dgp_set_bin)
         mod_dgp_dict = {"bin": mod_dgp_bin}
-        run_data_dict = {"Y_reference":{"Y_reference_bin": Y_reference_bin}}
+        run_data_dict = {"Y_reference": {"Y_reference_bin": Y_reference_bin}}
 
         if not kwargs["exclude_weights"]:
             # define weighted dgp
@@ -308,11 +305,14 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 
                         mod_filt.save_parameters(save_path=tmp_path)
                     
+                        logger.warning(mod_filt.phi_T[0])
+                        logger.warning(mod_filt.phi_T[-1])
                         # compute mse for each model and log it 
-                        phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) == 0 
+                        phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1 
 
                         mse_dict = filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=k_filt, prefix=bin_or_w)
                         mlflow.log_metrics(mse_dict) 
+                        logger.warning(mse_dict)
 
                         mlflow.log_metrics({f"filt_{bin_or_w}_{k_filt}_{key}": v for key, v in mod_filt.out_of_sample_eval().items()}) 
                     
@@ -342,8 +342,9 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix=""):
     
     loss_fun = nn.MSELoss()
-    phi_T_filt = mod_filt.par_list_to_matrix_T(mod_filt.phi_T)
-    phi_T_dgp = mod_dgp.par_list_to_matrix_T(mod_dgp.phi_T)
+    phi_T_filt, dist_par_un_T_filt, beta_T_filt, = mod_filt.get_time_series_latent_par(only_train=True)
+    phi_T_dgp, dist_par_un_T_dgp, beta_T_dgp, = mod_dgp.get_time_series_latent_par(only_train=True)
+    
     if mod_filt.phi_tv &(not mod_dgp.phi_tv):
         phi_T_dgp = phi_T_dgp.repeat((1, phi_T_filt.shape[1]))
     elif mod_dgp.phi_tv &(not mod_filt.phi_tv):
@@ -353,15 +354,11 @@ def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix=""):
     mse_phi = loss_fun(phi_T_dgp[~ phi_to_exclude, :], phi_T_filt[~ phi_to_exclude, :]).item()
 
     if (mod_dgp.beta_T is not None) and (mod_filt.beta_T is not None):
-        beta_T_filt = mod_filt.par_list_to_matrix_T(mod_filt.beta_T)
-        beta_T_dgp = mod_dgp.par_list_to_matrix_T(mod_dgp.beta_T)
         mse_beta = loss_fun(beta_T_dgp, beta_T_filt).item()
     else:
         mse_beta = 0
     
     if (mod_dgp.dist_par_un_T is not None) and (mod_filt.dist_par_un_T is not None):
-        dist_par_un_T_filt = mod_filt.par_list_to_matrix_T(mod_filt.dist_par_un_T)
-        dist_par_un_T_dgp = mod_dgp.par_list_to_matrix_T(mod_dgp.dist_par_un_T)
         mse_dist_par_un = loss_fun(dist_par_un_T_dgp, dist_par_un_T_filt).item()
     else:
         mse_dist_par_un = 0
@@ -375,10 +372,10 @@ def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix=""):
 
 def get_avg_beta(mod):
     if mod.beta_T is not None:
-        _,  _, beta_T = mod.get_seq_latent_par()
+        _,  _, beta_T = mod.get_time_series_latent_par()
         avg_beta = beta_T.mean().item()
     else:
-        avg_beta = None
+        avg_beta = float('nan')
     return avg_beta
 
 

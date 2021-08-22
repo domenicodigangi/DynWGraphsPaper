@@ -43,24 +43,25 @@ def load_all_models(row_run, bin_or_w):
     return mod_dgp, mod_filt_ss, mod_filt_sd, Y_T, X_T
 
 
-import pickle
-file_name = mod_dgp.file_names(load_path / "dgp")["parameters"]
+# import pickle
+# file_name = mod_dgp.file_names(load_path / "dgp")["parameters"]
         
-par_dict = pickle.load(open(file_name, "rb"))
+# par_dict = pickle.load(open(file_name, "rb"))
 
-par_dict["phi_T"]
-mod_dgp.set_par_val_from_dict(par_dict)
+# par_dict["phi_T"]
+# mod_dgp.set_par_val_from_dict(par_dict)
 
 
 
 
 # %%
 
-experiment = _get_and_set_experiment("sim missp filter")
+experiment = _get_and_set_experiment("Table 1")
 experiment = _get_and_set_experiment("test")
+
 all_runs = get_df_exp(experiment, one_df=True)
 
-run_id = "4c61d2252b474d058c2916bb07b323c8"
+run_id = "2a3f04ae337f43dcbd4926ebf434497e"
 row_run = all_runs[all_runs.run_id == run_id].iloc[0]
 
 
@@ -78,61 +79,38 @@ mod_dgp_w, mod_filt_w_ss, mod_filt_w_sd, _, _ = load_all_models(row_run, "w")
 mod_filt = mod_filt_w_sd
 mod_dgp = mod_dgp_w
 
-mod_filt.beta_tv[0]
-mod_filt.init_sd_type
-mod_filt.inds_to_exclude_from_id
-mod_filt.get_unc_mean(mod_filt.sd_stat_par_un_phi)
-
-mod_dgp.identify_sequences()
-mod_dgp.plot_phi_T()
-phi_T[~mod_dgp.inds_to_exclude_from_id]
-phi_T, beta_T, dist_par_un_T = mod_dgp.get_seq_latent_par() 
-
-
-from dynwgraphs.dirGraphs1_dynNets import dirSpW1_SD
-
-mod_dgp = dirSpW1_SD(torch.zeros(N, N, T))
-
-mod_dgp.inds_to_exclude_from_id
-
-mod_dgp.phi_T
-mod_dgp.mod_bin = mod_dgp_bin
-for p in mod_dgp.mod_bin.phi_T:
-    p[:] = -5 
-for p in mod_dgp.phi_T:
-    p.requires_grad=False
-    p[:] = 1 
-mod_dgp.set_par_to_exclude_to_zero()
-mod_dgp.phi_T
-
-mod_dgp.sample_and_set_Y_T(A_T = mod_dgp.mod_bin.sample_Y_T())
-
-mod_dgp.inds_to_exclude_from_id
-(mod_dgp.Y_T>0).sum()
-
-
-mod_dgp.mod_bin.phi_T
-mod_dgp.mod_bin.sample_Y_T()[:,:,1].sum()
-mod_dgp.sample_and_set_Y_T(A_T = mod_dgp.mod_bin.sample_Y_T())
-mod_dgp.inds_to_exclude_from_id
-mod_dgp.Y_T.sum()
-
-mod_filt.roll_sd_filt_train()
-mod_filt.identify_sequence()
 mod_filt.phi_T[0]
+mod_filt.phi_T[100]
+mod_filt.roll_sd_filt_train()
+mod_filt.identify_sequences_tv_par()
+
+mod_filt.T_train
+mod_dgp.T_train
 mod_filt.plot_phi_T()
+mod_dgp.plot_phi_T()
 
-strIO_from_tens_T(Y_T)[~mod_filt.inds_to_exclude_from_id] 
 
+mod_filt.phi_tv
+mod_dgp.phi_tv
+
+
+strIO_from_tens_T(Y_T)
 
 mod_filt.inds_to_exclude_from_id
-phi_T, beta_T, dist_par_un_T = mod_filt.get_seq_latent_par() 
+mod_dgp.inds_to_exclude_from_id
 
-plt.plot(phi_T[strIO_from_tens_T(Y_T) == 0, :].T)
+phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1 
 
-phi_to_exclude = mod_filt.inds_to_exclude_from_id
-filt_err(mod_dgp_w, mod_filt_w_sd, phi_to_exclude)
+phi_T, _, _= mod_filt.get_time_series_latent_par() 
+plt.plot(phi_T[phi_to_exclude, :].T)
+plt.plot(phi_T[~phi_to_exclude, :].T)
 
+
+phi_T, _, _ = mod_dgp.get_time_series_latent_par() 
+plt.plot(phi_T[phi_to_exclude, :].T)
+
+filt_err(mod_dgp, mod_filt, phi_to_exclude)
+#%%
 
 i = torch.where(~splitVec(phi_to_exclude)[0])[0][0]
 x_T = X_T[0, 0, 0, :].numpy()
@@ -144,7 +122,7 @@ mod_filt.plot_phi_T(i=i, fig_ax=mod_dgp.plot_phi_T(i=i, fig_ax=fig_ax))
 # %%
 t0 = 0
 i=4
-phi_T, _, _ = mod_filt.get_seq_latent_par()
+phi_T, _, _ = mod_filt.get_time_series_latent_par()
 phi_i_T, phi_o_T = splitVec(phi_T)
 data_i = phi_i_T[i, t0:].reshape(-1,1)
 data_i_2 = phi_i_T[i+1, t0:].reshape(-1,1)
