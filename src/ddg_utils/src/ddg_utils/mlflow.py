@@ -144,7 +144,7 @@ def dicts_from_run(r):
     return {"info": dict_info, "metrics": dict_metrics, "par": dict_par}    
 
 
-def get_df_exp(experiment):
+def get_df_exp(experiment, one_df = False):
     all_runs = MlflowClient().search_runs(experiment.experiment_id)
 
     list_info = []
@@ -156,6 +156,14 @@ def get_df_exp(experiment):
         list_par.append(d["par"])
         list_metrics.append(d["metrics"])
 
-    dfs = {"info": pd.DataFrame(list_info), "par": pd.DataFrame(list_par), "metrics": pd.DataFrame(list_metrics)}
+    df_i = pd.DataFrame(list_info)
+    df_p = pd.DataFrame(list_par)
+    df_m = pd.DataFrame(list_metrics)
 
-    return dfs
+    dfs = {"info": df_i, "par": df_p, "metrics": df_m}
+
+    if one_df:
+        df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
+        return df
+    else:
+        return dfs

@@ -1,29 +1,18 @@
 name: dynwgraphspaper
 
-conda_env: config/conda_env.yaml
+conda_env: config\conda_env.yaml
 
 entry_points:
-  simul_and_estimate_sd_model:
-    parameters:
-      n_sample:{type:int, default=50}
-      sd_par:
-        um:"rand"
-        B:{type:float, default=0.98}
-        A:{type:float, default=0.01}
-    command: "simul_sd_estimate_sd_and_save_dirBin1.py --n-sample {n_sample}"
 
   transform_raw_world_trade_net_data:
     command: "transform_raw_world_trade_net_data.py"
 
-  run_sim_missp_dgp_and_filter_ss_sd:
-    n_sample:{type:int, default=50}
-    
-    command: "python ...."      
-
-
-  load_missp_filter_and_average:
-
-  emid_analysis_main:
+  sim_missp_dgp_and_filter_ss_sd_default_set_tt:
     parameters:
-    
-    
+      n_sim: {type: int, default: 80}
+      n_jobs: {type: int, default: 2}
+     
+    command: "python .\\analysis\\filter_missp_dgps\\run_sim_missp_dgp_and_filter_ss_sd.py --phi_dgp_set 2N True --phi_filt_set 2N True --n_sim {n_sim} --n_jobs {n_jobs}"
+
+  test_path: 
+    command: "pwd"
