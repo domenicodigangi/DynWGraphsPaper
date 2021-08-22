@@ -17,7 +17,7 @@ from dynwgraphs.utils.dgps import get_dgp_mod_and_par
 import mlflow
 import logging
 import ddg_utils
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path, dict_from_run
+from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
 from ddg_utils import drop_keys, pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import pandas as pd
@@ -26,6 +26,7 @@ import torch
 import numpy as np
 from matplotlib import pyplot as plt
 import click
+from scipy.stats import trim_mean
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
 importlib.reload(ddg_utils)
@@ -33,21 +34,18 @@ importlib.reload(ddg_utils)
 
 # %%
 
+# @click.option("--experiment_name", type=str, default="filter missp dgp")
 
-@click.option("--experiment_name", type=str, default="filter missp dgp")
+# def load_avg_save(**kwargs):
+#     pass
 
-
-
-def load_avg_save(**kwargs):
-    pass
-
-experiment = _get_and_set_experiment("filter missp dgp")
+experiment = _get_and_set_experiment("sim missp filter")
 
 dfs = get_df_exp(experiment)
 
 logger.info(f"Staus of experiment {experiment.name}: \n {dfs['info']['status'].value_counts()}")
 
-ind_fin = ( dfs["info"]["status"] == "FINISHED") & (~dfs["par"]["filt_bin_sd_actual_n_opt_iter"].isna())
+ind_fin = ( dfs["info"]["status"] == "FINISHED") & (~dfs["metrics"]["filt_bin_sd_actual_n_opt_iter"].isna())
 df_i = dfs["info"][ind_fin]
 df_p = dfs["par"][ind_fin]
 df_m = dfs["metrics"][ind_fin]
@@ -55,14 +53,37 @@ df_m = dfs["metrics"][ind_fin]
 group_cols = ["beta_dgp_set_bin", "beta_filt_set_bin",  "type_tv_dgp_ext_reg", "type_tv_dgp_phi_bin", "type_tv_dgp_beta_bin", "phi_dgp_set_bin", "phi_filt_set_bin"]
 
 # check that each group contains elements with the same settings for non grouping columns
-df = df_p.drop(columns = ['run_id', 'filt_bin_sd_actual_n_opt_iter','filt_bin_sd_final_grad_norm', 'filt_bin_sd_final_loss',        'filt_bin_sd_final_roll_improv', 'filt_bin_ss_actual_n_opt_iter',        'filt_bin_ss_final_grad_norm', 'filt_bin_ss_final_loss',        'filt_bin_ss_final_roll_improv', 'filt_w_sd_actual_n_opt_iter',        'filt_w_sd_final_grad_norm', 'filt_w_sd_final_loss',        'filt_w_sd_final_roll_improv', 'filt_w_ss_actual_n_opt_iter',        'filt_w_ss_final_grad_norm', 'filt_w_ss_final_loss', 'filt_w_ss_final_roll_improv']).groupby(group_cols).nunique() > 1
+df = df_p.drop(columns = ['run_id', 'n_sim', 'n_jobs']).groupby(group_cols).nunique() > 1
 
-assert not df.values.any()
+df.loc[:,df.any()]
+df_p["filt_bin_sd_optimizer"].value_counts()
+
+if not df.values.any():
+    pass
+else:
+    logger.error(df.loc[:,df.any()])
 
 df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
 
-avg_cols = ["bin_mse_phi_sd", "w_mse_phi_sd", "bin_mse_beta_sd", "w_mse_beta_sd"]
+mse_cols = lambda ss_or_sd: [f"bin_mse_phi_{ss_or_sd}", f"w_mse_phi_{ss_or_sd}", f"bin_mse_beta_{ss_or_sd}", f"w_mse_beta_{ss_or_sd}"]
 
+beta_cols = lambda ss_or_sd: [f"bin_avg_beta_{ss_or_sd}", f"w_avg_beta_{ss_or_sd}"]
+
+#%%
+if False:
+    all_cols = mse_cols("sd") + mse_cols("ss")
+    df[all_cols] = df[all_cols].clip(lower=df.quantile(0.05), upper=df.quantile(0.95), axis=1)
+
+
+df.groupby(group_cols).mean()[mse_cols("sd")]
+df.groupby(group_cols).count()[mse_cols("sd")]
+[d[["filt_bin_sd_optimizer"]].value_counts() for k, d in df.groupby(group_cols)]
+df.groupby(group_cols).mean()[mse_cols("ss")]
+df.groupby(group_cols).mean()[mse_cols]
+
+[d[mse_cols("sd")].hist() for k, d in df.groupby(group_cols)]
+[d[beta_cols("sd")].hist() for k, d in df.groupby(group_cols)]
+[d[beta_cols("sd")].hist() for k, d in df.groupby(group_cols)]
 [print((k, d[avg_cols ])) for k, d in df.groupby(group_cols)]
 
 

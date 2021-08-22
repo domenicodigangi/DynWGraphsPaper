@@ -42,7 +42,7 @@ importlib.reload(dynwgraphs)
 @click.option("--n_time_steps", help="Number of time steps", type=int, default=100)
 
 
-@click.option("--type_tv_dgp_phi", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=("AR", "ref_mat", 0.98, 0.01))
+@click.option("--type_tv_dgp_phi", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=("AR", "ref_mat", 0.98, 0.2))
 @click.option("--type_tv_dgp_phi_bin", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
 @click.option("--type_tv_dgp_phi_w", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
 
@@ -79,9 +79,12 @@ importlib.reload(dynwgraphs)
 
 @click.option("--exclude_weights", help="shall we run the sim only for the binary case? ", type=bool, default=False)
 
+@click.option("--stop_on_error", help="shall we stop in case of error in one run? ", type=bool, default=False)
+
 
 @click.option("--n_jobs", type=int, default=2)
-@click.option("--experiment_name", type=str, default="filter missp dgp")
+
+@click.option("--experiment_name", type=str, default="sim missp filter")
 
 
 def run_parallel_simulations(**kwargs):
@@ -237,15 +240,17 @@ def _run_parallel_simulations(**kwargs):
         run_par_dict = {"N": N, "T": T, "dgp_par_bin": dgp_set_bin, "dgp_par_w": dgp_set_w, "filt_par_bin": filt_set_bin, "filt_par_w": filt_set_w}
 
 
-        def try_one_run(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par):
-            sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
-            try:
-                pass
-                # sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
-            except Exception as e:
-                logger.warning(f"Run failed : \n {e}")
+        def try_one_run(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par, stop_on_error):
+            
+            if stop_on_error:
+                sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
+            else:
+                try:
+                    sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par)
+                except Exception as e:
+                    logger.warning(f"Run failed : \n {e}")
 
-        Parallel(n_jobs=kwargs["n_jobs"])(delayed(try_one_run)(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par) for _ in range(kwargs["n_sim"]))
+        Parallel(n_jobs=kwargs["n_jobs"])(delayed(try_one_run)(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par, kwargs["stop_on_error"]) for _ in range(kwargs["n_sim"]))
 
 
 def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par):
@@ -275,9 +280,14 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 
                     # sample obs from dgp and save data
                     if hasattr(mod_dgp, "bin_mod"):
-                        mod_dgp.Y_T = mod_dgp.sample_Y_T(A_T=mod_dgp.bin_mod.Y_T)
+                        if mod_dgp.bin_mod.Y_T.sum() == 0:
+                            mod_dgp.bin_mod.sample_and_set_Y_T()
+                        
+                        mod_dgp.sample_and_set_Y_T(A_T=mod_dgp.bin_mod.Y_T)
                     else:
-                        mod_dgp.Y_T = mod_dgp.sample_Y_T()
+                        mod_dgp.sample_and_set_Y_T()
+
+
 
                     torch.save(run_data_dict["Y_reference"], dgp_fold / "Y_reference.pt")
                     torch.save((mod_dgp.get_Y_T_to_save(), mod_dgp.X_T), dgp_fold / "obs_T_dgp.pt")
@@ -299,7 +309,7 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                         mod_filt.save_parameters(save_path=tmp_path)
                     
                         # compute mse for each model and log it 
-                        phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1e-3 
+                        phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) == 0 
 
                         mse_dict = filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=k_filt, prefix=bin_or_w)
                         mlflow.log_metrics(mse_dict) 
@@ -360,6 +370,7 @@ def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix=""):
 
     return mse_dict
 
+
 def get_avg_beta(mod):
     if mod.beta_T is not None:
         _,  _, beta_T = mod.get_seq_latent_par()
@@ -375,29 +386,6 @@ def get_avg_beta(mod):
 if __name__ == "__main__":
     run_parallel_simulations()
 
-
-if False:    
-    click_args = {}
-    click_args["n_sim"] = 2
-    click_args["max_opt_iter"] = 21
-    click_args["n_nodes"] = 50
-    click_args["n_time_steps"] = 100
-    click_args["type_tv_dgp_phi_bin"] = "AR"
-    click_args["beta_bin_dgp_set"] = (1, "one", False)
-    click_args["type_tv_dgp_beta_bin"] = "AR"
-    click_args["beta_filt_set_bin"] = (None, None, None)
-    click_args["exclude_weights"] = False
-    click_args["type_tv_dgp_phi_w"] = "AR"
-    click_args["beta_w_dgp_set"] = (0, "one", False)
-    click_args["type_tv_dgp_beta_w"] = "AR"
-    click_args["ext_reg_w_par_filt_set"] = (None, None, None)
-    click_args["n_jobs"] = 4
-    click_args["experiment_name"] = "filter missp dgp"
-
-
-    kwargs = click_args
-
-    _run_parallel_simulations(**kwargs)
 
 
 
