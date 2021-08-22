@@ -66,11 +66,18 @@ def run_sim_seq(**kwargs):
 if __name__ == "__main__":
     run_sim_seq()
 
-
+#####################################
 # commands to get all the simulations for table 1
 # python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_fphi_1reg
 # python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_tphi_1reg
-# 
+
+######################################
 # commands to get all the simulations for table 2
-# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_fphi_1reg
-# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_tphi_1reg
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_2reg_tphi_2reg --experiment_name "Table 2"
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_2reg_fphi_2reg --experiment_name "Table 2"
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_2reg_tphi_1reg --experiment_name "Table 2"
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_2reg_fphi_1reg --experiment_name "Table 2"
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_2reg_fphi_1reg --experiment_name "Table 2"
+
+# To do: run 2, 3, 4, 5 for table 2
+

@@ -352,12 +352,12 @@ def filt_err(mod_dgp, mod_filt, suffix="", prefix=""):
     mse_all_phi = loss_fun(phi_T_dgp, phi_T_filt).item()
     mse_phi = loss_fun(phi_T_dgp[~ phi_to_exclude, :], phi_T_filt[~ phi_to_exclude, :]).item()
 
-    mse_beta_list = []
+    mse_beta_dict = {}
     if (mod_dgp.beta_T is not None) and (mod_filt.beta_T is not None):
         n_reg_filt = beta_T_filt.shape[1]
         for n in range(n_reg_filt):
-            mse_beta_list.append(loss_fun(beta_T_dgp[:, n, :], beta_T_filt[:, n, :]).item())
-        mse_beta = torch.mean(torch.tensor(mse_beta_list)).item()
+            mse_beta_dict[f"{prefix}_mse_beta_{n+1}_{suffix}"] = loss_fun(beta_T_dgp[:, n, :], beta_T_filt[:, n, :]).item()
+        mse_beta = np.mean(list(mse_beta_dict.values())).item()
     else:
         mse_beta = 0
 
@@ -370,7 +370,7 @@ def filt_err(mod_dgp, mod_filt, suffix="", prefix=""):
 
     avg_beta = np.mean(list(avg_beta_dict.values()))
     
-    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un, f"{prefix}_avg_beta_{suffix}":avg_beta, **avg_beta_dict}
+    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un, f"{prefix}_avg_beta_{suffix}":avg_beta, **avg_beta_dict, **mse_beta_dict}
 
     return mse_dict
 
