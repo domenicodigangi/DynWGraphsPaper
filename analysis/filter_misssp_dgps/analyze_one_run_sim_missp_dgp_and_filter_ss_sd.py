@@ -61,14 +61,16 @@ experiment = _get_and_set_experiment("test")
 
 all_runs = get_df_exp(experiment, one_df=True)
 
-run_id = "2a3f04ae337f43dcbd4926ebf434497e"
+run_id = "b557e2f40b8247a5a6b58d82e1302a06"
+
 row_run = all_runs[all_runs.run_id == run_id].iloc[0]
 
-
+row_run
 
 # %%
 mod_dgp_bin, mod_filt_bin_ss, mod_filt_bin_sd, Y_T, X_T = load_all_models(row_run, "bin")
 mod_dgp_w, mod_filt_w_ss, mod_filt_w_sd, _, _ = load_all_models(row_run, "w")
+
 
 
 # mod_filt_w_sd.estimate()
@@ -76,11 +78,16 @@ mod_dgp_w, mod_filt_w_ss, mod_filt_w_sd, _, _ = load_all_models(row_run, "w")
 # To Do: 
 # check that phi filter and mse are now better
 
-mod_filt = mod_filt_w_sd
-mod_dgp = mod_dgp_w
+mod_filt = mod_filt_bin_sd
+mod_dgp = mod_dgp_bin
 
-mod_filt.phi_T[0]
-mod_filt.phi_T[100]
+
+phi_T, dim_dist_par_un_T, beta_T = mod_filt.get_time_series_latent_par()
+
+phi_T, dim_dist_par_un_T, beta_T = mod_dgp.get_time_series_latent_par()
+beta_T.shape
+list(range(1))
+
 mod_filt.roll_sd_filt_train()
 mod_filt.identify_sequences_tv_par()
 
@@ -99,7 +106,7 @@ strIO_from_tens_T(Y_T)
 mod_filt.inds_to_exclude_from_id
 mod_dgp.inds_to_exclude_from_id
 
-phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1 
+phi_to_exclude = mod_dgp.get_inds_inactive_nodes() 
 
 phi_T, _, _= mod_filt.get_time_series_latent_par() 
 plt.plot(phi_T[phi_to_exclude, :].T)
@@ -109,7 +116,7 @@ plt.plot(phi_T[~phi_to_exclude, :].T)
 phi_T, _, _ = mod_dgp.get_time_series_latent_par() 
 plt.plot(phi_T[phi_to_exclude, :].T)
 
-filt_err(mod_dgp, mod_filt, phi_to_exclude)
+filt_err(mod_dgp, mod_filt)
 #%%
 
 i = torch.where(~splitVec(phi_to_exclude)[0])[0][0]

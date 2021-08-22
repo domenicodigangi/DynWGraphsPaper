@@ -15,7 +15,7 @@ import subprocess
 
 @click.command()
 #"Simulate missp dgp and estimate sd and ss filters"
-@click.option("--n_sim", help="Number of simulations", type=int, default=24)
+@click.option("--n_sim", help="Number of simulations", type=int, default=100)
 @click.option("--max_opt_iter", help="max number of opt iter", type=int, default=15000)
 
 @click.option("--size_phi_t", type=str, default="2N")
@@ -26,7 +26,7 @@ import subprocess
 
 @click.option("--experiment_name", type=str, default="Table 1")
 
-@click.option("--combo", type=str, default="tt")
+@click.option("--combo", type=str, default="phit_1reg_phit_1reg")
 
 @click.option("--sigma_ar_phi", type=float, default=0.2)
 def run_sim_seq(**kwargs):
@@ -39,15 +39,15 @@ def run_sim_seq(**kwargs):
     else:
         raise
 
-    if kwargs["combo"][2] == "t":
+    if kwargs["combo"][10] == "t":
         phi_filt_tv = True
-    elif kwargs["combo"][2] == "f":
+    elif kwargs["combo"][10] == "f":
         phi_filt_tv = False
     else:
         raise
 
-    n_reg_dgp = kwargs["combo"][1]
-    n_reg_filt = kwargs["combo"][3]
+    n_reg_dgp = kwargs["combo"][5]
+    n_reg_filt = kwargs["combo"][15]
 
     if int(n_reg_dgp) == 0:
         size_beta_t_dgp = "0"
@@ -67,3 +67,10 @@ if __name__ == "__main__":
     run_sim_seq()
 
 
+# commands to get all the simulations for table 1
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_fphi_1reg
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_tphi_1reg
+# 
+# commands to get all the simulations for table 2
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_fphi_1reg
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_tphi_1reg

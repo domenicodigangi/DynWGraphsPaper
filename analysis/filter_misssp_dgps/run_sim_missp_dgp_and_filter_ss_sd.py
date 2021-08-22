@@ -15,6 +15,7 @@ Simulate time varying fitness models, binary and weighted, possibly with externa
 from pathlib import Path
 import importlib
 import torch
+import numpy as np
 import dynwgraphs
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_sequence_ss, dirBin1_SD, dirSpW1_SD, dirSpW1_sequence_ss
@@ -174,22 +175,23 @@ def get_dgp_and_filt_set_from_cli_options(kwargs, bin_or_w):
 
 def get_filt_mod(bin_or_w, Y_T, X_T_dgp, par_dict):
     par_dict = drop_keys(par_dict, ["bin_or_w"])
-    if par_dict["size_beta_t"] in [None, 0]:
+    if par_dict["n_ext_reg"] in [None, 0]:
         par_dict["X_T"] = None
-    elif par_dict["n_ext_reg"] > 0 :
-        par_dict["X_T"] = X_T_dgp[:, :, :par_dict["n_ext_reg"]]
+    elif par_dict["n_ext_reg"] > 0:
+        par_dict["X_T"] = X_T_dgp[:, :, :par_dict["n_ext_reg"], :]
 
-    par_dict = drop_keys(par_dict, ["n_ext_reg"])
+    mod_in_dict = drop_keys(par_dict, ["n_ext_reg"])
 
     if bin_or_w == "bin":
-        mod_sd = dirBin1_SD(Y_T, **par_dict)
-        mod_ss = dirBin1_sequence_ss(Y_T, **par_dict)
+        mod_sd = dirBin1_SD(Y_T, **mod_in_dict)
+        mod_ss = dirBin1_sequence_ss(Y_T, **mod_in_dict)
     elif bin_or_w == "w":
-        mod_sd = dirSpW1_SD(Y_T, **par_dict)
-        mod_ss = dirSpW1_sequence_ss(Y_T, **par_dict)
+        mod_sd = dirSpW1_SD(Y_T, **mod_in_dict)
+        mod_ss = dirSpW1_sequence_ss(Y_T, **mod_in_dict)
     else:
         raise
 
+    
     filt_models = {"sd": mod_sd, "ss": mod_ss}
     return filt_models
 
@@ -305,12 +307,10 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 
                         mod_filt.save_parameters(save_path=tmp_path)
                     
-                        logger.warning(mod_filt.phi_T[0])
-                        logger.warning(mod_filt.phi_T[-1])
                         # compute mse for each model and log it 
-                        phi_to_exclude = strIO_from_tens_T(mod_dgp.Y_T) < 1 
-
-                        mse_dict = filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=k_filt, prefix=bin_or_w)
+                        phi_to_exclude = mod_dgp.get_inds_inactive_nodes() 
+                        
+                        mse_dict = filt_err(mod_dgp, mod_filt, suffix=k_filt, prefix=bin_or_w)
                         mlflow.log_metrics(mse_dict) 
                         logger.warning(mse_dict)
 
@@ -323,7 +323,10 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                         mlflow.log_figure(mod_filt.plot_phi_T(i=i_plot, fig_ax= mod_dgp.plot_phi_T(i=i_plot))[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i_plot}.png")
 
                         if mod_dgp.X_T is not None:
-                            mlflow.log_metric(f"{bin_or_w}_avg_beta_dgp", get_avg_beta(mod_dgp))
+                            avg_beta_dict = {f"{bin_or_w}_{k}_dgp": v for k, v in mod_dgp.get_avg_beta_dict().items()}
+                            mlflow.log_metrics(avg_beta_dict)
+                            mlflow.log_metric(f"{bin_or_w}_avg_beta_dgp", np.mean(list(avg_beta_dict.values())))
+
                             fig = plt.figure() 
                             plt.plot(mod_dgp.X_T[0,0,:,:].T, figure=fig)
                             mlflow.log_figure(fig, f"fig/{bin_or_w}_X_0_0_T.png")
@@ -339,44 +342,39 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                 mlflow.log_artifacts(tmp_path)
 
 
-def filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix="", prefix=""):
+def filt_err(mod_dgp, mod_filt, suffix="", prefix=""):
     
+    phi_to_exclude = mod_dgp.get_inds_inactive_nodes()
     loss_fun = nn.MSELoss()
     phi_T_filt, dist_par_un_T_filt, beta_T_filt, = mod_filt.get_time_series_latent_par(only_train=True)
     phi_T_dgp, dist_par_un_T_dgp, beta_T_dgp, = mod_dgp.get_time_series_latent_par(only_train=True)
     
-    if mod_filt.phi_tv &(not mod_dgp.phi_tv):
-        phi_T_dgp = phi_T_dgp.repeat((1, phi_T_filt.shape[1]))
-    elif mod_dgp.phi_tv &(not mod_filt.phi_tv):
-        phi_T_filt = phi_T_filt.repeat((1, phi_T_dgp.shape[1]))
-
     mse_all_phi = loss_fun(phi_T_dgp, phi_T_filt).item()
     mse_phi = loss_fun(phi_T_dgp[~ phi_to_exclude, :], phi_T_filt[~ phi_to_exclude, :]).item()
 
+    mse_beta_list = []
     if (mod_dgp.beta_T is not None) and (mod_filt.beta_T is not None):
-        mse_beta = loss_fun(beta_T_dgp, beta_T_filt).item()
+        n_reg_filt = beta_T_filt.shape[1]
+        for n in range(n_reg_filt):
+            mse_beta_list.append(loss_fun(beta_T_dgp[:, n, :], beta_T_filt[:, n, :]).item())
+        mse_beta = torch.mean(torch.tensor(mse_beta_list)).item()
     else:
         mse_beta = 0
-    
+
     if (mod_dgp.dist_par_un_T is not None) and (mod_filt.dist_par_un_T is not None):
         mse_dist_par_un = loss_fun(dist_par_un_T_dgp, dist_par_un_T_filt).item()
     else:
         mse_dist_par_un = 0
 
-    avg_beta = get_avg_beta(mod_filt)
+    avg_beta_dict = {f"{prefix}_{k}_{suffix}": v for k, v in mod_filt.get_avg_beta_dict().items()}
+
+    avg_beta = np.mean(list(avg_beta_dict.values()))
     
-    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un, f"{prefix}_avg_beta_{suffix}":avg_beta}
+    mse_dict = {f"{prefix}_mse_phi_{suffix}":mse_phi, f"{prefix}_mse_all_phi_{suffix}":mse_all_phi, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_beta_{suffix}":mse_beta, f"{prefix}_mse_dist_par_un_{suffix}":mse_dist_par_un, f"{prefix}_avg_beta_{suffix}":avg_beta, **avg_beta_dict}
 
     return mse_dict
 
 
-def get_avg_beta(mod):
-    if mod.beta_T is not None:
-        _,  _, beta_T = mod.get_time_series_latent_par()
-        avg_beta = beta_T.mean().item()
-    else:
-        avg_beta = float('nan')
-    return avg_beta
 
 
 
