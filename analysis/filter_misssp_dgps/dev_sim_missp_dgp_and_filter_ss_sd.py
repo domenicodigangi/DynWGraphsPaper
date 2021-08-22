@@ -37,10 +37,12 @@ click_args = {}
 click_args["max_opt_iter"] = 10000
 click_args["n_nodes"] = 50
 click_args["n_time_steps"] = 100
+click_args["frac_time_steps_train"] = 0.75
 
-click_args["type_tv_dgp_phi"] = ("AR", "ref_mat", 0.98, 0.1)
-click_args["type_tv_dgp_phi_bin"] = (None, None, None, None)
-click_args["type_tv_dgp_phi_w"] = (None, None, None, None)
+
+click_args["phi_dgp_set_type_tv"] = ("AR", "ref_mat", 0.98, 0.1)
+click_args["phi_dgp_set_type_tv_bin"] = (None, None, None, None)
+click_args["phi_dgp_set_type_tv_w"] = (None, None, None, None)
 
 
 click_args["phi_dgp_set"] = ("2N", True)
@@ -52,7 +54,7 @@ click_args["phi_filt_set"] = ("2N", True)# click_args["phi_dgp_set"] #  #
 click_args["phi_filt_set_bin"] = (None, None)
 click_args["phi_filt_set_w"] = (None, None)
 
-click_args["beta_dgp_set"] = (1, "one", False)#(0, None, False)
+click_args["beta_dgp_set"] = (2, "one", False)#(0, None, False)
 click_args["beta_dgp_set_bin"] = (None, None, None)
 click_args["beta_dgp_set_w"] = (None, None, None)
 
@@ -62,13 +64,13 @@ click_args["beta_filt_set_bin"] = (None, None, None)
 click_args["beta_filt_set_w"] = (None, None, None)
 
 
-click_args["type_tv_dgp_beta"] = ("AR", 1, 0, 0)
-click_args["type_tv_dgp_beta_bin"] = (None, None, None, None)
-click_args["type_tv_dgp_beta_w"] = (None, None, None, None)
+click_args["beta_dgp_set_type_tv"] = ("AR", 1, 0, 0)
+click_args["beta_dgp_set_type_tv_bin"] = (None, None, None, None)
+click_args["beta_dgp_set_type_tv_w"] = (None, None, None, None)
 
-click_args["type_tv_dgp_ext_reg"] = ("uniform", "AR", 1, 0, 0.1)
-click_args["type_tv_dgp_ext_reg_bin"] = (None, None, None, None, None)
-click_args["type_tv_dgp_ext_reg_w"] = (None, None, None, None, None)
+click_args["type_tv_ext_reg_dgp_set"] = ("uniform", "AR", 1, 0, 0.1)
+click_args["type_tv_ext_reg_dgp_set_bin"] = (None, None, None, None, None)
+click_args["type_tv_ext_reg_dgp_set_w"] = (None, None, None, None, None)
 
 
 
@@ -76,10 +78,16 @@ click_args["type_tv_dgp_ext_reg_w"] = (None, None, None, None, None)
 kwargs = click_args
 T = kwargs["n_time_steps"]
 N = kwargs["n_nodes"]
+if kwargs["frac_time_steps_train"] is not None:
+    T_train = int(kwargs["n_time_steps"]*kwargs["frac_time_steps_train"])
+else:
+    T_train = None
+kwargs["T_train"] = T_train
 
 dgp_set_bin, filt_set_bin = get_dgp_and_filt_set_from_cli_options(kwargs, "bin")
-    
+
 dgp_set_w, filt_set_w = get_dgp_and_filt_set_from_cli_options(kwargs, "w")
+
         
 # define binary dgp and filter par
 logger.info(dgp_set_bin)
@@ -110,19 +118,22 @@ dgp_fold.mkdir(exist_ok=True)
 tb_fold = tmp_path / "tb_logs"
 tb_fold.mkdir(exist_ok=True)
 
-bin_or_w = "w" 
+bin_or_w = "bin" 
 mod_dgp = mod_dgp_dict[bin_or_w]
 logger.info(f" start estimates {bin_or_w}")
+
+mod_dgp.X_T.shape
+mod_dgp.beta_T[0].shape
 
 # sample obs from dgp and save data
 if hasattr(mod_dgp, "bin_mod"):
     if mod_dgp.bin_mod.Y_T.sum() == 0:
-        A_T = mod_dgp.bin_mod.sample_Y_T()
-    else:
-        A_T = mod_dgp.bin_mod.Y_T
-    mod_dgp.Y_T = mod_dgp.sample_Y_T(A_T=A_T)
+        mod_dgp.bin_mod.sample_and_set_Y_T()
+    
+    mod_dgp.sample_and_set_Y_T(A_T=mod_dgp.bin_mod.Y_T)
 else:
-    mod_dgp.Y_T = mod_dgp.sample_Y_T()
+    mod_dgp.sample_and_set_Y_T()
+
 
 #estimate models and log parameters and hpar optimization
 # run_par_dict[f"filt_par_{bin_or_w}"].update({"beta_start_val": 1})
@@ -134,8 +145,9 @@ filt_models = get_filt_mod(bin_or_w, mod_dgp.Y_T, mod_dgp.X_T, run_par_dict[f"fi
 k_filt = "sd" 
 mod_filt = filt_models[k_filt]
 
+
 #%%
-_, h_par_opt, stats_opt = mod_filt.estimate_sd(tb_save_fold=tb_fold)
+_, h_par_opt, stats_opt = mod_filt.estimate(tb_save_fold=tb_fold)
 
 
 #%%

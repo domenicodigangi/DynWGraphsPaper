@@ -40,11 +40,12 @@ importlib.reload(dynwgraphs)
 @click.option("--max_opt_iter", help="max number of opt iter", type=int, default=15000)
 @click.option("--n_nodes", help="Number of nodes", type=int, default=50)
 @click.option("--n_time_steps", help="Number of time steps", type=int, default=100)
+@click.option("--frac_time_steps_train", help="Number of time steps used for training", type=float, default=0.75)
 
 
-@click.option("--type_tv_dgp_phi", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=("AR", "ref_mat", 0.98, 0.2))
-@click.option("--type_tv_dgp_phi_bin", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
-@click.option("--type_tv_dgp_phi_w", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
+@click.option("--phi_dgp_set_type_tv", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=("AR", "ref_mat", 0.98, 0.2))
+@click.option("--phi_dgp_set_type_tv_bin", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
+@click.option("--phi_dgp_set_type_tv_w", help="what kind of dgp should phi_T follow. AR or const_unif", type=(str, str, float, float), default=(None, None, None, None))
 
 
 @click.option("--phi_dgp_set", help="1 - How many fitnesses? one (Erdos-Reny), N (undirected model), 2N (directed).   2 - Should they be Time varying ? True of False  ", type=(str, bool), default=("2N", False))
@@ -67,14 +68,14 @@ importlib.reload(dynwgraphs)
 @click.option("--beta_filt_set_w", help="Same as beta_filt_set for w parameters ", type=(int, str, bool), default=(None, None, None))
 
 
-@click.option("--type_tv_dgp_beta", help="If time varyng, how should beta par evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, float, float, float), default=("AR", 1, 0, 0))
-@click.option("--type_tv_dgp_beta_bin", help="Same as type_tv_dgp_beta for bin", type=(str, float, float, float), default=(None, None, None, None))
-@click.option("--type_tv_dgp_beta_w", help="Same as type_tv_dgp_beta for w", type=(str, float, float, float), default=(None, None, None, None))
+@click.option("--beta_dgp_set_type_tv", help="If time varyng, how should beta par evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, float, float, float), default=("AR", 1, 0, 0))
+@click.option("--beta_dgp_set_type_tv_bin", help="Same as beta_dgp_set_type_tv for bin", type=(str, float, float, float), default=(None, None, None, None))
+@click.option("--beta_dgp_set_type_tv_w", help="Same as beta_dgp_set_type_tv for w", type=(str, float, float, float), default=(None, None, None, None))
 
 
-@click.option("--type_tv_dgp_ext_reg", help="How should external regressorrs evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, str, float, float, float), default=("uniform", "AR", 1, 0, 0.1))
-@click.option("--type_tv_dgp_ext_reg_bin", help="Same as type_tv_dgp_ext_reg for bin", type=(str, str, float, float, float), default=(None, None, None, None, None))
-@click.option("--type_tv_dgp_ext_reg_w", help="Same as type_tv_dgp_ext_reg for w", type=(str, str, float, float, float), default=(None, None, None, None, None))
+@click.option("--type_tv_ext_reg_dgp_set", help="How should external regressorrs evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, str, float, float, float), default=("uniform", "AR", 1, 0, 0.1))
+@click.option("--type_tv_ext_reg_dgp_set_bin", help="Same as type_tv_ext_reg_dgp_set for bin", type=(str, str, float, float, float), default=(None, None, None, None, None))
+@click.option("--type_tv_ext_reg_dgp_set_w", help="Same as type_tv_ext_reg_dgp_set for w", type=(str, str, float, float, float), default=(None, None, None, None, None))
 
 
 @click.option("--exclude_weights", help="shall we run the sim only for the binary case? ", type=bool, default=False)
@@ -92,7 +93,7 @@ def run_parallel_simulations(**kwargs):
 
 
 
-def cli_beta_set_to_mod_kwargs_dict(phi_set, reg_set, max_opt_iter):
+def cli_beta_set_to_mod_kwargs_dict(phi_set, reg_set, max_opt_iter, T_train):
     """
     convert the settings from the command line to a format that can be given as a model input
     """
@@ -122,20 +123,15 @@ def cli_beta_set_to_mod_kwargs_dict(phi_set, reg_set, max_opt_iter):
     else:
         if reg_set_dict["size_beta_t"] in [None, 0]:
             raise Exception("If n_ext_reg is non zero beta should be non zero")
-
-    beta_out_dict["max_opt_iter"] = max_opt_iter
-
-    out_dict = {**phi_out_dict, **beta_out_dict}
+    out_dict = {"max_opt_iter": max_opt_iter, "T_train": T_train, **phi_out_dict, **beta_out_dict}
 
     return out_dict
-
 
 
 def get_dgp_and_filt_set_from_cli_options(kwargs, bin_or_w):
     """
     Convert cli inputs to settings for both dgp and filter models.
     """
-    N = kwargs["n_nodes"]
 
     logger.info("using common external regressor settings for binary and weighted parameters")
     
@@ -151,24 +147,24 @@ def get_dgp_and_filt_set_from_cli_options(kwargs, bin_or_w):
     if kwargs[f"beta_filt_set_{bin_or_w}"][0] is None:
         kwargs[f"beta_filt_set_{bin_or_w}"] = kwargs[f"beta_filt_set"]
 
-    dgp_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_dgp_set_{bin_or_w}"], kwargs[f"beta_dgp_set_{bin_or_w}"], max_opt_iter=kwargs["max_opt_iter"])
+    dgp_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_dgp_set_{bin_or_w}"], kwargs[f"beta_dgp_set_{bin_or_w}"], max_opt_iter=kwargs["max_opt_iter"], T_train=kwargs["T_train"])
 
-    filt_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_filt_set_{bin_or_w}"], kwargs[f"beta_filt_set_{bin_or_w}"], max_opt_iter=kwargs["max_opt_iter"])
+    filt_set = cli_beta_set_to_mod_kwargs_dict(kwargs[f"phi_filt_set_{bin_or_w}"], kwargs[f"beta_filt_set_{bin_or_w}"], max_opt_iter=kwargs["max_opt_iter"], T_train=kwargs["T_train"])
 
-    if kwargs[f"type_tv_dgp_phi_{bin_or_w}"][0] is None:
-         kwargs[f"type_tv_dgp_phi_{bin_or_w}"] = kwargs[f"type_tv_dgp_phi"]
+    if kwargs[f"phi_dgp_set_type_tv_{bin_or_w}"][0] is None:
+         kwargs[f"phi_dgp_set_type_tv_{bin_or_w}"] = kwargs[f"phi_dgp_set_type_tv"]
 
-    dgp_set[f"type_tv_dgp_phi"] = kwargs[f"type_tv_dgp_phi_{bin_or_w}"]
+    dgp_set[f"phi_dgp_set_type_tv"] = kwargs[f"phi_dgp_set_type_tv_{bin_or_w}"]
 
-    if kwargs[f"type_tv_dgp_beta_{bin_or_w}"][0] is None:
-         kwargs[f"type_tv_dgp_beta_{bin_or_w}"] = kwargs[f"type_tv_dgp_beta"]
+    if kwargs[f"beta_dgp_set_type_tv_{bin_or_w}"][0] is None:
+         kwargs[f"beta_dgp_set_type_tv_{bin_or_w}"] = kwargs[f"beta_dgp_set_type_tv"]
 
-    dgp_set[f"type_tv_dgp_beta"] = kwargs[f"type_tv_dgp_beta_{bin_or_w}"]
+    dgp_set[f"beta_dgp_set_type_tv"] = kwargs[f"beta_dgp_set_type_tv_{bin_or_w}"]
 
-    if kwargs[f"type_tv_dgp_ext_reg_{bin_or_w}"][0] is None:
-         kwargs[f"type_tv_dgp_ext_reg_{bin_or_w}"] = kwargs[f"type_tv_dgp_ext_reg"]
+    if kwargs[f"type_tv_ext_reg_dgp_set_{bin_or_w}"][0] is None:
+         kwargs[f"type_tv_ext_reg_dgp_set_{bin_or_w}"] = kwargs[f"type_tv_ext_reg_dgp_set"]
 
-    dgp_set[f"type_tv_dgp_ext_reg"] = kwargs[f"type_tv_dgp_ext_reg_{bin_or_w}"]
+    dgp_set[f"type_tv_ext_reg_dgp_set"] = kwargs[f"type_tv_ext_reg_dgp_set_{bin_or_w}"]
 
     dgp_set["bin_or_w"] = bin_or_w
     filt_set["bin_or_w"] = bin_or_w
@@ -202,8 +198,13 @@ def _run_parallel_simulations(**kwargs):
 
     check_test_exp(kwargs)
     T = kwargs["n_time_steps"]
+    if kwargs["frac_time_steps_train"] is not None:
+        T_train = int(kwargs["n_time_steps"]*kwargs["frac_time_steps_train"])
+    else:
+        T_train = None
+
+    kwargs["T_train"] = T_train
     N = kwargs["n_nodes"]
-    print(kwargs["type_tv_dgp_phi"])
     dgp_set_bin, filt_set_bin = get_dgp_and_filt_set_from_cli_options(kwargs, "bin")
     
     if not kwargs["exclude_weights"]:
@@ -213,15 +214,14 @@ def _run_parallel_simulations(**kwargs):
 
     with mlflow.start_run(experiment_id=experiment.experiment_id) as parent_run:
 
-        parent_runs_par = drop_keys(kwargs, ["type_tv_dgp_phi", "type_tv_dgp_beta", "beta_dgp_set", "beta_filt_set", "phi_dgp_set", "phi_filt_set", "dgp_ext_reg"])
+        parent_runs_par = drop_keys(kwargs, ["phi_dgp_set_type_tv", "beta_dgp_set_type_tv", "beta_dgp_set", "beta_filt_set", "phi_dgp_set", "phi_filt_set", "ext_reg_dgp_set"])
         mlflow.log_params(parent_runs_par)
 
-        mlflow.log_params({f"{key}_dgp_bin": val for key, val in dgp_set_bin.items() if key != "X_T"})
-        if not kwargs["exclude_weights"]:
-            mlflow.log_params({f"{key}_dgp_w": val for key, val in dgp_set_w.items() if key != "X_T"})
+        # mlflow.log_params({f"{key}_dgp_bin": val for key, val in dgp_set_bin.items() if key != "X_T"})
+        # if not kwargs["exclude_weights"]:
+        #     mlflow.log_params({f"{key}_dgp_w": val for key, val in dgp_set_w.items() if key != "X_T"})
 
         # define binary dgp and filter par
-        logger.info(dgp_set_bin)
         mod_dgp_bin, Y_reference_bin = get_dgp_mod_and_par(N=N, T=T, dgp_set_dict=dgp_set_bin)
         mod_dgp_dict = {"bin": mod_dgp_bin}
         run_data_dict = {"Y_reference":{"Y_reference_bin": Y_reference_bin}}
@@ -237,7 +237,7 @@ def _run_parallel_simulations(**kwargs):
         
 
 
-        run_par_dict = {"N": N, "T": T, "dgp_par_bin": dgp_set_bin, "dgp_par_w": dgp_set_w, "filt_par_bin": filt_set_bin, "filt_par_w": filt_set_w}
+        run_par_dict = {"N": N, "T": T, "T_train": T_train, "dgp_par_bin": dgp_set_bin, "dgp_par_w": dgp_set_w, "filt_par_bin": filt_set_bin, "filt_par_w": filt_set_w}
 
 
         def try_one_run(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par, stop_on_error):
@@ -313,6 +313,8 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 
                         mse_dict = filt_err(mod_dgp, mod_filt, phi_to_exclude, suffix=k_filt, prefix=bin_or_w)
                         mlflow.log_metrics(mse_dict) 
+
+                        mlflow.log_metrics({f"filt_{bin_or_w}_{k_filt}_{key}": v for key, v in mod_filt.out_of_sample_eval().items()}) 
                     
                         # log plots that can be useful for quick visual diagnostic 
                         mlflow.log_figure(mod_filt.plot_phi_T()[0], f"fig/{bin_or_w}_{k_filt}_filt_all.png")

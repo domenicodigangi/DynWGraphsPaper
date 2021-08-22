@@ -50,7 +50,7 @@ df_i = dfs["info"][ind_fin]
 df_p = dfs["par"][ind_fin]
 df_m = dfs["metrics"][ind_fin]
 
-group_cols = ["beta_dgp_set_bin", "beta_filt_set_bin",  "type_tv_dgp_ext_reg", "type_tv_dgp_phi_bin", "type_tv_dgp_beta_bin", "phi_dgp_set_bin", "phi_filt_set_bin"]
+group_cols = ["beta_dgp_set_bin", "beta_filt_set_bin",  "type_tv_ext_reg_dgp_set", "phi_dgp_set_type_tv_bin", "beta_dgp_set_type_tv_bin", "phi_dgp_set_bin", "phi_filt_set_bin"]
 
 # check that each group contains elements with the same settings for non grouping columns
 df = df_p.drop(columns = ['run_id', 'n_sim', 'n_jobs']).groupby(group_cols).nunique() > 1
