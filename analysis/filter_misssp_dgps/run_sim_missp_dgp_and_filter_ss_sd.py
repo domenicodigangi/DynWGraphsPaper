@@ -291,7 +291,8 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                     torch.save(run_data_dict["Y_reference"], dgp_fold / "Y_reference.pt")
                     torch.save((mod_dgp.get_Y_T_to_save(), mod_dgp.X_T), dgp_fold / "obs_T_dgp.pt")
                     mod_dgp.save_parameters(save_path=dgp_fold)
-                    mlflow.log_figure(mod_dgp.plot_phi_T()[0], f"fig/{bin_or_w}_dgp_all.png")
+                    if mod_dgp.phi_T is not None:
+                        mlflow.log_figure(mod_dgp.plot_phi_T()[0], f"fig/{bin_or_w}_dgp_all.png")
                 
                     #estimate models and log parameters and hpar optimization
                     filt_models = get_filt_mod(bin_or_w, mod_dgp.Y_T, mod_dgp.X_T, run_par_dict[f"filt_par_{bin_or_w}"])
@@ -308,7 +309,7 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                         mod_filt.save_parameters(save_path=tmp_path)
                     
                         # compute mse for each model and log it 
-                        phi_to_exclude = mod_dgp.get_inds_inactive_nodes() 
+                        nodes_to_exclude = mod_dgp.get_inds_inactive_nodes() 
                         
                         mse_dict = filt_err(mod_dgp, mod_filt, suffix=k_filt, prefix=bin_or_w)
                         mlflow.log_metrics(mse_dict) 
@@ -317,10 +318,12 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                         mlflow.log_metrics({f"filt_{bin_or_w}_{k_filt}_{key}": v for key, v in mod_filt.out_of_sample_eval().items()}) 
                     
                         # log plots that can be useful for quick visual diagnostic 
-                        mlflow.log_figure(mod_filt.plot_phi_T()[0], f"fig/{bin_or_w}_{k_filt}_filt_all.png")
-                        i_plot = torch.where(~splitVec(phi_to_exclude)[0])[0][0]
+                        if mod_filt.phi_T is not None:
+                            mlflow.log_figure(mod_filt.plot_phi_T()[0], f"fig/{bin_or_w}_{k_filt}_filt_all.png")
+                        i_plot = torch.where(~splitVec(nodes_to_exclude)[0])[0][0]
 
-                        mlflow.log_figure(mod_filt.plot_phi_T(i=i_plot, fig_ax= mod_dgp.plot_phi_T(i=i_plot))[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i_plot}.png")
+                        if mod_filt.phi_T is not None:
+                            mlflow.log_figure(mod_filt.plot_phi_T(i=i_plot, fig_ax= mod_dgp.plot_phi_T(i=i_plot))[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i_plot}.png")
 
                         if mod_dgp.X_T is not None:
                             avg_beta_dict = {f"{bin_or_w}_{k}_dgp": v for k, v in mod_dgp.get_avg_beta_dict().items()}
@@ -344,14 +347,19 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
 
 def filt_err(mod_dgp, mod_filt, suffix="", prefix=""):
     
-    phi_to_exclude = mod_dgp.get_inds_inactive_nodes()
+    nodes_to_exclude = mod_dgp.get_inds_inactive_nodes()
     loss_fun = nn.MSELoss()
     phi_T_filt, dist_par_un_T_filt, beta_T_filt, = mod_filt.get_time_series_latent_par(only_train=True)
     phi_T_dgp, dist_par_un_T_dgp, beta_T_dgp, = mod_dgp.get_time_series_latent_par(only_train=True)
     
-    mse_all_phi = loss_fun(phi_T_dgp, phi_T_filt).item()
-    mse_phi = loss_fun(phi_T_dgp[~ phi_to_exclude, :], phi_T_filt[~ phi_to_exclude, :]).item()
-
+    
+    if (mod_dgp.phi_T is not None) and (mod_filt.phi_T is not None):
+        mse_all_phi = loss_fun(phi_T_dgp, phi_T_filt).item()
+        mse_phi = loss_fun(phi_T_dgp[~ nodes_to_exclude, :], phi_T_filt[~ nodes_to_exclude, :]).item()
+    else:
+        mse_phi = float("nan")
+        mse_all_phi = float("nan")
+    
     mse_beta_dict = {}
     if (mod_dgp.beta_T is not None) and (mod_filt.beta_T is not None):
         n_reg_filt = beta_T_filt.shape[1]
@@ -359,7 +367,7 @@ def filt_err(mod_dgp, mod_filt, suffix="", prefix=""):
             mse_beta_dict[f"{prefix}_mse_beta_{n+1}_{suffix}"] = loss_fun(beta_T_dgp[:, n, :], beta_T_filt[:, n, :]).item()
         mse_beta = np.mean(list(mse_beta_dict.values())).item()
     else:
-        mse_beta = 0
+        mse_beta = float("nan")
 
     if (mod_dgp.dist_par_un_T is not None) and (mod_filt.dist_par_un_T is not None):
         mse_dist_par_un = loss_fun(dist_par_un_T_dgp, dist_par_un_T_filt).item()

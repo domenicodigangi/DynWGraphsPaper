@@ -60,6 +60,7 @@ experiment = _get_and_set_experiment("Table 1")
 experiment = _get_and_set_experiment("test")
 
 all_runs = get_df_exp(experiment, one_df=True)
+MlflowClient().search_runs(experiment.experiment_id)
 
 run_id = "b557e2f40b8247a5a6b58d82e1302a06"
 

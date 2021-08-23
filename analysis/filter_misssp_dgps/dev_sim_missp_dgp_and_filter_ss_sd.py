@@ -45,12 +45,12 @@ click_args["phi_set_dgp_type_tv_bin"] = (None, None, None, None)
 click_args["phi_set_dgp_type_tv_w"] = (None, None, None, None)
 
 
-click_args["phi_set_dgp"] = ("2N", True)
+click_args["phi_set_dgp"] = ("0", True)
 click_args["phi_set_bin_dgp"] = (None, None)
 click_args["phi_set_w_dgp"] = (None, None)
 
 
-click_args["phi_set_filt"] = ("2N", False)# click_args["phi_set_dgp"] #  #
+click_args["phi_set_filt"] = click_args["phi_set_dgp"]# ("2N", False)#  #  #
 click_args["phi_set_bin_filt"] = (None, None)
 click_args["phi_set_w_filt"] = (None, None)
 
