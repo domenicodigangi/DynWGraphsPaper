@@ -135,6 +135,12 @@ def check_test_exp(kwargs):
         logger.warning("Too few opt iter. assuming this is a test run")
         kwargs["experiment_name"] = "test"
 
+def check_and_tag_test_run(kwargs):
+    if "max_opt_iter" in kwargs.keys():
+        if kwargs["max_opt_iter"] < 500:
+            logger.warning("Too few opt iter. Tagging as a test run")
+            mlflow.set_tag("is_test_run", "y")
+
 
 def dicts_from_run(r):
     dict_par = {"run_id": r.info.run_id, **r.data.params}

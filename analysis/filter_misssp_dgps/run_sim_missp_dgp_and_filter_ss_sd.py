@@ -286,8 +286,6 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                     else:
                         mod_dgp.sample_and_set_Y_T()
 
-
-
                     torch.save(run_data_dict["Y_reference"], dgp_fold / "Y_reference.pt")
                     torch.save((mod_dgp.get_Y_T_to_save(), mod_dgp.X_T), dgp_fold / "obs_T_dgp.pt")
                     mod_dgp.save_parameters(save_path=dgp_fold)
@@ -323,7 +321,12 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                         i_plot = torch.where(~splitVec(nodes_to_exclude)[0])[0][0]
 
                         if mod_filt.phi_T is not None:
-                            mlflow.log_figure(mod_filt.plot_phi_T(i=i_plot, fig_ax= mod_dgp.plot_phi_T(i=i_plot))[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i_plot}.png")
+                            if mod_dgp.phi_T is not None:
+                                fig_ax = mod_dgp.plot_phi_T(i=i_plot)
+                            else:
+                                fig_ax = None    
+
+                            mlflow.log_figure(mod_filt.plot_phi_T(i=i_plot, fig_ax= fig_ax)[0], f"fig/{bin_or_w}_{k_filt}_filt_phi_ind_{i_plot}.png")
 
                         if mod_dgp.X_T is not None:
                             avg_beta_dict = {f"{bin_or_w}_{k}_dgp": v for k, v in mod_dgp.get_avg_beta_dict().items()}

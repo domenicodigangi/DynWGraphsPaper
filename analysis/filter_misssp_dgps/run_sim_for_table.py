@@ -29,8 +29,16 @@ import subprocess
 @click.option("--combo", type=(str, str, str, str), default=("fit_tv", "1", "fit_tv", "1"))
 
 @click.option("--sigma_ar_phi", type=float, default=0.2)
+
+@click.option("--ext_reg_dgp_cross_type", type=str, default="link_specific")
+
+@click.option("--ext_reg_dgp_persistency", type=float, default=0.0)
+
+
 def run_sim_seq(**kwargs):
     phi_set_dgp_type_tv = ("AR", "ref_mat", 0.98, kwargs["sigma_ar_phi"])
+
+    kwargs["experiment_name"] = kwargs["experiment_name"] + " " + kwargs["ext_reg_dgp_cross_type"]
 
     combo = kwargs["combo"]
 
@@ -66,27 +74,32 @@ def run_sim_seq(**kwargs):
     else:
         size_beta_t_filt = "one"
 
-    subprocess.call(["python", "run_sim_missp_dgp_and_filter_ss_sd.py", "--stop_on_error", str(kwargs["stop_on_error"]), "--experiment_name", kwargs["experiment_name"],  "--phi_set_dgp", size_phi_t_dgp, str(phi_dgp_tv), "--phi_set_filt", size_phi_t_filt, str(phi_filt_tv), "--n_sim",  str(kwargs['n_sim']), "--n_jobs", str(kwargs['n_jobs']), "--max_opt_iter", str(kwargs["max_opt_iter"]), "--beta_set_dgp", str(n_reg_dgp), size_beta_t_dgp, "False",  "--beta_set_filt", str(n_reg_filt), size_beta_t_filt, "False",  "--phi_set_dgp_type_tv"] + [str(v) for v in phi_set_dgp_type_tv])
+    subprocess.call(["python", "run_sim_missp_dgp_and_filter_ss_sd.py", "--stop_on_error", str(kwargs["stop_on_error"]), "--experiment_name", kwargs["experiment_name"],  "--phi_set_dgp", size_phi_t_dgp, str(phi_dgp_tv), "--phi_set_filt", size_phi_t_filt, str(phi_filt_tv), "--n_sim",  str(kwargs['n_sim']), "--n_jobs", str(kwargs['n_jobs']), "--max_opt_iter", str(kwargs["max_opt_iter"]), "--ext_reg_dgp_set_type_tv", kwargs["ext_reg_dgp_cross_type"], "AR", str(1), str(kwargs["ext_reg_dgp_persistency"]), str(0.1), "--beta_set_dgp", str(n_reg_dgp), size_beta_t_dgp, "False",  "--beta_set_filt", str(n_reg_filt), size_beta_t_filt, "False",  "--phi_set_dgp_type_tv"] + [str(v) for v in phi_set_dgp_type_tv])
 
 
 if __name__ == "__main__":
     run_sim_seq()
 
+
+
 #####################################
 # commands to get all the simulations for table 1
-# python run_sim_for_table.py --n_jobs 4 --combo no_fit 2 fit_tv 1 --experiment_name "Table 2" --n_sim 8
-# python run_sim_for_table.py --n_jobs 4 --combo no_fit 2 no_fit 1 --experiment_name "Table 2" --n_sim 8
-# python run_sim_for_table.py --n_jobs 4 --combo no_fit 2 fit_tv 2 --experiment_name "Table 2" --n_sim 8
-# python run_sim_for_table.py --n_jobs 4 --combo no_fit 2 no_fit 2 --experiment_name "Table 2" --n_sim 8
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_fphi_1reg
+# python run_sim_for_table.py --n_jobs 12 --n_sim 100 --combo tphi_1reg_tphi_1reg
 
-######################################
+#####################################
 # commands to get all the simulations for table 2
-# python run_sim_for_table.py --n_jobs 2 --combo 0 no_phi 2 0 None 1 --experiment_name "Table 2" --n_sim 4
 
-# python run_sim_for_table.py --n_jobs 2 --combo 0 no_phi 2 2N phi_tv 1 --experiment_name "Table 2" --n_sim 4
+# python run_sim_for_table.py --n_jobs 6 --combo no_fit 2 no_fit 1  --ext_reg_dgp_persistency 0  --experiment_name "Table 2" --n_sim 50 
+
+# python run_sim_for_table.py --n_jobs 6 --combo no_fit 2 fit_stat 1  --ext_reg_dgp_persistency 0  --experiment_name "Table 2" --n_sim 50 
+
+# python run_sim_for_table.py --n_jobs 6 --combo no_fit 2 fit_tv 1  --ext_reg_dgp_persistency 0  --experiment_name "Table 2" --n_sim 50 
+
+# python run_sim_for_table.py --n_jobs 6 --combo no_fit 2 no_fit 1  --ext_reg_dgp_persistency 0.98  --experiment_name "Table 2" --n_sim 50 
+
+# python run_sim_for_table.py --n_jobs 6 --combo no_fit 2 fit_stat 1  --ext_reg_dgp_persistency 0.98  --experiment_name "Table 2" --n_sim 50 
+
+# python run_sim_for_table.py --n_jobs 6 --combo no_fit 2 fit_tv 1  --ext_reg_dgp_persistency 0 .98 --experiment_name "Table 2" --n_sim 50 
 
 
-
-
-
-# To do: check res for sequence table 2
