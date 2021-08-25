@@ -14,3 +14,5 @@ tb_logs/
 data_dynwgraphs_model/
 
 .vscode/
+
+dev_test_data/
