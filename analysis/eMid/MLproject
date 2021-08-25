@@ -40,13 +40,13 @@ entry_points:
 
     # mlflow run -e estimate_model_sequence_emid.py --no-conda --experiment-name "emid est paper" . -P bin_or_w=w -P regressor_name=eonia
   
-  estimate_all_models_emid:
+  estimate_all_models_emid_parallel:
     parameters:
       max_opt_iter: {type: float, default: 15000}
-      unit_meas: {type: float, default: 10000}
+      unit_meas: {type: float, default: 10000.0}
       train_fract: {type: float, default: 0.75}
       
-    command: "python estimate_all_models_emid.py  --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} "
+    command: "python estimate_all_models_emid_parallel.py  --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} "
 
 
   
