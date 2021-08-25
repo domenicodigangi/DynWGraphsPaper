@@ -30,14 +30,14 @@ logger = logging.getLogger(__name__)
 kwargs = {}
 kwargs["size_beta_t"] = "0"
 kwargs["bin_or_w"] ="bin"
-kwargs["beta_tv"] = 0
+kwargs["beta_tv"] = 1
 kwargs["max_opt_iter"] = 100000
 kwargs["unit_meas"] = 10000
 kwargs["train_fract"] = 3/4
 kwargs["regressor_name"] = "eonia"
 kwargs["prev_mod_art_uri"] = "none://"
 kwargs["opt_n"] = "ADAMHD"
-kwargs["init_sd_type"] = "est_ss_before"
+kwargs["init_sd_type"] = "est_joint"
 
 tmp_fns = get_fold_namespace(".dev_test_data", ["tb_logs"])
 _get_and_set_experiment("dev test")
@@ -81,6 +81,7 @@ else:
 #%% 
 mod = mod_sd
 _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
+
 
 mod.par_l_to_opt
 
@@ -214,3 +215,63 @@ with open(tmp_fns.main / "filt_kwargs_dict.pkl", 'wb') as f:
 mlflow.log_artifacts(tmp_fns.main)
 
 
+
+
+#%%%%%%%%%%%%%%%%%%%%
+# To Do: arrive at white sandwhich estimator
+
+
+rescaled = False
+selfo = mod
+T = selfo.T_train
+list_par = ["phi", "beta"]
+
+def get_score_T(selfo, T, list_par, rescaled = False):
+
+    phi_flag = "phi" in list_par
+    dist_par_un_flag = "dist_par_un" in list_par
+    beta_flag = "beta" in list_par
+
+    if selfo.beta_T is None:
+        if beta_flag:
+            raise Exception("Beta not present")
+
+    score_T = {k: [] for k in list_par}
+
+    for t in range(T):
+        d = selfo.score_t(t, rescaled, phi_flag, dist_par_un_flag, beta_flag)
+        for k, l in score_T.items():
+            l.append(d[k])
+
+    for k, l in score_T.items():
+        score_T[k] = torch.cat(l.unsqueeze(1))
+
+def get_hess_T(selfo, T, list_par):
+
+    phi_flag = "phi" in list_par
+    dist_par_un_flag = "dist_par_un" in list_par
+    beta_flag = "beta" in list_par
+
+    if selfo.beta_T is None:
+        if beta_flag:
+            raise Exception("Beta not present")
+
+    hess_T = {k: [] for k in list_par}
+
+    for t in range(T):
+        d = selfo.hess_t(t, rescaled, phi_flag, dist_par_un_flag, beta_flag)
+        for k, l in hess_T.items():
+            l.append(d[k])
+
+    for k, l in hess_T.items():
+        hess_T[k] = torch.cat(l.unsqueeze(1))
+
+from torch.autograd import grad
+from torch.autograd.functional import hessian
+
+
+
+
+get_hess_T(selfo, T, ["phi"])
+
+# %%

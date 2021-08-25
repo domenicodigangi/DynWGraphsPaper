@@ -121,8 +121,11 @@ def estimate_single_model_emid(**kwargs):
                 in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
                 in_sample_fit[f"{k_filt}_BIC"] = mod.get_BIC().item()
                 
-                for k, v in mod.out_of_sample_eval().items():
-                    out_sample_fit[f"{k_filt}_out_of_sample_{k}"] = v 
+                try:
+                    for k, v in mod.out_of_sample_eval().items():
+                        out_sample_fit[f"{k_filt}_out_of_sample_{k}"] = v 
+                except:
+                    logger.error("Error in computing out of sample performance")
 
                 try:
                     # log plots that can be useful for quick visual diagnostic
