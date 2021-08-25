@@ -36,9 +36,17 @@ logger = logging.getLogger(__name__)
 @click.option("--regressor_name", default="eonia", type=str)
 @click.option("--prev_mod_art_uri", default="none://", type=str)
 @click.option("--opt_n", default="ADAMHD", type=str)
+@click.option("--init_sd_type", default="est_ss_before", type=str)
+
+
 
 
 def estimate_single_model_emid(**kwargs):
+    if kwargs["bin_or_w"] == "bin":
+        kwargs["avoid_ovflw_fun_flag"] = False
+    elif kwargs["bin_or_w"] == "w":
+        kwargs["avoid_ovflw_fun_flag"] = True
+
     kwargs["beta_tv"] = bool(kwargs["beta_tv"])
     logger.info(kwargs)
     with mlflow.start_run(nested=True) as run:
@@ -65,7 +73,7 @@ def estimate_single_model_emid(**kwargs):
 
             T_train = int(kwargs["train_fract"] * T)
            
-            filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"]}
+            filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
             
             if kwargs["size_beta_t"] not in ["0", 0, None]:
                 filt_kwargs["X_T"] =  X_T
@@ -73,7 +81,7 @@ def estimate_single_model_emid(**kwargs):
 
             
             #estimate models and log parameters and hpar optimization
-            mod_sd = get_gen_fit_mod(kwargs["bin_or_w"], "sd", Y_T, **filt_kwargs)
+            mod_sd = get_gen_fit_mod(kwargs["bin_or_w"], "sd", Y_T, init_sd_type=kwargs["init_sd_type"], **filt_kwargs)
             mod_ss = get_gen_fit_mod(kwargs["bin_or_w"], "ss", Y_T, **filt_kwargs)
             if urlparse(kwargs["prev_mod_art_uri"]).scheme != "none":
                 load_path = uri_to_path(kwargs["prev_mod_art_uri"])

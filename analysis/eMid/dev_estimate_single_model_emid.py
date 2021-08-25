@@ -37,9 +37,10 @@ kwargs["train_fract"] = 3/4
 kwargs["regressor_name"] = "eonia"
 kwargs["prev_mod_art_uri"] = "none://"
 kwargs["opt_n"] = "ADAMHD"
-
+kwargs["init_sd_type"] = "est_ss_before"
 
 tmp_fns = get_fold_namespace(".dev_test_data", ["tb_logs"])
+_get_and_set_experiment("dev test")
 
 load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
 load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
@@ -66,7 +67,7 @@ if kwargs["size_beta_t"] not in ["0", 0, None]:
 
 
 #estimate models and log parameters and hpar optimization
-mod_sd = get_gen_fit_mod(kwargs["bin_or_w"], "sd", Y_T, **filt_kwargs)
+mod_sd = get_gen_fit_mod(kwargs["bin_or_w"], "sd", Y_T, init_sd_type=kwargs["init_sd_type"], **filt_kwargs)
 mod_ss = get_gen_fit_mod(kwargs["bin_or_w"], "ss", Y_T, **filt_kwargs)
 if urlparse(kwargs["prev_mod_art_uri"]).scheme != "none":
     load_path = uri_to_path(kwargs["prev_mod_art_uri"])
@@ -78,9 +79,17 @@ else:
     logger.info("Not loading any model as starting point")
 
 #%% 
+mod = mod_sd
+_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
+
+mod.par_l_to_opt
+
+mod.init_sd_type
+mod.avoid_ovflw_fun_flag
+
+
 
 import matplotlib.pyplot as plt
-mod = copy.deepcopy(mod_sd)
 # mod.init_sd_type = "est_ss_before"
 mod.init_all_stat_par()
 
@@ -91,7 +100,10 @@ phi_T is None
 
 mod.roll_sd_filt(mod.T_all)
 
-s_T = torch.cat([mod.score_t(t)["phi"].unsqueeze(1) for t in range(T) ], dim=1).detach()
+
+def get_score_T(self):
+
+    s_T = torch.cat([mod.score_t(t)["phi"].unsqueeze(1) for t in range(T) ], dim=1).detach()
 plt.plot(s_T.abs().mean(0))
 
 
@@ -102,7 +114,6 @@ phi_T, _, _ = mod.get_time_series_latent_par()
 
 
 mod.opt_options_sd["max_opt_iter"] = 400
-_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 mod.plot_phi_T()
 
 mod.un2re_A_par(mod.sd_stat_par_un_phi["A"]).max()
