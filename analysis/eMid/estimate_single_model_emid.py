@@ -34,8 +34,8 @@ logger = logging.getLogger(__name__)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
-@click.option("--prev_mod_art_uri", default=None, type=str)
-@click.option("--opt_n", default="ADAMHD", type=str)
+@click.option("--prev_mod_art_uri", default="none://", type=str)
+@click.option("--opt_n", default="ADAM", type=str)
 
 
 def estimate_single_model_emid(**kwargs):
@@ -57,18 +57,19 @@ def estimate_single_model_emid(**kwargs):
 
             unit_meas = kwargs["unit_meas"]
 
-            regr_list = kwargs["regressor_name"].split(" ")
+            regr_list = kwargs["regressor_name"].replace(" ", "_").split("_")
     
             Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
 
             N, _, T = Y_T.shape
 
-            T_train =  int(kwargs["train_fract"] * T)
+            T_train = int(kwargs["train_fract"] * T)
            
-            if kwargs["size_beta_t"] in ["0", 0, None]:
-                filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"]}
-            else:
-                filt_kwargs = {"X_T": X_T, "beta_tv": kwargs["beta_tv"], "T_train": T_train, "size_beta_t": kwargs["size_beta_t"]}
+            filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"]}
+            
+            if kwargs["size_beta_t"] not in ["0", 0, None]:
+                filt_kwargs["X_T"] =  X_T
+                filt_kwargs["beta_tv"] = kwargs["beta_tv"]
 
             
             #estimate models and log parameters and hpar optimization
@@ -78,7 +79,6 @@ def estimate_single_model_emid(**kwargs):
                 load_path = uri_to_path(kwargs["prev_mod_art_uri"])
                 logger.info(f"loading data from previous model path: {load_path}")
                 prev_filt_kwargs = pickle.load(open(str(Path(load_path) / "filt_kwargs_dict.pkl"), "rb"))
-                logger.warn(prev_filt_kwargs)
                 prev_mod_sd = get_gen_fit_mod(kwargs["bin_or_w"], "sd", Y_T, **prev_filt_kwargs)
                 mod_sd.init_par_from_lower_model(prev_mod_sd) 
             else:
@@ -90,7 +90,7 @@ def estimate_single_model_emid(**kwargs):
             out_sample_fit = {}
 
             for k_filt, mod in filt_models.items():
-                logger.info(f" Start estimate {k_filt}")
+                logger.info(f" Start estimate {k_filt}, {mod.opt_options}")
                 _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})

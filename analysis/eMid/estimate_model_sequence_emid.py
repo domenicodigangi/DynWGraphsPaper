@@ -38,7 +38,6 @@ logger = logging.getLogger(__name__)
 
 def estimate_model_sequence_emid(**kwargs):
 
-    _get_and_set_experiment(kwargs["experiment_name"])
     kwargs = drop_keys(kwargs, ["experiment_name"])
     check_and_tag_test_run(kwargs)
 
@@ -53,7 +52,7 @@ def estimate_model_sequence_emid(**kwargs):
         run_1_stat = mlflow.run(".", "estimate_single_model", parameters={"prev_mod_art_uri": run_0_stat.info.artifact_uri, "size_beta_t": "one", "beta_tv": 0, **kwargs}, use_conda=False)
         run_1_stat = mlflow.tracking.MlflowClient().get_run(run_1_stat.run_id)
 
-
+      
         run_1_tv = mlflow.run(".", "estimate_single_model", parameters={"prev_mod_art_uri": run_1_stat.info.artifact_uri, "size_beta_t": "one", "beta_tv": 1, **kwargs}, use_conda=False)
         run_1_tv = mlflow.tracking.MlflowClient().get_run(run_1_tv.run_id)
 

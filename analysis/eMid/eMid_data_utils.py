@@ -21,6 +21,9 @@ def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list_in):
     X_T = torch.zeros(N, N, 1, T)
     regr_list = [""]
 
+    for r in regr_list_in:
+        assert r in ["eonia", "logYtm1", "Atm1"], f"Invalid regressor name {r}"
+
     if "eonia" in regr_list_in:
         X_eonia_T = tens(np.tile(ld_data["eonia_T"][:, 2:].numpy(), (N, N, 1, 1)))
         X_T = torch.cat((X_T, X_eonia_T), dim=2)
@@ -36,6 +39,7 @@ def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list_in):
         X_T = X_T[:, :, 1:, :]
         regr_list = regr_list[1:]
     else:
+        logger.info("No regressor selected")
         X_T = None
 
     net_stats = SimpleNamespace()
