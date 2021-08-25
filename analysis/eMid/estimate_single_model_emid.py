@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
 @click.option("--prev_mod_art_uri", default="none://", type=str)
-@click.option("--opt_n", default="ADAM", type=str)
+@click.option("--opt_n", default="ADAMHD", type=str)
 
 
 def estimate_single_model_emid(**kwargs):
@@ -91,7 +91,13 @@ def estimate_single_model_emid(**kwargs):
 
             for k_filt, mod in filt_models.items():
                 logger.info(f" Start estimate {k_filt}, {mod.opt_options}")
-                _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
+    
+                try:
+                    _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
+                except:
+                    mlflow.log_artifacts(tmp_fns.main)
+                    logger.error(f"error in stimate of {k_filt}, par {drop_keys(filt_kwargs), ['X_T']}")
+                    raise Exception("Error in estimate")
 
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})

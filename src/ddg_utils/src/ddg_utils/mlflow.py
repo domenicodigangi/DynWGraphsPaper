@@ -123,6 +123,7 @@ def get_fold_namespace(dirname, subfolds_list):
     fns = SimpleNamespace()
     # set artifacts folders and subfolders
     fns.main = Path(dirname)
+    fns.main.mkdir(exist_ok=True)
     for sub in subfolds_list:
         fns.__dict__[sub] = fns.main / sub
         fns.__dict__[sub].mkdir(exist_ok=True)
