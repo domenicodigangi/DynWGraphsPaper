@@ -28,7 +28,7 @@ entry_points:
     command: "python estimate_single_model_emid.py  --size_beta_t {size_beta_t} --bin_or_w {bin_or_w} --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} --regressor_name {regressor_name} --prev_mod_art_uri {prev_mod_art_uri} --opt_n {opt_n} --beta_tv {beta_tv}"
 
 
-  estimate_model_sequence_emid:
+  estimate_all_models_same_reg:
     parameters:
       bin_or_w: {type: string}
       regressor_name: {type: string}
@@ -36,17 +36,17 @@ entry_points:
       unit_meas: {type: float, default: 10000.0}
       train_fract: {type: float, default: 0.75}
   
-    command: "python estimate_model_sequence_emid.py  --bin_or_w {bin_or_w} --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} --regressor_name {regressor_name}"
+    command: "python estimate_all_models_same_reg.py  --bin_or_w {bin_or_w} --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} --regressor_name {regressor_name}"
 
-    # mlflow run -e estimate_model_sequence_emid.py --no-conda --experiment-name "emid est paper" . -P bin_or_w=w -P regressor_name=eonia
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid est paper" . -P bin_or_w=w -P regressor_name=eonia
   
-  estimate_all_models_emid_parallel:
+  estimate_all_regressors_comb_emid:
     parameters:
       max_opt_iter: {type: float, default: 15000}
       unit_meas: {type: float, default: 10000.0}
       train_fract: {type: float, default: 0.75}
       
-    command: "python estimate_all_models_emid_parallel.py  --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} "
+    command: "python estimate_all_regressors_comb_emid.py  --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} "
 
 
   

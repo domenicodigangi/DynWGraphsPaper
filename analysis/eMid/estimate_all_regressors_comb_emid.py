@@ -27,13 +27,16 @@ logger = logging.getLogger(__name__)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--test_mod_ind", default=0, type=int)
 @click.option("--inds_to_run", default="", type=str)
+@click.option("--run_in_parallel", default=0, type=float)
 
 
-def estimate_all_models_emid_parallel(**kwargs):
+
+def estimate_all_regressors_comb_emid(**kwargs):
 
     check_and_tag_test_run(kwargs)
     test_mod_ind = kwargs.pop('test_mod_ind')
     inds_to_run = kwargs.pop("inds_to_run")
+    run_in_parallel = bool(kwargs.pop("run_in_parallel"))
 
     run_parameters_list = [
         {"bin_or_w": "bin", "regressor_name": "eonia", **kwargs},
@@ -43,25 +46,23 @@ def estimate_all_models_emid_parallel(**kwargs):
         {"bin_or_w": "bin", "regressor_name": "eonia_logYtm1", **kwargs},
         {"bin_or_w": "w", "regressor_name": "eonia_logYtm1", **kwargs}]
 
+    one_run = lambda par: mlflow.run(".", "estimate_all_models_same_reg", parameters=par, use_conda=False)
 
     if test_mod_ind == 0:
         if inds_to_run != "":
             run_parameters_list = eval(f"run_parameters_list[{inds_to_run}]")                
-            
-            Parallel(n_jobs=6)(delayed(run_one_sequence)(par) for par in run_parameters_list)
+            if run_in_parallel:
+                Parallel(n_jobs=6)(delayed(one_run)(par) for par in run_parameters_list)
+            else:
+                for p in run_parameters_list:
+                    one_run(p)               
     else:
-        run_one_sequence(run_parameters_list[test_mod_ind])
-
-
-def run_one_sequence(parameters):
-    run = mlflow.run(".", "estimate_model_sequence_emid", parameters=parameters, use_conda=False)
-    run = mlflow.tracking.MlflowClient().get_run(run.run_id)
-
+        one_run(run_parameters_list[test_mod_ind])
 
 
 
 
 # %% Run
 if __name__ == "__main__":
-    estimate_all_models_emid_parallel()
+    estimate_all_regressors_comb_emid()
 

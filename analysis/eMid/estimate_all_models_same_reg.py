@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 @click.option("--start_from_prev", default=0, type=float)
 
 
-def estimate_model_sequence_emid(**kwargs):
+def estimate_all_models_same_reg(**kwargs):
 
     kwargs = drop_keys(kwargs, ["experiment_name"])
     start_from_prev = bool(kwargs.pop("start_from_prev"))
@@ -84,5 +84,5 @@ def estimate_model_sequence_emid(**kwargs):
 
 # %% Run
 if __name__ == "__main__":
-    estimate_model_sequence_emid()
+    estimate_all_models_same_reg()
 
