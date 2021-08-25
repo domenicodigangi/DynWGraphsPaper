@@ -16,7 +16,7 @@ import click
 import logging
 import tempfile
 from pathlib import Path
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace
+from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss
 import pickle
@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 # %%
 
 @click.command()
-@click.option("--experiment_name", type=str, default="eMid_application")
 @click.option("--max_opt_iter", default=11000, type=int)
 @click.option("--opt_n", default="ADAMHD", type=str)
 @click.option("--unit_meas", default=10000, type=float)
@@ -36,14 +35,11 @@ logger = logging.getLogger(__name__)
 @click.option("--regressor_name", default=["eonia"], type=str, multiple=True)
 
 def estimate_multi_models(**kwargs):
-    if kwargs["max_opt_iter"] < 500:
-        logger.warning("Too few opt iter. assuming this is a test run")
-        kwargs["experiment_name"] = "test"
-
-    experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
+    
+    check_and_tag_test_run(kwargs["max_opt_iter"])
 
     #load data
-    with mlflow.start_run(experiment_id=experiment.experiment_id) as run:
+    with mlflow.start_run(nested=True) as run:
         logger.info(kwargs)
         mlflow.log_params(kwargs)
 
@@ -72,7 +68,7 @@ def estimate_mod(**kwargs):
             # temp fold
             tmp_fns = get_fold_namespace(tmpdirname, ["tb_logs"])
             
-            load_and_log_data_run = _get_or_run("load_and_log_data", {"experiment_name":kwargs["experiment_name"]}, None)
+            load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
             load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
 
             load_file = Path(load_path) / "data" / "eMid_data.pkl" 

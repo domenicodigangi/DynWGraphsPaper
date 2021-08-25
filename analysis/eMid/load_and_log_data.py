@@ -37,8 +37,6 @@ logger = logging.getLogger(__name__)
 
 def load_and_log_data(**kwargs):
 
-    experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
-
     with mlflow.start_run() as run:
         # save files in temp folder, then log them as artifacts 
         # in mlflow and delete temp fold

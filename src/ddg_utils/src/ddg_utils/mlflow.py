@@ -6,24 +6,21 @@
 Created on Saturday July 31st 2021
 
 """
-
-
-
 import mlflow
 from mlflow.utils import mlflow_tags
 from mlflow.entities import RunStatus
-
 from mlflow.tracking.fluent import _get_experiment_id
-
+from mlflow.tracking.client import MlflowClient
 import logging 
-logger = logging.getLogger(__name__)
-
 import os
 from urllib.request import url2pathname
 from urllib.parse import urlparse, unquote
+import pandas as pd
 
+logger = logging.getLogger(__name__)
 
 # functions from https://github.com/mlflow/mlflow/blob/master/examples/multistep_workflow/main.py
+
 
 def _already_ran(entry_point_name, parameters, git_commit, experiment_id=None):
     """Best-effort detection of if a run with the given entrypoint name,
@@ -131,3 +128,48 @@ def get_fold_namespace(dirname, subfolds_list):
         fns.__dict__[sub].mkdir(exist_ok=True)
 
     return fns
+
+
+def check_test_exp(kwargs):
+    if kwargs["max_opt_iter"] < 500:
+        logger.warning("Too few opt iter. assuming this is a test run")
+        kwargs["experiment_name"] = "test"
+
+def check_and_tag_test_run(kwargs):
+    if "max_opt_iter" in kwargs.keys():
+        if kwargs["max_opt_iter"] < 500:
+            logger.warning("Too few opt iter. Tagging as a test run")
+            mlflow.set_tag("is_test_run", "y")
+
+
+def dicts_from_run(r):
+    dict_par = {"run_id": r.info.run_id, **r.data.params}
+    dict_metrics = {"run_id": r.info.run_id, **r.data.metrics}
+    dict_info = {**dict(r.info), **r.data.tags }
+
+    return {"info": dict_info, "metrics": dict_metrics, "par": dict_par}    
+
+
+def get_df_exp(experiment, one_df = False):
+    all_runs = MlflowClient().search_runs(experiment.experiment_id)
+
+    list_info = []
+    list_par = []
+    list_metrics = []
+    for r in all_runs:
+        d = dicts_from_run(r)
+        list_info.append(d["info"])
+        list_par.append(d["par"])
+        list_metrics.append(d["metrics"])
+
+    df_i = pd.DataFrame(list_info)
+    df_p = pd.DataFrame(list_par)
+    df_m = pd.DataFrame(list_metrics)
+
+    dfs = {"info": df_i, "par": df_p, "metrics": df_m}
+
+    if one_df:
+        df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
+        return df
+    else:
+        return dfs
