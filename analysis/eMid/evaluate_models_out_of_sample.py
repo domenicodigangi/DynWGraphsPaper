@@ -39,40 +39,46 @@ logger = logging.getLogger(__name__)
 @click.option("--experiment_name", type=str, default="emid runs paper")
 
 
-def evaluate_out_of_sample(**kwargs):
+def evaluate_models_out_of_sample(**kwargs):
     experiment = _get_and_set_experiment(kwargs["experiment_name"])
     df_all_runs = get_df_exp(experiment, one_df=True)
 
     logger.info(f"Staus of experiment {experiment.name}: \n {df_all_runs['status'].value_counts()}")
 
-    df_reg = df_all_runs[(df_all_runs["status"] in ["FINISHED"]) & (df_all_runs["regressor_name"] == "eonia") & (df_all_runs["bin_or_w"] == "bin") & (~np.isnan(df_all_runs["sd_actual_n_opt_iter"]))]
+    df_reg = df_all_runs[(df_all_runs["status"].apply(lambda x: x in ["FINISHED"])) & (~np.isnan(df_all_runs["sd_actual_n_opt_iter"]))]
 
     # row_run = df_reg[(df_reg["beta_tv"] == "0") & (df_reg["size_beta_t"]=="0") & (df_reg["bin_or_w"]=="bin")].iloc[0, :]
 
+    log_cols = ["regressor_name", "size_phi_t", "phi_tv",  "size_beta_t", "beta_tv"]
     for i, row_run in df_reg.iterrows():
-        Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"])
-
-        mod_ss, mod_sd = load_all_models_emid(Y_T, X_T, row_run)
-
-        mod_ss.loglike_seq_T()
-        row_run["ss_final_loss"]
-        mod_sd.loglike_seq_T()
-        mod_sd.init_sd_type
-        row_run["sd_final_loss"]
-
-        mod_sd.sd_stat_par_un_phi["init_val"]
-
 
         with mlflow.start_run(run_id=row_run["run_id"]) as run:
+
+            log_dict = {k: row_run[k] for k in log_cols}
             try:
-                out_sample_fit = { "sd_out_of_sample_auc_all_post": mod_sd.out_of_sample_eval(exclude_never_obs_train=False)["auc_score"], "sd_out_of_sample_auc_post": mod_sd.out_of_sample_eval(exclude_never_obs_train=True)["auc_score"]}
+                Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"])
+
+                mod_ss, mod_sd = load_all_models_emid(Y_T, X_T, row_run)
+
+                mod_ss.loglike_seq_T()
+                row_run["ss_final_loss"]
+                mod_sd.loglike_seq_T()
+                mod_sd.init_sd_type
+                row_run["sd_final_loss"]
+
+                mod_sd.sd_stat_par_un_phi["init_val"]
+
+                out_sample_fit = { f"sd_out_of_sample_{k}_post": v for k, v in  mod_sd.out_of_sample_eval(exclude_never_obs_train=True).items()}
+                if row_run["bin_or_w"] == "bin":
+                    out_sample_fit.update({ f"sd_out_of_sample_{k}_all_post": v for k, v in  mod_sd.out_of_sample_eval(exclude_never_obs_train=False).items()})
                 mlflow.log_metrics(out_sample_fit)
+                logger.info(f"Computed out of sample gof for {log_dict}")
             except:
-                logger.error(f"Could not compute out of sample gof for {row_run['run_id']}")
+                logger.error(f"Could not compute out of sample gof for {log_dict}")
 
 
 
 # %% Run
 if __name__ == "__main__":
-    evaluate_out_of_sample()
+    evaluate_models_out_of_sample()
 
