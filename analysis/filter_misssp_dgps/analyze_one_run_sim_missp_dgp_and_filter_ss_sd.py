@@ -8,7 +8,8 @@ from dynwgraphs.utils.dgps import get_dgp_mod_and_par
 import mlflow
 import logging
 import ddg_utils
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
+from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path, 
+from utils_missp_sim import load_all_models_missp_sim
 from ddg_utils import drop_keys, pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import pandas as pd
@@ -23,25 +24,6 @@ importlib.reload(dynwgraphs)
 importlib.reload(ddg_utils)
 
 #%%
-def load_all_models(row_run, bin_or_w):
-    load_path = Path(uri_to_path(row_run["artifact_uri"]))
-
-    Y_T, X_T = torch.load(open(load_path / "dgp" / "obs_T_dgp.pt", "rb"))
-
-    mod_dgp = get_model_from_run_dict("dgp", bin_or_w, Y_T, X_T, row_run)
-
-    mod_dgp.load_par(str(load_path / "dgp")) 
-    
-    mod_filt_ss = get_model_from_run_dict("filt_ss", bin_or_w, Y_T, X_T, row_run)
-    mod_filt_ss.load_par(str(load_path)) 
-    
-    mod_filt_sd = get_model_from_run_dict("filt_sd", bin_or_w, Y_T, X_T, row_run)
-    mod_filt_sd.load_par(str(load_path)) 
-    mod_filt_sd.roll_sd_filt_train()
-
-
-    return mod_dgp, mod_filt_ss, mod_filt_sd, Y_T, X_T
-
 
 # import pickle
 # file_name = mod_dgp.file_names(load_path / "dgp")["parameters"]
@@ -69,8 +51,8 @@ row_run = all_runs[all_runs.run_id == run_id].iloc[0]
 row_run
 
 # %%
-mod_dgp_bin, mod_filt_bin_ss, mod_filt_bin_sd, Y_T, X_T = load_all_models(row_run, "bin")
-mod_dgp_w, mod_filt_w_ss, mod_filt_w_sd, _, _ = load_all_models(row_run, "w")
+mod_dgp_bin, mod_filt_bin_ss, mod_filt_bin_sd, Y_T, X_T = load_all_models_missp_sim(row_run, "bin")
+mod_dgp_w, mod_filt_w_ss, mod_filt_w_sd, _, _ = load_all_models_missp_sim(row_run, "w")
 
 
 

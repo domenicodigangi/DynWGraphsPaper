@@ -70,12 +70,14 @@ def _already_ran(entry_point_name, parameters, git_commit, experiment_id=None):
 
 
 def _get_or_run(entrypoint, parameters, git_commit, use_cache=True, use_conda=False):
+   
     existing_run = _already_ran(entrypoint, parameters, git_commit)
     if use_cache and existing_run:
         logger.info("Found existing run for entrypoint=%s and parameters=%s" % (entrypoint, parameters))
         return existing_run
     logger.info("Launching new run for entrypoint=%s and parameters=%s" % (entrypoint, parameters))
     submitted_run = mlflow.run(".", entrypoint, parameters=parameters, use_conda=use_conda)
+    
     return mlflow.tracking.MlflowClient().get_run(submitted_run.run_id)
 
 
@@ -135,6 +137,7 @@ def check_test_exp(kwargs):
     if kwargs["max_opt_iter"] < 500:
         logger.warning("Too few opt iter. assuming this is a test run")
         kwargs["experiment_name"] = "test"
+
 
 def check_and_tag_test_run(kwargs):
     if "max_opt_iter" in kwargs.keys():

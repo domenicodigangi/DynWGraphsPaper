@@ -25,22 +25,6 @@ from ddg_utils.mlflow import _get_or_run, _get_and_set_experiment
 @click.option("--experiment_name", type=str, default="application_eMid" )
 def workflow(**kwargs):
     # Note: The entrypoint names are defined in MLproject. The artifact directories
-    # are documented by each step's .py file.
 
-    experiment = _get_and_set_experiment(f"{kwargs['experiment_name']}")
 
-    load_and_log_data_run = _get_or_run("load_and_log_data", {}, None)
-
-    with mlflow.start_run(experiment_id=experiment.experiment_id) as active_run:
-
-        git_commit = active_run.data.tags.get(mlflow_tags.MLFLOW_GIT_COMMIT)
-        data_npz_uri = os.path.join(load_and_log_data_run.info.artifact_uri, "data")
-
- 
- 
-if __name__ == "__main__":
-    workflow()
-# %%
-load_and_log_data_run = _get_or_run("load_and_log_data", {}, None)
-     
 # %%

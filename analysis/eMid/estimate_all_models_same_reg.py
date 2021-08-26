@@ -37,12 +37,15 @@ logger = logging.getLogger(__name__)
 @click.option("--experiment_name", default="eMid Estimates", type=str)
 @click.option("--init_sd_type", default="est_ss_before", type=str)
 @click.option("--start_from_prev", default=0, type=float)
+@click.option("--n_jobs", default=21, type=int)
+
 
 
 def estimate_all_models_same_reg(**kwargs):
 
     kwargs = drop_keys(kwargs, ["experiment_name"])
     start_from_prev = bool(kwargs.pop("start_from_prev"))
+    n_jobs = kwargs.pop("n_jobs")
     check_and_tag_test_run(kwargs)
 
     logger.info(kwargs)
@@ -76,11 +79,11 @@ def estimate_all_models_same_reg(**kwargs):
             {"size_beta_t": "2N", "beta_tv": 1, **kwargs}]
 
 
-        one_run = lambda par: mlflow.run(".", "estimate_single_model", parameters=par, use_conda=False)
+        
+        Parallel(n_jobs=n_jobs)(delayed(one_run)(par) for par in run_parameters_list)
 
-        Parallel(n_jobs=5)(delayed(one_run)(par) for par in run_parameters_list)
-
-
+def one_run(par):
+    mlflow.run(".", "estimate_single_model", parameters=par, use_conda=False)
 
 # %% Run
 if __name__ == "__main__":

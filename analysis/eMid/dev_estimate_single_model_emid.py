@@ -34,7 +34,7 @@ kwargs["beta_tv"] = 1
 kwargs["max_opt_iter"] = 100000
 kwargs["unit_meas"] = 10000
 kwargs["train_fract"] = 3/4
-kwargs["regressor_name"] = "eonia"
+kwargs["regressor_name"] = "logYtm1"
 kwargs["prev_mod_art_uri"] = "none://"
 kwargs["opt_n"] = "ADAMHD"
 kwargs["init_sd_type"] = "est_joint"
@@ -42,18 +42,10 @@ kwargs["init_sd_type"] = "est_joint"
 tmp_fns = get_fold_namespace(".dev_test_data", ["tb_logs"])
 _get_and_set_experiment("dev test")
 
-load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
-load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
 
-load_file = Path(load_path) / "data" / "eMid_data.pkl" 
+Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(kwargs["unit_meas"]), kwargs["regressor_name"] )
 
-ld_data = pickle.load(open(load_file, "rb"))
 
-unit_meas = kwargs["unit_meas"]
-
-regr_list = kwargs["regressor_name"].replace(" ", "_").split("_")
-
-Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
 
 N, _, T = Y_T.shape
 

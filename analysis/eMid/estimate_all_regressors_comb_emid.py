@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 @click.option("--max_opt_iter", default=11000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
-@click.option("--test_mod_ind", default=0, type=int)
+@click.option("--test_mod_ind", default=-1, type=int)
 @click.option("--inds_to_run", default="", type=str)
 @click.option("--run_in_parallel", default=0, type=float)
 
@@ -41,25 +41,26 @@ def estimate_all_regressors_comb_emid(**kwargs):
     run_parameters_list = [
         {"bin_or_w": "bin", "regressor_name": "eonia", **kwargs},
         {"bin_or_w": "w", "regressor_name": "eonia", **kwargs},
-        {"bin_or_w": "bin", "regressor_name": "logYtm1", **kwargs},
+        {"bin_or_w": "bin", "regressor_name": "Atm1", **kwargs},
         {"bin_or_w": "w", "regressor_name": "logYtm1", **kwargs},
-        {"bin_or_w": "bin", "regressor_name": "eonia_logYtm1", **kwargs},
+        {"bin_or_w": "bin", "regressor_name": "eonia_Atm1", **kwargs},
         {"bin_or_w": "w", "regressor_name": "eonia_logYtm1", **kwargs}]
 
-    one_run = lambda par: mlflow.run(".", "estimate_all_models_same_reg", parameters=par, use_conda=False)
 
-    if test_mod_ind == 0:
+    if test_mod_ind != -1:
+        one_run(run_parameters_list[test_mod_ind])
+    else:
         if inds_to_run != "":
             run_parameters_list = eval(f"run_parameters_list[{inds_to_run}]")                
-            if run_in_parallel:
-                Parallel(n_jobs=6)(delayed(one_run)(par) for par in run_parameters_list)
-            else:
-                for p in run_parameters_list:
+        if run_in_parallel:
+            Parallel(n_jobs=6)(delayed(one_run)(par) for par in run_parameters_list)
+        else:
+            for p in run_parameters_list:
                     one_run(p)               
-    else:
-        one_run(run_parameters_list[test_mod_ind])
 
 
+def one_run(par):
+    mlflow.run(".", "estimate_all_models_same_reg", parameters=par, use_conda=False)
 
 
 # %% Run

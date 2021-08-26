@@ -19,7 +19,7 @@ from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, 
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss, get_gen_fit_mod
 import pickle
-from eMid_data_utils import get_obs_and_regr_mat_eMid
+from eMid_data_utils import get_data_from_data_run
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -27,10 +27,12 @@ logger = logging.getLogger(__name__)
 # %%
         
 @click.command()
-@click.option("--size_beta_t", type=str, default="0")
 @click.option("--bin_or_w", type=str, default="bin")
+@click.option("--size_beta_t", type=str, default="0")
 @click.option("--beta_tv", type=float, default=0)
-@click.option("--max_opt_iter", default=21, type=int)
+@click.option("--size_phi_t", type=str, default="2N")
+@click.option("--phi_tv", type=float, default=1)
+@click.option("--max_opt_iter", default=11000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
@@ -51,23 +53,13 @@ def estimate_single_model_emid(**kwargs):
     logger.info(kwargs)
     with mlflow.start_run(nested=True) as run:
         check_and_tag_test_run(kwargs)
+        mlflow.set_tag("is_estimate_run", "y")
         with tempfile.TemporaryDirectory() as tmpdirname:
             
             # temp fold
             tmp_fns = get_fold_namespace(tmpdirname, ["tb_logs"])
             
-            load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
-            load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
-
-            load_file = Path(load_path) / "data" / "eMid_data.pkl" 
-
-            ld_data = pickle.load(open(load_file, "rb"))
-
-            unit_meas = kwargs["unit_meas"]
-
-            regr_list = kwargs["regressor_name"].replace(" ", "_").split("_")
-    
-            Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
+            Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(kwargs["unit_meas"]), kwargs["regressor_name"] )
 
             N, _, T = Y_T.shape
 
@@ -103,9 +95,12 @@ def estimate_single_model_emid(**kwargs):
                 try:
                     _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
                 except:
-                    mlflow.log_artifacts(tmp_fns.main)
-                    logger.error(f"error in stimate of {k_filt}, par {drop_keys(filt_kwargs), ['X_T']}")
-                    raise Exception("Error in estimate")
+                    if k_filt == "sd":
+                        logger.error(f"error in stimate of {k_filt}, par {drop_keys(filt_kwargs, ['X_T'])}, stopping")
+                        mlflow.log_artifacts(tmp_fns.main)
+                        raise Exception("Error in estimate")
+                    else:
+                        logger.error(f"error in stimate of {k_filt}, par {drop_keys(filt_kwargs, ['X_T'])}, continuing")
 
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
                 mlflow.log_params({f"{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
@@ -114,10 +109,10 @@ def estimate_single_model_emid(**kwargs):
                 mod.save_parameters(save_path=tmp_fns.main)
                 
                 with open(tmp_fns.main / "filt_kwargs_dict.pkl", 'wb') as f:
-                    pickle.dump(filt_kwargs, f, protocol=pickle.HIGHEST_PROTOCOL)
+                    pickle.dump(filt_kwargs, f)
                 
 
-                # compute mse for each model and log it 
+                # in sample gof measures 
                 in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
                 in_sample_fit[f"{k_filt}_BIC"] = mod.get_BIC().item()
                 
@@ -131,16 +126,12 @@ def estimate_single_model_emid(**kwargs):
                     # log plots that can be useful for quick visual diagnostic
                     mlflow.log_figure(mod.plot_phi_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_all.png")
 
-                    phi_to_exclude = strIO_from_tens_T(mod.Y_T) < 1e-3 
-                    i=torch.where(~splitVec(phi_to_exclude)[0])[0][0]
-
-                    mlflow.log_figure(mod.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_phi_ind_{i}.png")
-                    
                     mlflow.log_figure(mod_ss.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_ss_filt_phi_ind_{i}.png")
                     
                     if mod.any_beta_tv():
                         mlflow.log_figure(mod.plot_beta_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_beta_T.png")
                 except:
+
                     logger.error("Error in producing or saving figures")
 
             mlflow.log_metrics(in_sample_fit) 

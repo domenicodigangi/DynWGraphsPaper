@@ -21,7 +21,7 @@ from ddg_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run
 from mlflow.tracking.client import MlflowClient
 import importlib
 import pickle
-from eMid_data_utils import get_obs_and_regr_mat_eMid
+from eMid_data_utils import get_data_from_data_run
 importlib.reload(dynwgraphs)
 # %%
 unit_meas = 1e4
@@ -30,17 +30,11 @@ experiment_name = "eMid_application"
 
 experiment = _get_and_set_experiment(experiment_name)
 
-load_and_log_data_run = _get_or_run("load_and_log_data", {}, None)
 
-load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
+regressor_name = "eonia"
+regressor_name = "eonia_Atm1"
 
-load_file = Path(load_path) / "data" / "eMid_data.pkl"
-
-ld_data = pickle.load(open(load_file, "rb"))
-
-regr_list = ["eonia"]
-regr_list = ["eonia", "Atm1"]
-Y_T, X_T, regr_list, net_stats = get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_list)
+Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(unit_meas), regressor_name )
 
 N, _, T = Y_T.shape
 T_train = int(train_fract*T)

@@ -40,6 +40,7 @@ def load_and_log_data(**kwargs):
     with mlflow.start_run() as run:
         # save files in temp folder, then log them as artifacts 
         # in mlflow and delete temp fold
+        mlflow.set_tag("is_data_run", "y")
         with tempfile.TemporaryDirectory() as tmpdirname:
 
             # set artifacts folders and subfolders
