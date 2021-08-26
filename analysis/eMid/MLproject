@@ -57,6 +57,7 @@ entry_points:
       unit_meas: {type: float, default: 10000.0}
       train_fract: {type: float, default: 0.75}
       inds_to_run: {type: string, default: ""}
+      init_sd_type: {type: string, default: "est_ss_before"}
       
     command: "python estimate_all_regressors_comb_emid.py  --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} "
 

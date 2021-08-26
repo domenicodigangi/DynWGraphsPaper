@@ -22,9 +22,7 @@ from ddg_utils.mlflow import _get_or_run, _get_and_set_experiment
 
 @click.command()
 @click.option("--max_opt_iter", default=10000, type=int)
-@click.option("--experiment_name", type=str, default="application_eMid" )
 def workflow(**kwargs):
-    # Note: The entrypoint names are defined in MLproject. The artifact directories
 
 
 # %%

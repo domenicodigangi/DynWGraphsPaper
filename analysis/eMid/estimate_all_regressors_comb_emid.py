@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=3/4, type=float)
 @click.option("--inds_to_run", default="", type=str)
+@click.option("--init_sd_type", default="est_ss_before", type=str)
 
 
 def estimate_all_regressors_comb_emid(**kwargs):

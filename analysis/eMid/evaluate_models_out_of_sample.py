@@ -27,12 +27,6 @@ logger = logging.getLogger(__name__)
 
 # %%
 
-#  aggiungere info al paper
-#  finire intervalli di confidenza mle 
-#  calcolare intervalli  di confidenza mle per stime emid
-#  testare intervalli di confidenza mle
-#  aggiungere test di calvori 
-#  calcolarlo su parametri mle
 
 
 @click.command()

@@ -215,7 +215,7 @@ phi_est_sd_2 = model.sd_filt_w(W, B, A, Y_T, beta=None, X_T = None, alpha=torch.
 
 
 
-model.update_dynw_par(Y_T[:,:,0], phi_est_sd_2[:, 0], model.identify(W), B, A)
+model.update_sd_all_tv_par(Y_T[:,:,0], phi_est_sd_2[:, 0], model.identify(W), B, A)
 tmp = model.identify(phi_est_sd_2[:, 0])
 
 

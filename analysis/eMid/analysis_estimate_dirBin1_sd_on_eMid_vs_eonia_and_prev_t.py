@@ -17,275 +17,128 @@ import matplotlib.pyplot as plt
 import dynwgraphs
 from dynwgraphs.utils.tensortools import tens, splitVec
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD
-from ddg_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run
+from ddg_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run, get_df_exp
+from ddg_utils import pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import importlib
 import pickle
-from eMid_data_utils import get_data_from_data_run
+import logging
+from eMid_data_utils import get_data_from_data_run, load_all_models_emid
 importlib.reload(dynwgraphs)
-# %%
-unit_meas = 1e4
-train_fract = 3/4
-experiment_name = "eMid_application"
-
-experiment = _get_and_set_experiment(experiment_name)
-
-
-regressor_name = "eonia"
-regressor_name = "eonia_Atm1"
-
-Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(unit_meas), regressor_name )
-
-N, _, T = Y_T.shape
-T_train = int(train_fract*T)
-
-max_opt_iter = 21
-# %% Score driven binary phi_T
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "beta_tv": False}
-
-model_bin_0 = dirBin1_SD(Y_T, **filt_kwargs)
-# model_bin_0.estimate()
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '0' "
-"-".join(regr_list)
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_0 = runs[0] if len(runs) >= 1 else None
-
-model_bin_0.load_par(uri_to_path(run_0.info.artifact_uri)) 
-
-model_bin_0.plot_phi_T()
-model_bin_0.beta_T
-model_bin_0.out_of_sample_eval()
-model_bin_0.loglike_seq_T()
-
-model_bin_0.plot_phi_T()
-
-# %% Score driven binary phi_T with const regr
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "X_T": X_T, "size_beta_t": 1, "beta_tv": False, 
-               "opt_n": "ADAM"}
-
-model_bin_1 = dirBin1_SD(Y_T, **filt_kwargs)
-
-model_bin_1.init_par_from_lower_model(model_bin_0)
-
-model_bin_1.estimate()
-
-model_bin_1.beta_T
-
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_1 = runs[0] if len(runs) == 1 else None
-
-model_bin_1.load_par(uri_to_path(run_1.info.artifact_uri)) 
-
-
-model_bin_1.beta_T
-model_bin_1.loglike_seq_T()
-model_bin_1.out_of_sample_eval()
-
-
-# %% Score driven binary phi_T with time varying regr
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "X_T": X_T, "size_beta_t": 1, "beta_tv": True}
-
-model_bin_2 = dirBin1_SD(Y_T, **filt_kwargs)
-# model_bin_2.init_par_from_model_with_const_par(model_bin_1)
-# model_bin_2.estimate()
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-
-runs = MlflowClient().search_runs(
-        experiment_ids=experiment.experiment_id, filter_string=filter_string)
-
-run_2 = runs[0] if len(runs) == 1 else None
-
-model_bin_2.load_par( uri_to_path(run_2.info.artifact_uri)) 
-
-model_bin_2.init_par_from_lower_model(model_bin_1)
-
-
-# %% Score driven binary phi_T with consts
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "X_T": X_T, "size_beta_t": 2*N, "beta_tv": False}
-
-model_bin_3 = dirBin1_SD(Y_T, **filt_kwargs)
-
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_3 = runs[0] if len(runs) == 1 else None
-
-model_bin_3.load_par( uri_to_path(run_3.info.artifact_uri)) 
-
-model_bin_3.init_par_from_lower_model(model_bin_0)
-
-beta_in, beta_out = splitVec(model_bin_3.beta_T[0].detach())
-
-plt.scatter(beta_in, beta_out)
-
-# model_bin_3.init_par_from_model_without_beta(model_bin_0)
-# model_bin_3.estimate_sd()
-
-# %% Score driven binary phi_T with tv beta
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "X_T": X_T, "size_beta_t": 2*N, "beta_tv": True}
-
-model_bin_4 = dirBin1_SD(Y_T, **filt_kwargs)
-
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_4 = runs[0] if len(runs) == 1 else None
-model_bin_4.load_par(uri_to_path(run_4.info.artifact_uri))
-
-model_bin_4.init_par_from_lower_model(model_bin_3)
-
-plt.scatter(model_bin_3.beta_T[0].detach(), model_bin_4.beta_T[0].detach())
-
-
-# %% Score driven weighted phi_T
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "beta_tv": False}
-
-model_w_0 = dirSpW1_SD(Y_T, **filt_kwargs)
-# model_w_0.estimate()
-
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '0' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_0 = runs[0] if len(runs) == 1 else None
-model_w_0.load_par( uri_to_path(run_0.info.artifact_uri)) 
-
-model_w_0.plot_phi_T()
-model_w_0.beta_T
-model_w_0.out_of_sample_eval()
-
-# %% Score driven weighted phi_T with const regr
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "X_T": X_T, "size_beta_t": 1, "beta_tv": False}
-
-model_w_1 = dirSpW1_SD(Y_T, **filt_kwargs)
-# model_w_1.init_par_from_model_without_beta(model_w_0)
-# model_w_1.estimate_sd()
-
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_1 = runs[0] if len(runs) == 1 else None
-model_w_1.load_par(uri_to_path(run_1.info.artifact_uri)) 
-
-model_w_1.beta_T
-model_w_1.loglike_seq_T()
-model_w_1.out_of_sample_eval()
-
-
-# %% Score driven weighted phi_T with time varying regr
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter,
-               "X_T": X_T, "size_beta_t": 1, "beta_tv": True}
-
-model_w_2 = dirSpW1_SD(Y_T, **filt_kwargs)
-# model_w_2.init_par_from_model_with_const_par(model_w_1)
-# model_w_2.estimate()
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '1' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_2 = runs[0] if len(runs) == 1 else None
-model_w_2.load_par( uri_to_path(run_2.info.artifact_uri)) 
-model_w_2.out_of_sample_eval()
-
-
-# %% Score driven weighted phi_T with const
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, 
-               "X_T": X_T, "size_beta_t": 2*N, "beta_tv": False}
-
-model_w_3 = dirSpW1_SD(Y_T, **filt_kwargs)
-
-filter_string = f"parameters.bin_or_w = 'bin' and parameters.beta_tv = "\
-    f"'{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "\
-    f" and parameters.regressor_name = '{'-'.join(regr_list)}' "
-
-runs = MlflowClient().search_runs(
-    experiment_ids=experiment.experiment_id, filter_string=filter_string) 
-
-run_3 = runs[0] if len(runs) == 1 else None
-model_w_3.load_par(uri_to_path(run_3.info.artifact_uri)) 
-
-beta_const = model_w_3.beta_T[0].detach()
-beta_in, beta_out = splitVec(beta_const)
-
-# %% Explore results
-plt.plot(beta_in, beta_out, ".")
-plt.loglog(net_stats.avg_str_i, beta_in, ".")
-plt.loglog(net_stats.avg_str_i, -beta_in, ".")
-plt.loglog(net_stats.avg_str_o, beta_out, ".")
-plt.loglog(net_stats.avg_str_o, -beta_out, ".")
+logger = logging.getLogger(__name__)
 
 # %%
-val, inds = torch.topk(beta_out, 25, dim=0)
-k = 3
-i = inds[k]
-fig, ax = model_w_0.plot_phi_T(i = i)
-model_w_3.plot_phi_T(i = i, fig_ax = (fig, ax))
+# controllare risultati da unc mean. se non buoni, sistemare codice per stimare solo i beta con init a unc mean
+# finire funzioni per plotting
+# guardare distribuzioni dei parametri beta 2N stimati e confrontarle con strength media
+#  finire intervalli di confidenza mle 
+#  calcolare intervalli  di confidenza mle per stime emid
+#  aggiungere test di calvori 
+#  calcolarlo su parametri mle
+#  aggiungere info al paper
+#  stimare su dati socio patterns con appertenenza allo stesso reparto come regressore esterno per avere un applicazione con un dataset pubblico
+#  testare intervalli di confidenza mle
 
-model_w_3.plot_phi_T()
-model_w_0.plot_phi_T()
 
-# plt.plot(net_stats.eonia_T)
-beta_in[i]
-beta_out[i]
+experiment = _get_and_set_experiment("emid runs paper")
+df_all_runs = get_df_exp(experiment, one_df=True)
 
-# model_w_3.init_par_from_model_without_beta(model_w_0)
-# model_w_3.estimate_sd()
+logger.info(f"Staus of experiment {experiment.name}: \n {df_all_runs['status'].value_counts()}")
 
-# %% Score driven weighted phi_T with tv beta
-filt_kwargs = {"T_train": T_train, "max_opt_iter": max_opt_iter, "X_T":X_T, "size_beta_t":2*N, "beta_tv":True}
+df_reg = df_all_runs[(df_all_runs["status"].apply(lambda x: x in ["FINISHED"])) & (~np.isnan(df_all_runs["sd_actual_n_opt_iter"]))]
 
-model_w_4 = dirSpW1_SD(Y_T, **filt_kwargs)
-filter_string = f"parameters.bin_or_w = 'w' and parameters.beta_tv = '{filt_kwargs['beta_tv']}' and parameters.str_size_beta_t = '2N' "
 
-runs = MlflowClient().search_runs(experiment_ids=experiment.experiment_id, filter_string= filter_string) 
-
-run_4 = runs[0] if len(runs) == 1 else None
-model_w_4.load_par( uri_to_path(run_4.info.artifact_uri)) 
-
-plt.scatter(model_w_3.beta_T[0].detach(), model_w_4.beta_T[0].detach())
+log_cols = ["regressor_name", "size_phi_t", "phi_tv",  "size_beta_t", "beta_tv"]
 
 
 
-# model_w_4.init_par_from_model_without_beta(model_w_0)
-# model_w_4.estimate_sd()
+sel_dic = {"beta_tv": "1", "size_beta_t": "one", "bin_or_w": "bin", "regressor_name": "eonia"}
+
+row_run = pd_filt_on(df_reg, sel_dic).iloc[0, :]
+
+Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"])
+
+mod_ss, mod_sd = load_all_models_emid(Y_T, X_T, row_run)
+
+
+mod_sd.plot_phi_T()
+selfo = mod_sd
+
+phi_T, dist_par_un_T, beta_T = selfo.get_time_series_latent_par()
+
+import copy
+
+beta_T.shape
+mod_sd.sd_stat_par_un_beta["init_val"]
+mod_sd.sd_stat_par_un_beta["w"]
+mod_sd.sd_stat_par_un_phi["init_val"]
+
+
+
+plot_tv(selfo, beta_T[:, 0, :])
+
+#%%
+
+def plot_cross(selfo, par_N_in, x=None, fig_ax=None):
+    if fig_ax is None:
+        fig, ax = plt.subplots(2,1)
+    else:
+        fig, ax = fig_ax
+    
+    if x is None:
+        #histogram
+        
+    
+
+def plot_tv(selfo, par_T_in, i=None, x=None, fig_ax=None):
+    par_T = copy.deepcopy(par_T_in.detach().numpy(), train_l_flag =True)
+
+    n_par = par_T.shape[0]
+
+    if x is None:
+        x = np.array(range(par_T.shape[1]))
+
+    # time var par
+    if par_T.shape[1] == 1:
+        par_T = par_T.repeat_interleave(x.shape[0], dim=1)
+
+    if selfo.inds_to_exclude_from_id is not None:
+        par_T[selfo.inds_to_exclude_from_id, :] = float('nan')
+
+    if n_par == 2*selfo.N:
+        if i is not None:
+            par_i_T = (par_T[:selfo.N,:])[i,:]
+            par_o_T = (par_T[selfo.N:,:])[i,:]
+        else:
+
+            par_i_T = par_T[:selfo.N, :]
+            par_o_T = par_T[selfo.N:, :]
+
+        if fig_ax is None:
+            fig, ax = plt.subplots(2,1)
+        else:
+            fig, ax = fig_ax
+
+        ax[0].plot(x, par_i_T.T)
+        ax[1].plot(x, par_o_T.T)
+
+    elif n_par in [1, selfo.N]:
+        if i is not None:
+            par_i_T = par_T[i,:]
+        else:
+            par_i_T = par_T
+
+        if fig_ax is None:
+            fig, ax = plt.subplots(1,1)
+        else:
+            fig, ax = fig_ax
+
+        ax[0].plot(x, par_i_T)
+
+    if train_l_flag:
+        for a in ax:
+            a.vlines(selfo.T_train, a.get_ylim()[0], a.get_ylim()[1], colors = "r", linestyles="dashed")
+
+    return fig, ax
 
 # %%

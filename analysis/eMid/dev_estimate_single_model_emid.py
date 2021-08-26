@@ -19,7 +19,7 @@ from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, 
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss, get_gen_fit_mod
 import pickle
-from eMid_data_utils import get_obs_and_regr_mat_eMid
+from eMid_data_utils import get_obs_and_regr_mat_eMid, get_data_from_data_run
 from urllib.parse import urlparse
 import copy
 
@@ -37,7 +37,7 @@ kwargs["train_fract"] = 3/4
 kwargs["regressor_name"] = "logYtm1"
 kwargs["prev_mod_art_uri"] = "none://"
 kwargs["opt_n"] = "ADAMHD"
-kwargs["init_sd_type"] = "est_joint"
+kwargs["init_sd_type"] = "est_ss_before"
 
 tmp_fns = get_fold_namespace(".dev_test_data", ["tb_logs"])
 _get_and_set_experiment("dev test")
@@ -75,12 +75,7 @@ mod = mod_sd
 _, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 
 
-mod.par_l_to_opt
-
-mod.init_sd_type
-mod.avoid_ovflw_fun_flag
-
-
+mod.mod_stat.opt_options["max_opt_iter"] = 2000
 
 import matplotlib.pyplot as plt
 # mod.init_sd_type = "est_ss_before"

@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 @click.option("--experiment_name", default="eMid Estimates", type=str)
 @click.option("--init_sd_type", default="est_ss_before", type=str)
 @click.option("--start_from_prev", default=0, type=float)
-@click.option("--n_jobs", default=21, type=int)
+@click.option("--n_jobs", default=5, type=int)
 
 
 
