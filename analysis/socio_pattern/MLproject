@@ -1,0 +1,18 @@
+#########
+#Filename: d:\pCloud\Dynamic_Networks\repos\DynWGraphsPaper\analysis\socio_pattern\MLproject
+#Path: d:\pCloud\Dynamic_Networks\repos\DynWGraphsPaper\analysis\socio_pattern
+#Created Date: Friday, August 27th 2021, 1:10:05 pm
+#Author: Domenico Di Gangi
+#
+#Copyright (c) 2021 Your Company
+########
+
+
+entry_points:
+
+  download_data: 
+    command: "python download_data.py"
+    
+#mlflow run -e download_data.py --no-conda --experiment-name "data processing" .
+
+  
