@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--experiment_name", type=str, default="emid runs paper")
+@click.option("--experiment_name", type=str, default="emid est paper last")
 
 
 def evaluate_models_out_of_sample(**kwargs):

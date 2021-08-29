@@ -29,15 +29,16 @@ logger = logging.getLogger(__name__)
 
 kwargs = {}
 kwargs["size_beta_t"] = "0"
-kwargs["bin_or_w"] ="bin"
-kwargs["beta_tv"] = 1
-kwargs["max_opt_iter"] = 100000
+kwargs["bin_or_w"] = "bin"
+kwargs["beta_tv"] = False
+kwargs["max_opt_iter"] = 3000
 kwargs["unit_meas"] = 10000
-kwargs["train_fract"] = 3/4
-kwargs["regressor_name"] = "logYtm1"
+kwargs["train_fract"] = 0.8
+kwargs["regressor_name"] = "eonia"
 kwargs["prev_mod_art_uri"] = "none://"
 kwargs["opt_n"] = "ADAMHD"
-kwargs["init_sd_type"] = "est_ss_before"
+kwargs["init_sd_type"] = "unc_mean"
+kwargs["avoid_ovflw_fun_flag"] = False
 
 tmp_fns = get_fold_namespace(".dev_test_data", ["tb_logs"])
 _get_and_set_experiment("dev test")
@@ -51,7 +52,7 @@ N, _, T = Y_T.shape
 
 T_train = int(kwargs["train_fract"] * T)
 
-filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"]}
+filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
 
 if kwargs["size_beta_t"] not in ["0", 0, None]:
     filt_kwargs["X_T"] =  X_T
@@ -70,10 +71,49 @@ if urlparse(kwargs["prev_mod_art_uri"]).scheme != "none":
 else:
     logger.info("Not loading any model as starting point")
 
-#%% 
-mod = mod_sd
-_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs)
 
+mod = mod_sd
+#%%
+
+# mod_sd.init_par_from_lower_model(prev_mod_sd) 
+
+_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs, log_interval=100, max_opt_iter=200)
+mod_sd.beta_T
+# prev_mod_sd=mod_sd
+
+#%% 
+
+mod_stat = mod.mod_for_init
+
+
+mod.N
+mod.plot_phi_T(i=102)
+mod.plot_phi_T()
+mod.sd_stat_par_un_phi["A"][233]
+
+
+
+#%%
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.tsa.stattools import acf
+import numpy as np
+import matplotlib.pyplot as plt
+autocorrelation = np.correlate(s_T, s_T, mode="full")
+plot_acf(s_T)
+
+s_T = mod_stat.get_score_T_train()["phi"].detach().numpy()
+acorr_1_phi = torch.tensor([acf(s_T[n, :], nlags=1)[1] for n in range(s_T.shape[0])])
+
+A_vec = mod.un2re_A_par(mod.sd_stat_par_un_phi["A"]).detach().numpy()
+plt.hist(acorr_1_phi)
+plt.hist(A_vec)
+plt.scatter(acorr_1_phi, np.log(A_vec))
+
+
+#%% 
+
+mod.roll_sd_filt_train()
+mod.beta_T
 
 mod.mod_stat.opt_options["max_opt_iter"] = 2000
 
@@ -89,10 +129,6 @@ phi_T is None
 mod.roll_sd_filt(mod.T_all)
 
 
-def get_score_T(self):
-
-    s_T = torch.cat([mod.score_t(t)["phi"].unsqueeze(1) for t in range(T) ], dim=1).detach()
-plt.plot(s_T.abs().mean(0))
 
 
 mod.loglike_seq_T()
@@ -209,56 +245,22 @@ mlflow.log_artifacts(tmp_fns.main)
 
 
 rescaled = False
-selfo = mod
+selfo = mod_sd
 T = selfo.T_train
-list_par = ["phi", "beta"]
-
-def get_score_T(selfo, T, list_par, rescaled = False):
-
-    phi_flag = "phi" in list_par
-    dist_par_un_flag = "dist_par_un" in list_par
-    beta_flag = "beta" in list_par
-
-    if selfo.beta_T is None:
-        if beta_flag:
-            raise Exception("Beta not present")
-
-    score_T = {k: [] for k in list_par}
-
-    for t in range(T):
-        d = selfo.score_t(t, rescaled, phi_flag, dist_par_un_flag, beta_flag)
-        for k, l in score_T.items():
-            l.append(d[k])
-
-    for k, l in score_T.items():
-        score_T[k] = torch.cat(l.unsqueeze(1))
-
-def get_hess_T(selfo, T, list_par):
-
-    phi_flag = "phi" in list_par
-    dist_par_un_flag = "dist_par_un" in list_par
-    beta_flag = "beta" in list_par
-
-    if selfo.beta_T is None:
-        if beta_flag:
-            raise Exception("Beta not present")
-
-    hess_T = {k: [] for k in list_par}
-
-    for t in range(T):
-        d = selfo.hess_t(t, rescaled, phi_flag, dist_par_un_flag, beta_flag)
-        for k, l in hess_T.items():
-            l.append(d[k])
-
-    for k, l in hess_T.items():
-        hess_T[k] = torch.cat(l.unsqueeze(1))
+list_par = ["phi"]
 
 from torch.autograd import grad
 from torch.autograd.functional import hessian
 
 
+selfo.hess_t(0, True, False, False)
+
+hess_T = selfo.get_hess_T(20, ["beta"])
+s_T = selfo.get_score_T(20, ["beta"])
+
+hess_T["beta"]
+s_T["beta"]
 
 
-get_hess_T(selfo, T, ["phi"])
 
 # %%

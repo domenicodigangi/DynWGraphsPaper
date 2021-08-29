@@ -63,3 +63,7 @@ entry_points:
 
 
   
+# mlflow run -e estimate_all_regressors_comb_emid.py --no-conda --experiment-name "emid est paper last" . -P init_sd_type=unc_mean -P n_jobs=5
+
+# evaluate models out of sample
+# mlflow run -e evaluate_models_out_of_sample.py --no-conda  .

@@ -32,13 +32,14 @@ logger = logging.getLogger(__name__)
 @click.option("--beta_tv", type=float, default=0)
 @click.option("--size_phi_t", type=str, default="2N")
 @click.option("--phi_tv", type=float, default=1)
-@click.option("--max_opt_iter", default=11000, type=int)
+@click.option("--max_opt_iter", default=3000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
-@click.option("--train_fract", default=3/4, type=float)
+@click.option("--train_fract", default=8/10, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
 @click.option("--prev_mod_art_uri", default="none://", type=str)
 @click.option("--opt_n", default="ADAMHD", type=str)
 @click.option("--init_sd_type", default="est_ss_before", type=str)
+@click.option("--estimate_ss", type=float, default=0)
 
 
 
@@ -47,9 +48,10 @@ def estimate_single_model_emid(**kwargs):
     if kwargs["bin_or_w"] == "bin":
         kwargs["avoid_ovflw_fun_flag"] = False
     elif kwargs["bin_or_w"] == "w":
-        kwargs["avoid_ovflw_fun_flag"] = True
+        kwargs["avoid_ovflw_fun_flag"] = False
 
     kwargs["beta_tv"] = bool(kwargs["beta_tv"])
+    kwargs["estimate_ss"] = bool(kwargs["estimate_ss"])
     logger.info(kwargs)
     with mlflow.start_run(nested=True) as run:
         check_and_tag_test_run(kwargs)
@@ -84,8 +86,11 @@ def estimate_single_model_emid(**kwargs):
             else:
                 logger.info("Not loading any model as starting point")
 
-            filt_models = {"sd": mod_sd, "ss": mod_ss}
-
+            if kwargs["estimate_ss"]:
+                filt_models = {"sd": mod_sd, "ss": mod_ss}
+            else:
+                filt_models = {"sd": mod_sd}
+            
             in_sample_fit = {}
             out_sample_fit = {}
 
@@ -126,7 +131,7 @@ def estimate_single_model_emid(**kwargs):
                     # log plots that can be useful for quick visual diagnostic
                     mlflow.log_figure(mod.plot_phi_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_all.png")
 
-                    mlflow.log_figure(mod_ss.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_ss_filt_phi_ind_{i}.png")
+                    mlflow.log_figure(mod.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_phi_ind_{i}.png")
                     
                     if mod.any_beta_tv():
                         mlflow.log_figure(mod.plot_beta_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_beta_T.png")

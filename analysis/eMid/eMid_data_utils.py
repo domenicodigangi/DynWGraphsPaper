@@ -15,6 +15,9 @@ from types import SimpleNamespace
 from pathlib import Path
 from ddg_utils.mlflow import uri_to_path, _get_or_run
 import pickle
+import logging
+logger = logging.getLogger(__name__)
+
 
 def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regressor_name):
     Y_T = ld_data["YeMidWeekly_T"][:, :, 2:]/unit_meas
@@ -63,9 +66,12 @@ def load_all_models_emid(Y_T, X_T, row_run):
 
     load_path = Path(uri_to_path(row_run["artifact_uri"]))
    
-    mod_filt_ss = get_model_from_run_dict_emid(Y_T, X_T, row_run, "ss")
-    mod_filt_ss.load_par(str(load_path)) 
-    
+    try:
+        mod_filt_ss = get_model_from_run_dict_emid(Y_T, X_T, row_run, "ss")
+        mod_filt_ss.load_par(str(load_path)) 
+    except:
+        logger.warning("ss model not found")    
+        mod_filt_ss = None
     mod_filt_sd = get_model_from_run_dict_emid(Y_T, X_T, row_run, "sd")
     mod_filt_sd.load_par(str(load_path)) 
     mod_filt_sd.roll_sd_filt_train()

@@ -156,7 +156,7 @@ def dicts_from_run(r):
 
 def get_df_exp(experiment, one_df = False):
     all_runs = MlflowClient().search_runs(experiment.experiment_id)
-
+    assert len(all_runs) > 0, "No runs found"
     list_info = []
     list_par = []
     list_metrics = []

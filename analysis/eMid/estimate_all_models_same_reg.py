@@ -29,15 +29,17 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--max_opt_iter", default=11000, type=int)
+@click.option("--max_opt_iter", default=3000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
-@click.option("--train_fract", default=3/4, type=float)
+@click.option("--train_fract", default=8/10, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
 @click.option("--bin_or_w", default="bin", type=str)
 @click.option("--experiment_name", default="eMid Estimates", type=str)
 @click.option("--init_sd_type", default="est_ss_before", type=str)
 @click.option("--start_from_prev", default=0, type=float)
 @click.option("--n_jobs", default=5, type=int)
+@click.option("--estimate_ss", type=float, default=0)
+@click.option("--opt_n", default="ADAMHD", type=str)
 
 
 
@@ -75,8 +77,8 @@ def estimate_all_models_same_reg(**kwargs):
             {"size_beta_t": "0", "beta_tv": 0, **kwargs},
             {"size_beta_t": "one", "beta_tv": 0, **kwargs},
             {"size_beta_t": "one", "beta_tv": 1, **kwargs},
-            {"size_beta_t": "2N", "beta_tv": 0, **kwargs},
-            {"size_beta_t": "2N", "beta_tv": 1, **kwargs}]
+            {"size_beta_t": "2N", "beta_tv": 0, **kwargs}]
+            # {"size_beta_t": "2N", "beta_tv": 1, **kwargs}]
 
 
         
