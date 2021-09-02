@@ -74,11 +74,12 @@ def estimate_all_models_same_reg(**kwargs):
     else:
     
         run_parameters_list = [
-            {"size_beta_t": "0", "beta_tv": 0, **kwargs},
-            {"size_beta_t": "one", "beta_tv": 0, **kwargs},
-            {"size_beta_t": "one", "beta_tv": 1, **kwargs},
-            {"size_beta_t": "2N", "beta_tv": 0, **kwargs}]
-            # {"size_beta_t": "2N", "beta_tv": 1, **kwargs}]
+            {"size_phi_t": "0", "phi_tv": 0, "size_beta_t": "1", "beta_tv": 0, **kwargs},
+            {"size_phi_t": "2N", "phi_tv": 0, "size_beta_t": "1", "beta_tv": 0, **kwargs},
+            {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "1", "beta_tv": 0, **kwargs},
+            {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "0", "beta_tv": 0, **kwargs},
+            {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "2N", "beta_tv": 0, **kwargs}
+        ]
 
 
         

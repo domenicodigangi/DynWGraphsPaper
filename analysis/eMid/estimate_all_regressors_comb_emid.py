@@ -46,13 +46,13 @@ def estimate_all_regressors_comb_emid(**kwargs):
         {"bin_or_w": "bin", "regressor_name": "eonia", **kwargs},
         {"bin_or_w": "w", "regressor_name": "eonia", **kwargs},
         {"bin_or_w": "bin", "regressor_name": "Atm1", **kwargs},
-        {"bin_or_w": "w", "regressor_name": "Atm1", **kwargs},
-        {"bin_or_w": "bin", "regressor_name": "logYtm1", **kwargs},
-        {"bin_or_w": "w", "regressor_name": "logYtm1", **kwargs},
-        {"bin_or_w": "bin", "regressor_name": "eonia_Atm1", **kwargs},
-        {"bin_or_w": "w", "regressor_name": "eonia_Atm1", **kwargs},
-        {"bin_or_w": "bin", "regressor_name": "eonia_logYtm1", **kwargs},
-        {"bin_or_w": "w", "regressor_name": "eonia_logYtm1", **kwargs}]
+        {"bin_or_w": "w", "regressor_name": "logYtm1", **kwargs}]
+        # {"bin_or_w": "w", "regressor_name": "Atm1", **kwargs},
+        # {"bin_or_w": "bin", "regressor_name": "logYtm1", **kwargs},
+        # {"bin_or_w": "bin", "regressor_name": "eonia_Atm1", **kwargs},
+        # {"bin_or_w": "w", "regressor_name": "eonia_Atm1", **kwargs},
+        # {"bin_or_w": "bin", "regressor_name": "eonia_logYtm1", **kwargs},
+        # {"bin_or_w": "w", "regressor_name": "eonia_logYtm1", **kwargs}
 
 
     if inds_to_run != '':

@@ -20,9 +20,9 @@ entry_points:
       size_phi_t: {type: string, default: "2N"}
       phi_tv: {type: float, default: 1}
       bin_or_w: {type: string, default: "bin"}
-      max_opt_iter: {type: float, default: 15000}
+      max_opt_iter: {type: float, default: 3000}
       unit_meas: {type: float, default: 10000.0}
-      train_fract: {type: float, default: 0.75}
+      train_fract: {type: float, default: 0.8}
       regressor_name: {type: string, default: "eonia"}
       prev_mod_art_uri: {type: uri, default: none://}
       opt_n: {type: string, default: ADAMHD}
@@ -34,9 +34,9 @@ entry_points:
     parameters:
       bin_or_w: {type: string}
       regressor_name: {type: string}
-      max_opt_iter: {type: float, default: 15000}
+      max_opt_iter: {type: float, default: 3000}
       unit_meas: {type: float, default: 10000.0}
-      train_fract: {type: float, default: 0.75}
+      train_fract: {type: float, default: 0.8}
   
     command: "python estimate_all_models_same_reg.py  --bin_or_w {bin_or_w} --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} --regressor_name {regressor_name}"
 
@@ -53,9 +53,9 @@ entry_points:
 
   estimate_all_regressors_comb_emid:
     parameters:
-      max_opt_iter: {type: float, default: 15000}
+      max_opt_iter: {type: float, default: 3000}
       unit_meas: {type: float, default: 10000.0}
-      train_fract: {type: float, default: 0.75}
+      train_fract: {type: float, default: 0.8}
       inds_to_run: {type: string, default: ""}
       init_sd_type: {type: string, default: "est_ss_before"}
       

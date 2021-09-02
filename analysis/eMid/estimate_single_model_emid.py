@@ -67,7 +67,7 @@ def estimate_single_model_emid(**kwargs):
 
             T_train = int(kwargs["train_fract"] * T)
            
-            filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
+            filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_phi_t": kwargs["size_phi_t"], "phi_tv": kwargs["phi_tv"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
             
             if kwargs["size_beta_t"] not in ["0", 0, None]:
                 filt_kwargs["X_T"] =  X_T

@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 # %%
 
 kwargs = {}
-kwargs["size_beta_t"] = "0"
+kwargs["size_phi_t"] = "0"
+kwargs["phi_tv"] = 0.0
+kwargs["size_beta_t"] = "one"
 kwargs["bin_or_w"] = "bin"
 kwargs["beta_tv"] = False
 kwargs["max_opt_iter"] = 3000
@@ -52,7 +54,7 @@ N, _, T = Y_T.shape
 
 T_train = int(kwargs["train_fract"] * T)
 
-filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
+filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_phi_t": kwargs["size_phi_t"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
 
 if kwargs["size_beta_t"] not in ["0", 0, None]:
     filt_kwargs["X_T"] =  X_T
@@ -77,20 +79,41 @@ mod = mod_sd
 
 # mod_sd.init_par_from_lower_model(prev_mod_sd) 
 
-_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs, log_interval=100, max_opt_iter=200)
+_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs, log_interval=10, max_opt_iter=20)
 mod_sd.beta_T
+mod_sd.phi_T
 # prev_mod_sd=mod_sd
 
 #%% 
 
 mod_stat = mod.mod_for_init
 
+mod.plot_phi_T(i=73)
 
+mod_sd.beta_T
+mod_sd.dist_par_un_T
+mod_stat.phi_T[0]
+i_node = 73
+mod_sd.phi_T[0][i_node]
+mod_sd.identify_io_par_to_be_sum(mod_sd.get_unc_mean(mod_sd.sd_stat_par_un_phi), mod_sd.par_vec_id_type)[i_node]
 mod.N
-mod.plot_phi_T(i=102)
+mod.plot_phi_T(i=i_node)
 mod.plot_phi_T()
-mod.sd_stat_par_un_phi["A"][233]
+mod.plot_sd_par()
+mod_sd.un2re_A_par(mod.sd_stat_par_un_phi["A"][i_node])
+mod_sd.un2re_A_par(mod.sd_stat_par_un_phi["A"]).max()
+mod_sd.un2re_B_par(mod.sd_stat_par_un_phi["B"]).min()
 
+plt.plot(mod_sd.get_score_T_train()["phi"][i_node, :].detach())
+
+
+mod_sd.roll_sd_filt_all()
+mod_sd.get_score_T_train()["phi"].max()
+mod_sd.plot_sd_par()
+
+mod_sd.get_unc_mean(mod_sd.sd_stat_par_un_phi)
+
+mod_sd.set_unc_mean(a, mod_sd.sd_stat_par_un_phi)
 
 
 #%%
@@ -168,98 +191,25 @@ phi_t, _, beta_t = mod.get_par_t(t)
 
 
 
-A_t = Y_t 
-
-score_dict = {}
-if  mod.any_beta_tv() :
-    
-    # compute the score with AD using Autograd
-    like_t = mod.loglike_t(Y_t, phi_t, beta=beta_t, X_t=X_t)
-
-    if mod.any_beta_tv():
-        score_dict["beta"] = grad(like_t, beta_t, create_graph=True)[0]
-
-    if mod.rescale_SD:
-        pass
-        # raise "Rescaling not ready for beta and dist par"
-
-if mod.phi_tv:
-
-    exp_A = mod.exp_A(phi_t, beta=beta_t, X_t=X_t)
-
-    tmp = A_t - exp_A
-
-N**2-N
-exp_A.sum()
-phi_t
-
-A_t.sum()
-
-mod.exp_of_fit_plus_reg(phi_t, beta_t, X_t, ret_log=False, ret_all=False)
-mod.invPiMat(phi_t, beta_t, X_t, ret_log=False)
-
-phi_i, phi_o = splitVec(phi_t)
-phi_i[0] + phi_o[1]
-
-mod.get_phi_sum(phi_t)[1,0]
-
-
-
-
-with open(tmp_fns.main / "filt_kwargs_dict.pkl", 'wb') as f:
-    pickle.dump(filt_kwargs, f, protocol=pickle.HIGHEST_PROTOCOL)
-    
-
-    # compute mse for each model and log it 
-    in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
-    in_sample_fit[f"{k_filt}_BIC"] = mod.get_BIC().item()
-    
-    for k, v in mod.out_of_sample_eval().items():
-        out_sample_fit[f"{k_filt}_out_of_sample_{k}"] = v 
-
-    try:
-        # log plots that can be useful for quick visual diagnostic
-        mlflow.log_figure(mod.plot_phi_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_all.png")
-
-        phi_to_exclude = strIO_from_tens_T(mod.Y_T) < 1e-3 
-        i=torch.where(~splitVec(phi_to_exclude)[0])[0][0]
-
-        mlflow.log_figure(mod.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_phi_ind_{i}.png")
-        
-        mlflow.log_figure(mod_ss.plot_phi_T(i=i)[0], f"fig/{kwargs['bin_or_w']}_ss_filt_phi_ind_{i}.png")
-        
-        if mod.any_beta_tv():
-            mlflow.log_figure(mod.plot_beta_T()[0], f"fig/{kwargs['bin_or_w']}_{k_filt}_filt_beta_T.png")
-    except:
-        logger.error("Error in producing or saving figures")
-
-
-# log all files and sub-folders in temp fold as artifacts            
-mlflow.log_artifacts(tmp_fns.main)
-
-
 
 
 #%%%%%%%%%%%%%%%%%%%%
-# To Do: arrive at white sandwhich estimator
+# To Do: calvori test
 
-
-rescaled = False
 selfo = mod_sd
-T = selfo.T_train
-list_par = ["phi"]
+selfo.loglike_seq_T()
+s_t, h_t = selfo.score_hess_t(t, True, False, True)
 
-from torch.autograd import grad
-from torch.autograd.functional import hessian
+s_T, h_T = selfo.get_score_hess_T_train(["beta"])
 
 
-selfo.hess_t(0, True, False, False)
+selfo.get_cov_mat_stat_est("beta")
 
-hess_T = selfo.get_hess_T(20, ["beta"])
-s_T = selfo.get_score_T(20, ["beta"])
+par_name = "beta"
 
-hess_T["beta"]
-s_T["beta"]
+
+
+
 
 
 

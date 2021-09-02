@@ -29,25 +29,21 @@ importlib.reload(dynwgraphs)
 logger = logging.getLogger(__name__)
 
 # %%
-# guardare distribuzioni dei parametri beta 2N stimati e confrontarle con strength media
+
 # guardare alla correlazione tra fit bin e fit w 
 
-#  finire intervalli di confidenza mle 
-#  calcolare intervalli  di confidenza mle per stime emid
-#  aggiungere test di calvori 
+#  aggiungere test di calvori
 #  calcolarlo su parametri mle
-#  aggiungere info al paper
-
-
 
 
 #  stimare su dati socio patterns con appertenenza allo stesso reparto come regressore esterno per avere un applicazione con un dataset pubblico:
 # dataset quasi pronto, devo aggiungere le comunità come regressori esterni
+
 #  testare intervalli di confidenza mle
 
 
 experiment = _get_and_set_experiment("emid est paper last")
-# experiment = _get_and_set_experiment("emid est paper before clamp")
+# experiment = _get_and_set_experiment("emid est paper last 29th august")
 df_all_runs = get_df_exp(experiment, one_df=True)
 
 logger.info(f"Staus of experiment {experiment.name}: \n {df_all_runs['status'].value_counts()}")
@@ -57,14 +53,21 @@ df_reg = df_all_runs[(df_all_runs["status"].apply(lambda x: x in ["FINISHED"])) 
 
 log_cols = ["regressor_name", "size_phi_t", "phi_tv",  "size_beta_t", "beta_tv"]
 
-sel_dic = {"beta_tv": "0", "size_beta_t": "one", "bin_or_w": "bin", "regressor_name": "eonia", "opt_n": "ADAMHD"}
+sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "2N", "beta_tv": "0", "bin_or_w": "w", "regressor_name": "logYtm1", "train_fract": "0.8"}
 
 
-df_sel = pd_filt_on(df_reg, sel_dic)
+df_reg[df_reg.regressor_name == "logYtm1"].size_beta_t 
+df_reg.phi_tv 
+df_reg.size_beta_t
+df_reg.beta_tv 
+# df_reg.size_phi_t[4]
+
+df_sel = pd_filt_on(df_reg, sel_dic).sort_values("end_time")
 if df_sel.shape[0] == 1:
     row_run = df_sel.iloc[0, :]
 else:
-    raise
+    row_run = df_sel.iloc[0, :]
+    logger.error("more than one run")
 
 Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"])
 
@@ -76,14 +79,28 @@ selfo = mod_sd
 row_run["sd_avoid_ovflw_fun_flag"]
 row_run["init_sd_type"]
 
+if mod_sd.size_beta_t < 50:
+    cov_beta = mod_sd.get_cov_mat_stat_est("beta")
+    logger.info(f"{mod_sd.beta_T} +- {cov_beta.sqrt()*1.96}")
+
 #%%
 
+# mod_sd.beta_T[0] = torch.tensor(0.34).unsqueeze(0).unsqueeze(1)
+
+mod_sd.loglike_seq_T()
+mod_sd.roll_sd_filt_all()
+
 mod_sd.beta_T
+cov_beta.sqrt()*1.96
 
 
-mod_sd.plot_beta_T()
 mod_sd.plot_phi_T()
+mod_sd.plot_beta_T()
+
 mod_sd.plot_phi_T(i=96)
+
+
+
 
 plt.plot(mod_sd.get_score_T_train()["phi"][96, :].detach())
 mod_sd.roll_sd_filt_all()
@@ -94,7 +111,6 @@ mod_sd.get_unc_mean(mod_sd.sd_stat_par_un_phi)
 
 mod_sd.set_unc_mean(a, mod_sd.sd_stat_par_un_phi)
 
-a
 mod_sd.phi_T[0]
 mod_sd.init_sd_type
 
@@ -110,7 +126,10 @@ plt.plot(phi_T[1,:selfo.T_train])
 import copy
 
 beta_T.shape
-mod_sd.sd_stat_par_un_phi["A"][:mod_sd.N].argmax()
+mod_sd.mod_for_init.phi_T
+
+mod_sd.un2re_A_par(mod_sd.sd_stat_par_un_phi["A"])[:mod_sd.N][96]
+mod_sd.get_unc_mean(mod_sd.sd_stat_par_un_phi)[:mod_sd.N][96]
 mod_sd.sd_stat_par_un_beta["w"]
 mod_sd.sd_stat_par_un_phi["init_val"]
 
@@ -195,32 +214,29 @@ def plot_hist(selfo, par_N_in, x=None, fig_ax=None):
 
     return fig, ax
 
+def corr_finite(x, y, inds_in=None):
+    inds = (np.isfinite(x)) & (np.isfinite(y))
+    if inds_in is not None:
+        inds = inds & inds_in
+    return np.corrcoef(x[inds], y[inds])
 
 
-beta_i, beta_o = map(lambda x: torch.nan_to_num(x.detach(), 0).numpy ,splitVec(selfo.beta_T[0][:, 0]))
+
+
 #%%
-plt.semilogx(net_stats.avg_degs_i, beta_i, ".")
-plt.semilogx(net_stats.avg_degs_o, beta_o, ".")
+beta_i, beta_o = map(lambda x: torch.nan_to_num(x.detach(), 0), splitVec(selfo.beta_T[0][:, 0]))
 
-plt.semilogx(net_stats.avg_str_i, beta_i, ".")
-plt.ylim(-0.1,0.1)
 
-plt.scatter(net_stats.avg_str_o.numpy(), beta_o, ".", logx=True)
-
-plt.ylim(-0.1,0.3)
-np.corrcoef(np.log(net_stats.avg_str_i), beta_i)
-
-plt.loglog(net_stats.avg_str_i, beta_i, ".")
-plt.loglog(net_stats.avg_str_i, -beta_i, ".")
-plt.loglog(net_stats.avg_str_o, beta_o, ".")
-plt.loglog(net_stats.avg_str_o, -beta_o, ".")
 
 plt.loglog(net_stats.avg_degs_i, beta_i, ".")
-plt.loglog(net_stats.avg_degs_i, -beta_i, ".")
 plt.loglog(net_stats.avg_degs_o, beta_o, ".")
-plt.loglog(net_stats.avg_degs_o, -beta_o, ".")
+# plt.ylim(0.1, 10)
+plt.title(f"Average Node Degree vs beta {row_run['regressor_name']}")
 
-
+plt.loglog(net_stats.avg_str_i, beta_i, ".")
+plt.loglog(net_stats.avg_str_o, beta_o, ".")
+# plt.ylim(0.1, 10)
+plt.title(f"Average Node Strength vs beta {row_run['regressor_name']}")
 
 # %%
 selfo = mod_sd
@@ -233,5 +249,47 @@ selfo.beta_T
 
 selfo.beta_T[0].shape
 selfo.get_time_series_latent_par()
+
+
+#%%
+
+
+
+
+np.corrcoef(np.log(net_stats.avg_str_i), beta_i)
+
+corr_finite(net_stats.avg_degs_i.numpy(), np.exp(beta_i))
+corr_finite(np.log(net_stats.avg_str_i.numpy()), np.log(beta_i))
+corr_finite(np.log(net_stats.avg_str_o.numpy()), np.log(beta_o))
+corr_finite(net_stats.avg_str_o.numpy(), beta_o)
+corr_finite(net_stats.avg_degs_o.numpy(), beta_o)
+corr_finite(net_stats.avg_degs_i.numpy(), np.exp(beta_i), inds_in=beta_i>0)
+
+
+
+beta_mat = mod_sd.get_phi_sum(mod_sd.beta_T[0][:,0]).detach()
+beta_mat_obs = beta_mat.clone()
+beta_mat_obs[Y_T.sum(dim=2) == 0] = 0
+
+beta_mat_obs[beta_mat_obs!=0]
+from dynwgraphs.utils.tensortools import strIO_from_mat
+
+fix, ax = plt.subplots(2, 1)
+ax[0].hist(beta_i.unsqueeze(0))
+ax[1].hist(beta_o.unsqueeze(0))
+
+
+plt.loglog(net_stats.avg_str_i, beta_i, ".")
+plt.loglog(net_stats.avg_str_i, -beta_i, ".")
+plt.loglog(net_stats.avg_str_o, beta_o, ".")
+plt.loglog(net_stats.avg_str_o, -beta_o, ".")
+
+plt.semilogx(net_stats.avg_degs_i, beta_i, ".")
+plt.semilogx(net_stats.avg_degs_o, beta_o, ".")
+plt.ylim(-1, 10)
+
+
+plt.loglog(net_stats.avg_degs_i, -beta_i, ".")
+plt.loglog(net_stats.avg_degs_o, -beta_o, ".")
 
 
