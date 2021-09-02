@@ -27,7 +27,7 @@ from torch import nn
 import logging
 import click
 from matplotlib import pyplot as plt
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp
+from ddg_utils.mlflow import _get_and_set_experiment, check_and_tag_test_run
 from ddg_utils import drop_keys
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
@@ -73,6 +73,7 @@ importlib.reload(dynwgraphs)
 @click.option("--beta_set_dgp_type_tv_bin", help="Same as beta_set_dgp_type_tv for bin", type=(str, float, float, float), default=(None, None, None, None))
 @click.option("--beta_set_dgp_type_tv_w", help="Same as beta_set_dgp_type_tv for w", type=(str, float, float, float), default=(None, None, None, None))
 
+@click.option("--beta_set_dgp_type_tv_un_mean_2", help="unc mean of second regressor", type=float, default=0.1)
 
 @click.option("--ext_reg_dgp_set_type_tv", help="How should external regressorrs evolve? 1 cross sec setting, 2 time variation type, 3 parameters for time varying dgp (unc_mean, B, sigma) ", type=(str, str, float, float, float), default=("uniform", "AR", 1, 0, 0.1))
 @click.option("--ext_reg_dgp_set_type_tv_bin", help="Same as ext_reg_dgp_set_type_tv for bin", type=(str, str, float, float, float), default=(None, None, None, None, None))
@@ -198,7 +199,7 @@ def get_filt_mod(bin_or_w, Y_T, X_T_dgp, par_dict):
 
 def _run_parallel_simulations(**kwargs):
 
-    check_test_exp(kwargs)
+    check_and_tag_test_run(kwargs)
     T = kwargs["n_time_steps"]
     if kwargs["frac_time_steps_train"] is not None:
         T_train = int(kwargs["n_time_steps"]*kwargs["frac_time_steps_train"])
@@ -212,9 +213,9 @@ def _run_parallel_simulations(**kwargs):
     if not kwargs["exclude_weights"]:
         dgp_set_w, filt_set_w = get_dgp_and_filt_set_from_cli_options(kwargs, "w")
         
-    experiment = _get_and_set_experiment(kwargs["experiment_name"])
+    # experiment = _get_and_set_experiment(kwargs["experiment_name"])
 
-    with mlflow.start_run(experiment_id=experiment.experiment_id) as parent_run:
+    with mlflow.start_run(nested=True) as parent_run:
 
         parent_runs_par = drop_keys(kwargs, ["phi_set_dgp_type_tv", "beta_set_dgp_type_tv", "beta_set_dgp", "beta_set_filt", "phi_set_dgp", "phi_set_filt", "ext_reg_dgp_set"])
         mlflow.log_params(parent_runs_par)
@@ -254,7 +255,7 @@ def _run_parallel_simulations(**kwargs):
 
 def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_run, parent_runs_par):
   
-    with mlflow.start_run(run_id=parent_run.info.run_id):
+    with mlflow.start_run(run_id=parent_run.info.run_id, nested=True):
         with mlflow.start_run(experiment_id=parent_run.info.experiment_id, nested=True):
 
             logger.info(run_par_dict)

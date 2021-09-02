@@ -86,8 +86,8 @@ mod_dgp.phi_tv
 
 strIO_from_tens_T(Y_T)
 
-mod_filt.inds_to_exclude_from_id
-mod_dgp.inds_to_exclude_from_id
+mod_filt.inds_never_obs_w
+mod_dgp.inds_never_obs_w
 
 phi_to_exclude = mod_dgp.get_inds_inactive_nodes() 
 
