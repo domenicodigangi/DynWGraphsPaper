@@ -168,6 +168,8 @@ def get_dgp_and_filt_set_from_cli_options(kwargs, bin_or_w):
 
     dgp_set[f"ext_reg_dgp_set_type_tv"] = kwargs[f"ext_reg_dgp_set_type_tv_{bin_or_w}"]
 
+    dgp_set["beta_set_dgp_type_tv_un_mean_2"] = kwargs["beta_set_dgp_type_tv_un_mean_2"]
+
     dgp_set["bin_or_w"] = bin_or_w
     filt_set["bin_or_w"] = bin_or_w
 

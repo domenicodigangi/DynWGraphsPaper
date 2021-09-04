@@ -40,8 +40,8 @@ entry_points:
     command: "python run_sim_for_table.py"
 
 # for table 1 run
-# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 1 last" .  -P n_sim=30 -P n_jobs=6 -P inds_to_run=0_1
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 1 last" .  -P n_sim=30 -P n_jobs=5 -P inds_to_run=0_1
 # For tab 2 WN
-# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 2 last" .  -P n_sim=30 -P n_jobs=6 -P inds_to_run=2_3_4
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 2 last" .  -P n_sim=30 -P n_jobs=5 -P inds_to_run=2_3_4
 # For tab 2 AR
-# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 2 last" .  -P n_sim=30 -P n_jobs=6 -P inds_to_run=2_3_4
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 2 last" .  -P n_sim=30 -P n_jobs=5 -P inds_to_run=2_3_4
