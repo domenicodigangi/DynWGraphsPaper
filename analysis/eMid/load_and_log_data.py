@@ -81,6 +81,7 @@ def load_and_log_data(**kwargs):
             eonia_week.index.weekday.unique()
             all_dates = np.array(eonia_week.index)
             
+            data_to_save["obs_dates"] = obs_dates
             data_to_save["all_dates"] = all_dates
             
             data_to_save["eonia_T"] = tens(np.array(eonia_week.T))

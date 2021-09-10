@@ -52,6 +52,7 @@ def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regressor_name):
 
     net_stats = SimpleNamespace()
     net_stats.__dict__.update({
+        "dates": ld_data["all_dates"],
         "avg_degs_i": (Y_T > 0).sum(axis=(0)).double().mean(axis=1),
         "avg_degs_o": (Y_T > 0).sum(axis=(1)).double().mean(axis=1),
         "avg_str_i": (Y_T).sum(axis=(0)).mean(axis=1),

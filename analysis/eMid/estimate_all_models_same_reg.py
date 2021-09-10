@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--max_opt_iter", default=3000, type=int)
+@click.option("--max_opt_iter", default=8000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=8/10, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
@@ -77,6 +77,7 @@ def estimate_all_models_same_reg(**kwargs):
             {"size_phi_t": "0", "phi_tv": 0, "size_beta_t": "1", "beta_tv": 0, **kwargs},
             {"size_phi_t": "2N", "phi_tv": 0, "size_beta_t": "1", "beta_tv": 0, **kwargs},
             {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "1", "beta_tv": 0, **kwargs},
+            {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "1", "beta_tv": 1, **kwargs},
             {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "0", "beta_tv": 0, **kwargs},
             {"size_phi_t": "2N", "phi_tv": 1, "size_beta_t": "2N", "beta_tv": 0, **kwargs}
         ]

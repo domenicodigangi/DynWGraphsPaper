@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--max_opt_iter", default=3000, type=int)
+@click.option("--max_opt_iter", default=8000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
 @click.option("--train_fract", default=8/10, type=float)
 @click.option("--inds_to_run", default="", type=str)
