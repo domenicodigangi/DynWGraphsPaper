@@ -12,24 +12,33 @@ from dynwgraphs.utils.tensortools import tens
 import numpy as np
 from types import SimpleNamespace
 from pathlib import Path
-from ddg_utils.mlflow import uri_to_path, _get_or_run
-import pickle
+from ddg_utils.mlflow import uri_to_path
+from dynwgraphs.dirGraphs1_dynNets import get_gen_fit_mod
 
 
-def load_all_models_missp_sim(row_run, obs):
+def load_all_models_missp_sim(row_run):
     load_path = Path(uri_to_path(row_run["artifact_uri"]))
+
+    obs = torch.load(load_path / "dgp" / "obs_T_dgp.pt")
+    Y_reference = torch.load(load_path / "dgp" / "Y_reference.pt")
 
     Y_T, X_T = obs
     
-    mod_filt_ss = get_model_from_run_dict("filt_ss", row_run["bin_or_w"], Y_T, X_T, row_run)
-    mod_filt_ss.load_par(str(load_path)) 
+    mod_filt_sd_bin = get_model_from_run_dict("filt_sd", "bin", Y_T, X_T, row_run)
+    mod_filt_sd_bin.load_par(str(load_path)) 
+    mod_filt_sd_bin.roll_sd_filt_train()
+    mod_filt_sd_w = get_model_from_run_dict("filt_sd", "w", Y_T, X_T, row_run)
+    mod_filt_sd_w.load_par(str(load_path)) 
+    mod_filt_sd_w.roll_sd_filt_train()
+
+    mod_dgp_w = get_model_from_run_dict("dgp", "w", Y_T, X_T, row_run)
+    mod_dgp_w.load_par(str(load_path / "dgp")) 
+
+    mod_dgp_bin = get_model_from_run_dict("dgp", "bin", Y_T, X_T, row_run)
+    mod_dgp_bin.load_par(str(load_path / "dgp")) 
+
     
-    mod_filt_sd = get_model_from_run_dict("filt_sd", row_run["bin_or_w"], Y_T, X_T, row_run)
-    mod_filt_sd.load_par(str(load_path)) 
-    mod_filt_sd.roll_sd_filt_train()
-
-
-    return mod_filt_ss, mod_filt_sd
+    return mod_filt_sd_bin, mod_filt_sd_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference
 
 
 def get_model_from_run_dict(dgp_or_filt, bin_or_w, Y_T, X_T, run_d):

@@ -45,3 +45,5 @@ entry_points:
 # mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 2 last" .  -P n_sim=30 -P n_jobs=5 -P inds_to_run=2_3_4
 # For tab 2 AR
 # mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 2 last" .  -P n_sim=30 -P n_jobs=5 -P inds_to_run=2_3_4
+# For tab 3 persistency
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "Table 3 last" .  -P n_sim=30 -P n_jobs=5 -P inds_to_run=5

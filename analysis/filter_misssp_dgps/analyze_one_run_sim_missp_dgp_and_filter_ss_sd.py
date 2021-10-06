@@ -3,12 +3,10 @@ from pathlib import Path
 import importlib
 import dynwgraphs
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
-from dynwgraphs.dirGraphs1_dynNets import get_model_from_run_dict
-from dynwgraphs.utils.dgps import get_dgp_mod_and_par
 import mlflow
 import logging
 import ddg_utils
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path, 
+from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
 from utils_missp_sim import load_all_models_missp_sim
 from ddg_utils import drop_keys, pd_filt_on
 from mlflow.tracking.client import MlflowClient
@@ -38,29 +36,36 @@ importlib.reload(ddg_utils)
 
 # %%
 
-experiment = _get_and_set_experiment("Table 1")
-experiment = _get_and_set_experiment("test")
+experiment = _get_and_set_experiment("Table 3 last")
 
 all_runs = get_df_exp(experiment, one_df=True)
 MlflowClient().search_runs(experiment.experiment_id)
 
-run_id = "b557e2f40b8247a5a6b58d82e1302a06"
+run_id = "7138e6ac168647eb99e1d7e0749f2a97"
 
 row_run = all_runs[all_runs.run_id == run_id].iloc[0]
 
-row_run
 
 # %%
-mod_dgp_bin, mod_filt_bin_ss, mod_filt_bin_sd, Y_T, X_T = load_all_models_missp_sim(row_run, "bin")
-mod_dgp_w, mod_filt_w_ss, mod_filt_w_sd, _, _ = load_all_models_missp_sim(row_run, "w")
+mod_filt_sd_bin, mod_filt_sd_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run)
 
+
+Y_reference["Y_reference_w"].sum()
+Y_reference["Y_reference_bin"].sum()
+
+(mod_dgp_w.X_T[:, :, 0, :] >0).sum()
+torch.log(mod_dgp_w.Y_T[:, :, 10])
+mod_dgp_w.sample_Y_T(A_T = mod_dgp_w.Y_T>0, use_lag_mat_as_reg=True)
+
+loss = mod_filt_sd_w.loglike_seq_T()
+loss.backward()
+mod_filt_sd_w.beta_T[0].grad
+mod_filt_sd_w.start_opt_from_current_par = False
+mod_filt_sd_w.estimate()
 
 
 # mod_filt_w_sd.estimate()
-# %%
-# To Do: 
-# check that phi filter and mse are now better
-
+#%%
 mod_filt = mod_filt_bin_sd
 mod_dgp = mod_dgp_bin
 

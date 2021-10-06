@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 @click.option("--inds_to_run", default="", type=str)
 @click.option("--unc_mean_beta_tab_1", default=1)
 @click.option("--unc_mean_beta_obs_tab_2", default=1.5)
-@click.option("--unc_mean_beta_negl_tab_2", default= 2.0)
+@click.option("--unc_mean_beta_negl_tab_2", default=2.0)
+@click.option("--unc_mean_beta_lag_mat_tab_3", default=0.5)
 @click.option("--dgp_ext_reg_dgp_set_type_tv_cross", default="uniform")
 
 def run_sim_seq(**kwargs):
@@ -38,6 +39,7 @@ def run_sim_seq(**kwargs):
     unc_mean_beta_tab_1 = kwargs.pop("unc_mean_beta_tab_1")
     unc_mean_beta_obs_tab_2 = kwargs.pop("unc_mean_beta_obs_tab_2")
     unc_mean_beta_negl_tab_2 = kwargs.pop("unc_mean_beta_negl_tab_2")
+    unc_mean_beta_lag_mat_tab_3 = kwargs.pop("unc_mean_beta_lag_mat_tab_3")
     dgp_ext_reg_dgp_set_type_tv_cross = kwargs.pop("dgp_ext_reg_dgp_set_type_tv_cross")
 
     run_parameters_list = [
@@ -253,6 +255,34 @@ def run_sim_seq(**kwargs):
             "ext_reg_dgp_set_type_tv_2": 1,
             "ext_reg_dgp_set_type_tv_3": 0.98,
             "ext_reg_dgp_set_type_tv_4": 0.1,
+            **kwargs
+            },
+        {# dgp: AR fit 1 reg lagged matric.: SD fit 1 reg - Tab 3
+            "phi_set_dgp_type_tv_0": "AR",
+            "phi_set_dgp_type_tv_1": "ref_mat",
+            "phi_set_dgp_type_tv_2": 0.98,
+            "phi_set_dgp_type_tv_3": 0.2,
+            "phi_set_dgp_0": "2N",
+            "phi_set_dgp_1": True,
+            "phi_set_filt_0": "2N",
+            "phi_set_filt_1": True,
+            "beta_set_dgp_type_tv_0": "AR",
+            "beta_set_dgp_type_tv_1": unc_mean_beta_lag_mat_tab_3,
+            "beta_set_dgp_type_tv_2": 0,
+            "beta_set_dgp_type_tv_3": 0,
+            "beta_set_dgp_type_tv_un_mean_2": 0.0,
+            "beta_set_dgp_0": 1,
+            "beta_set_dgp_1": "one",
+            "beta_set_dgp_2": False,
+            "beta_set_filt_0": 1,
+            "beta_set_filt_1": "one",
+            "beta_set_filt_2": False,
+            "ext_reg_dgp_set_type_tv_0": "uniform",
+            "ext_reg_dgp_set_type_tv_1": "AR",
+            "ext_reg_dgp_set_type_tv_2": 1,
+            "ext_reg_dgp_set_type_tv_3": 0,
+            "ext_reg_dgp_set_type_tv_4": 0,
+            "use_lag_mat_as_reg": True,
             **kwargs
             }
         ]

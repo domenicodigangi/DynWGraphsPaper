@@ -79,6 +79,7 @@ importlib.reload(dynwgraphs)
 @click.option("--ext_reg_dgp_set_type_tv_bin", help="Same as ext_reg_dgp_set_type_tv for bin", type=(str, str, float, float, float), default=(None, None, None, None, None))
 @click.option("--ext_reg_dgp_set_type_tv_w", help="Same as ext_reg_dgp_set_type_tv for w", type=(str, str, float, float, float), default=(None, None, None, None, None))
 
+@click.option("--use_lag_mat_as_reg", help="shall we substitute the external regressors with lagged adjacency matrices to explore persistency? ", type=bool, default=False)
 
 @click.option("--exclude_weights", help="shall we run the sim only for the binary case? ", type=bool, default=False)
 
@@ -279,15 +280,22 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                     mlflow.log_params({f"dgp_{bin_or_w}_{key}": val for key, val in run_par_dict[f"dgp_par_{bin_or_w}"].items()})
                     mlflow.log_params({f"filt_{bin_or_w}_{key}": val for key, val in run_par_dict[f"filt_par_{bin_or_w}"].items()})
                     logger.info(f" start estimates {bin_or_w}")
-
+                    if parent_runs_par["use_lag_mat_as_reg"]:
+                        if mod_dgp.X_T.shape[2] != 1:
+                            raise Exception(" multiple lags not ready yet")
+                        logger.info("Using lagged adjacency matrix as regressor")
+                        use_lag_mat_as_reg = True
+                    else:
+                        use_lag_mat_as_reg = False
+                        
                     # sample obs from dgp and save data
                     if hasattr(mod_dgp, "bin_mod"):
                         if mod_dgp.bin_mod.Y_T.sum() == 0:
-                            mod_dgp.bin_mod.sample_and_set_Y_T()
+                            mod_dgp.bin_mod.sample_and_set_Y_T(use_lag_mat_as_reg=use_lag_mat_as_reg)
                         
-                        mod_dgp.sample_and_set_Y_T(A_T=mod_dgp.bin_mod.Y_T)
+                        mod_dgp.sample_and_set_Y_T(A_T=mod_dgp.bin_mod.Y_T, use_lag_mat_as_reg=use_lag_mat_as_reg)
                     else:
-                        mod_dgp.sample_and_set_Y_T()
+                        mod_dgp.sample_and_set_Y_T(use_lag_mat_as_reg=use_lag_mat_as_reg)
 
                     torch.save(run_data_dict["Y_reference"], dgp_fold / "Y_reference.pt")
                     torch.save((mod_dgp.get_Y_T_to_save(), mod_dgp.X_T), dgp_fold / "obs_T_dgp.pt")
