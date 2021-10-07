@@ -40,14 +40,14 @@ entry_points:
   
     command: "python estimate_all_models_same_reg.py  --bin_or_w {bin_or_w} --max_opt_iter {max_opt_iter} --unit_meas {unit_meas} --train_fract {train_fract} --regressor_name {regressor_name}"
 
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper" . -P bin_or_w=bin -P regressor_name=eonia
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper" . -P bin_or_w=w -P regressor_name=eonia
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name=eonia
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name=eonia
 
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper" . -P bin_or_w=bin -P regressor_name=Atm1 
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper" . -P bin_or_w=w -P regressor_name=logYtm1 
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name=Atm1 
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name=logYtm1 
     
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper" . -P bin_or_w=bin -P regressor_name="Atm1_eonia"     
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper" . -P bin_or_w=w -P regressor_name="logYtm1_eonia" 
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name="Atm1_eonia"     
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name="logYtm1_eonia" 
 
 
 
