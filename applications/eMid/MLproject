@@ -43,8 +43,8 @@ entry_points:
     # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name=eonia
     # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name=eonia
 
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name=Atm1 
-    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name=logYtm1 
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name=Atm1 -P train_fract=0.99
+    # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name=logYtm1 -P train_fract=0.99
     
     # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name="Atm1_eonia"     
     # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name="logYtm1_eonia" 

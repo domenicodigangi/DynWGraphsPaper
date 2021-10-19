@@ -15,7 +15,7 @@ import logging
 import tempfile
 from pathlib import Path
 from ddg_utils import drop_keys
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, gget_fold_namespace, check_and_tag_test_run
+from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss, get_gen_fit_mod
 import pickle
@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 # %%
 
 kwargs = {}
-kwargs["size_phi_t"] = "0"
-kwargs["phi_tv"] = 0.0
+kwargs["size_phi_t"] = "2N"
+kwargs["phi_tv"] = 1.0
 kwargs["size_beta_t"] = "one"
 kwargs["bin_or_w"] = "bin"
-kwargs["beta_tv"] = False
+kwargs["beta_tv"] = True
 kwargs["max_opt_iter"] = 3000
 kwargs["unit_meas"] = 10000
 kwargs["train_fract"] = 0.8
@@ -79,42 +79,21 @@ mod = mod_sd
 
 # mod_sd.init_par_from_lower_model(prev_mod_sd) 
 
-_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs, log_interval=10, max_opt_iter=20)
-mod_sd.beta_T
-mod_sd.phi_T
+mod.mod_for_init.opt_options_ss_seq["max_opt_iter"] = 5
+_, h_par_opt, opt_metrics = mod.estimate(tb_save_fold=tmp_fns.tb_logs, log_interval=1, max_opt_iter=20)
+
+s_T_beta = mod.get_score_T_train(rescaled=True)["beta"]
+from matplotlib import pyplot as plt
+plt.plot(s_T_beta)
+mod.beta_T
+mod.sd_stat_par_un_beta["B"]
+mod.phi_T
 # prev_mod_sd=mod_sd
 
+
+
+mod_sd.get_score_T_train()["beta"]
 #%% 
-
-mod_stat = mod.mod_for_init
-
-mod.plot_phi_T(i=73)
-
-mod_sd.beta_T
-mod_sd.dist_par_un_T
-mod_stat.phi_T[0]
-i_node = 73
-mod_sd.phi_T[0][i_node]
-mod_sd.identify_io_par_to_be_sum(mod_sd.get_unc_mean(mod_sd.sd_stat_par_un_phi), mod_sd.par_vec_id_type)[i_node]
-mod.N
-mod.plot_phi_T(i=i_node)
-mod.plot_phi_T()
-mod.plot_sd_par()
-mod_sd.un2re_A_par(mod.sd_stat_par_un_phi["A"][i_node])
-mod_sd.un2re_A_par(mod.sd_stat_par_un_phi["A"]).max()
-mod_sd.un2re_B_par(mod.sd_stat_par_un_phi["B"]).min()
-
-plt.plot(mod_sd.get_score_T_train()["phi"][i_node, :].detach())
-
-
-mod_sd.roll_sd_filt_all()
-mod_sd.get_score_T_train()["phi"].max()
-mod_sd.plot_sd_par()
-
-mod_sd.get_unc_mean(mod_sd.sd_stat_par_un_phi)
-
-mod_sd.set_unc_mean(a, mod_sd.sd_stat_par_un_phi)
-
 
 #%%
 from statsmodels.graphics.tsaplots import plot_acf
@@ -196,16 +175,8 @@ phi_t, _, beta_t = mod.get_par_t(t)
 #%%%%%%%%%%%%%%%%%%%%
 # To Do: calvori test
 
-selfo = mod_sd
-selfo.loglike_seq_T()
-s_t, h_t = selfo.score_hess_t(t, True, False, True)
-
-s_T, h_T = selfo.get_score_hess_T_train(["beta"])
 
 
-selfo.get_cov_mat_stat_est("beta")
-
-par_name = "beta"
 
 
 

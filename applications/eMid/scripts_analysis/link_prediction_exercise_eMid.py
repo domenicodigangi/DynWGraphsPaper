@@ -3,6 +3,16 @@
 
 """
 @author: Domenico Di Gangi,  <digangidomenico@gmail.com>
+Created on Wednesday October 13th 2021
+
+"""
+
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+@author: Domenico Di Gangi,  <digangidomenico@gmail.com>
 Created on Saturday September 4th 2021
 
 """
@@ -35,13 +45,20 @@ logger = logging.getLogger(__name__)
 
 
 
-#To Do: 
-# - guardare stima con beta tv. capire come mai la stima non funziona bene. Se riesco a correggere la stima potrei trovare una soluzione al problema delle correlazioni. Sembrerebbe che il beta_w sia negativo nel primo periodo e positivo dopo. posso provare anche a stimare solo sul secondo
-# - Controllare la definizione di eonia. Sembra strano che correli con gli expected degrees ma non con i degrees. Visto che exp degs and degs should be the same
+
+
+
+
+
+
+# To Do : run only sd estimates without regressors. re estimate ss and run link prediction
+
+
 
 #%% load allruns
 
 experiment = _get_and_set_experiment("emid est paper last")
+# experiment = _get_and_set_experiment("emid runs paper dev")
 df_all_runs = get_df_exp(experiment, one_df=True)
 
 logger.info(f"Staus of experiment {experiment.name}: \n {df_all_runs['status'].value_counts()}")
@@ -52,7 +69,7 @@ log_cols = ["regressor_name", "size_phi_t", "phi_tv",  "size_beta_t", "beta_tv"]
 
 
 train_fract = "0.99"
-beta_tv = "1"
+beta_tv = "0"
 size_beta_t = "1"
 #%% get bin models
 # region
@@ -75,7 +92,7 @@ if mod_sd.size_beta_t < 50:
 
 mod_bin_tv_phi_eonia = mod_sd
 
-sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "0", "beta_tv": beta_tv, "bin_or_w": "bin", "regressor_name": "eonia", "train_fract": train_fract}
+sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "0", "beta_tv": "0", "bin_or_w": "bin", "regressor_name": "eonia", "train_fract": train_fract}
 
 df_sel = pd_filt_on(df_reg, sel_dic).sort_values("end_time")
 if df_sel.shape[0] == 1:
@@ -108,7 +125,7 @@ if mod_sd.size_beta_t < 50:
 
 mod_w_tv_phi_eonia = mod_sd
 
-sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "0", "beta_tv": beta_tv, "bin_or_w": "w", "regressor_name": "eonia", "train_fract": train_fract}
+sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "0", "beta_tv": "0", "bin_or_w": "w", "regressor_name": "eonia", "train_fract": train_fract}
 
 df_sel = pd_filt_on(df_reg, sel_dic).sort_values("end_time")
 if df_sel.shape[0] == 1:
@@ -123,6 +140,15 @@ _, mod_sd = load_all_models_emid(Y_T, X_T, row_run)
 mod_w_tv_phi = mod_sd
 
 #endregion
+
+T = Y_T.shape[2]
+T_1 = 157
+x_T = X_T[0, 0, 0, :]
+L_T = (Y_T>0).sum(dim=(0,1))
+# S_T = Y_T.sum(dim=(0,1))
+S_T = Y_T.sum(dim=(0,1))/L_T
+
+
 #%% define useful functions
 
 #region
@@ -175,12 +201,6 @@ def plot_dens(data, ax=None):
 dates = net_stats.dates[2:]
 
 dates.shape
-T = Y_T.shape[2]
-T_1 = 157
-x_T = X_T[0, 0, 0, :]
-L_T = (Y_T>0).sum(dim=(0,1))
-# S_T = Y_T.sum(dim=(0,1))
-S_T = Y_T.sum(dim=(0,1))/L_T
 
 plt.plot(dates, L_T)
 plt.grid()
@@ -289,7 +309,6 @@ plt.hist(np.log(in_out_w_sum_2[in_out_w_sum_2>0]).numpy(), alpha=0.5, density=Tr
 
 # region
 
-T_1 = 120
 type_corr = "spearman"
 
 T_train = mod_bin_tv_phi.T_train
@@ -346,9 +365,7 @@ ax[0, 0].legend(["in", "out"])
 
 
 #%% Observed vs expected degrees (str) 
-strIO_T_from_tens_T(Y_T)
-strIO_T_from_tens_T(A_T)
-
+# region
 
 phi_T, _, _ = mod_bin_tv_phi.get_time_series_latent_par(only_train=True)
 exp_Y_T = mod_bin_tv_phi.exp_Y_T(phi_T, None, None)
@@ -367,77 +384,76 @@ plt.plot(degsIO_T[i, :-shift], exp_degsIO_T[i, shift:], ".")
 
 # ax.hist(all_corr[type_corr][2:], alpha=0.6, density=False)
 plot_dens(all_corr[type_corr][2:], ax=ax)
-
-
+#endregion
 
 #%% hist of  correlations between eonia and expected degree
 
 # region
 
-all_mods = [mod_bin_tv_phi, mod_bin_tv_phi_eonia, mod_w_tv_phi, mod_w_tv_phi_eonia]
+# all_mods = [mod_bin_tv_phi, mod_bin_tv_phi_eonia, mod_w_tv_phi, mod_w_tv_phi_eonia]
 
-[mod.roll_sd_filt_all() for mod in  all_mods]
+# [mod.roll_sd_filt_all() for mod in  all_mods]
 
-type_corr = "spearman"
+# type_corr = "spearman"
 
-T_train = mod_bin_tv_phi.T_train
+# T_train = mod_bin_tv_phi.T_train
 
-id_type = "set_ind_to_zero"
-id_type = "in_sum_eq_out_sum"
-
-
-fig, ax = plt.subplots(2, 2, figsize=(24,12))
+# id_type = "set_ind_to_zero"
+# id_type = "in_sum_eq_out_sum"
 
 
-def exp_degs_corr_and_plot(mod, x_T, id_type, T_in, T_fin, sub, type_corr, ax):
-    mod.par_vec_id_type = id_type
-    mod.identify_par_seq_T(mod.phi_T)
-    phi_T, _, _ = mod.get_time_series_latent_par(only_train=True)
-    exp_Y_T = mod.exp_Y_T(phi_T, None, None)
-    degsIO_T = strIO_T_from_tens_T(exp_Y_T)
-    all_corr = get_all_corr((degsIO_T[:, T_in:T_fin]), x_T[T_in:T_fin], sub=sub)
-
-    # ax.hist(all_corr[type_corr][2:], alpha=0.6, density=False)
-    plot_dens(all_corr[type_corr][2:], ax=ax)
+# fig, ax = plt.subplots(2, 2, figsize=(24,12))
 
 
-for sub in ["in", "out"]:
+# def exp_degs_corr_and_plot(mod, x_T, id_type, T_in, T_fin, sub, type_corr, ax):
+#     mod.par_vec_id_type = id_type
+#     mod.identify_par_seq_T(mod.phi_T)
+#     phi_T, _, _ = mod.get_time_series_latent_par(only_train=True)
+#     exp_Y_T = mod.exp_Y_T(phi_T, None, None)
+#     degsIO_T = strIO_T_from_tens_T(exp_Y_T)
+#     all_corr = get_all_corr((degsIO_T[:, T_in:T_fin]), x_T[T_in:T_fin], sub=sub)
 
-    # bin first period
-    exp_degs_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, sub, type_corr, ax[0, 0])
-
-    exp_degs_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, sub, type_corr, ax[0, 0])
-
-    ax[0, 0].set_title("binary first period")
-
-    # w first period
-    exp_degs_corr_and_plot(mod_w_tv_phi, x_T, id_type, 0, T_1, sub, type_corr, ax[1, 0])
-
-    exp_degs_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, sub, type_corr, ax[1, 0])
-
-    ax[1, 0].set_title("weighted first period")
+#     # ax.hist(all_corr[type_corr][2:], alpha=0.6, density=False)
+#     plot_dens(all_corr[type_corr][2:], ax=ax)
 
 
-    # bin second period
-    exp_degs_corr_and_plot(mod_bin_tv_phi, x_T, id_type, T_1, T_train, sub, type_corr, ax[0, 1])
+# for sub in ["in", "out"]:
 
-    exp_degs_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_train, sub, type_corr, ax[0, 1])
+#     # bin first period
+#     exp_degs_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, sub, type_corr, ax[0, 0])
 
-    ax[0, 1].set_title("binary second period")
+#     exp_degs_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, sub, type_corr, ax[0, 0])
 
-    # w second period
-    exp_degs_corr_and_plot(mod_w_tv_phi, x_T, id_type, T_1, T_train, sub, type_corr, ax[1, 1])
+#     ax[0, 0].set_title("binary first period")
 
-    exp_degs_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train, sub, type_corr, ax[1, 1])
+#     # w first period
+#     exp_degs_corr_and_plot(mod_w_tv_phi, x_T, id_type, 0, T_1, sub, type_corr, ax[1, 0])
 
-    ax[1, 1].set_title("weighted second period")
+#     exp_degs_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, sub, type_corr, ax[1, 0])
 
-plt.suptitle("spearman: expected degrees vs eonia")
+#     ax[1, 0].set_title("weighted first period")
 
 
-ax[0, 0].legend(["no reg in", "reg = eonia in", "no reg out", "reg = eonia out"])
+#     # bin second period
+#     exp_degs_corr_and_plot(mod_bin_tv_phi, x_T, id_type, T_1, T_train, sub, type_corr, ax[0, 1])
 
-[a.grid() for a in ax.flatten()]
+#     exp_degs_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_train, sub, type_corr, ax[0, 1])
+
+#     ax[0, 1].set_title("binary second period")
+
+#     # w second period
+#     exp_degs_corr_and_plot(mod_w_tv_phi, x_T, id_type, T_1, T_train, sub, type_corr, ax[1, 1])
+
+#     exp_degs_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train, sub, type_corr, ax[1, 1])
+
+#     ax[1, 1].set_title("weighted second period")
+
+# plt.suptitle("spearman: expected degrees vs eonia")
+
+
+# ax[0, 0].legend(["no reg in", "reg = eonia in", "no reg out", "reg = eonia out"])
+
+# [a.grid() for a in ax.flatten()]
 
 # ax[0, 0].legend(["no reg", "reg = eonia"])
 
@@ -445,8 +461,193 @@ ax[0, 0].legend(["no reg in", "reg = eonia in", "no reg out", "reg = eonia out"]
 
 #%% Correlation of eonia with fit sums in two periods
 
-T_1 = 115
+T_1 = 157
 
+id_type = "in_sum_eq_out_sum"
+
+#region
+ind_links = (Y_T[:, :, :T_1] > 0).float().mean(dim=2) > 0.05
+
+corr_w = lambda fit_sum, x_T: spearmanr(fit_sum.sum(dim=0), x_T)[0]
+
+def fit_sum_corr_and_plot(mod, x_T, id_type, T_in, T_fin, ind_links, sub, type_corr, ax):
+
+    mod.par_vec_id_type = id_type
+    mod.identify_par_seq_T(mod.phi_T)
+    all_fit_sum = get_seq_all_fit_sum(mod, ind_links)
+    all_corr = get_all_corr((all_fit_sum[:,  T_in:T_fin]), x_T[ T_in:T_fin], sub=sub)
+    
+    # ax.hist(all_corr[type_corr][2:], alpha=0.6, density=True)
+    plot_dens(all_corr[type_corr][2:], ax=ax)
+
+    return all_corr[type_corr]
+
+
+
+fig, ax = plt.subplots(2, 2, figsize=(24, 12))
+sub = ""
+plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
+
+# bin first period
+corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
+
+corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
+
+# all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
+# plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+
+ax[0, 0].set_title(f"binary first period - ks test p-val {ks_p_val}")
+
+
+
+
+# w first period
+corr_no_reg = fit_sum_corr_and_plot(mod_w_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[1, 0])
+
+corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[1, 0])
+
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+
+ax[1, 0].set_title(f"weighted first period - ks test p-val {ks_p_val}")
+
+
+# all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
+# plot_dens(all_corr[type_corr][2:], ax=ax[1, 0])
+
+
+
+# bin second period
+ind_links = (Y_T[:, :, T_1:T_train] > 0).float().mean(dim=2) > 0.01
+
+corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[0, 1])
+
+corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[0, 1])
+
+
+# all_corr = get_all_corr(torch.randn(ind_links.sum(), T_train-T_1), x_T[T_1:T_train], sub=sub)
+# plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+ax[0, 1].set_title(f"binary second period - ks test p-val {ks_p_val}")
+
+
+
+# w second period
+corr_no_reg = fit_sum_corr_and_plot(mod_w_tv_phi, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[1, 1])
+
+corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[1, 1])
+
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+
+ax[1, 1].set_title(f"weighted second period - ks test p-val {ks_p_val}")
+
+# ax[1, 1].legend([f"spearman global no reg = {corr_w_no_reg}", f"spearman global eonia  = {corr_w_eonia_reg}"])
+
+ax[0, 0].legend(["no reg", "reg = eonia"])
+[a.grid() for a in ax.flatten()]
+
+#endregion
+
+
+#%% Artificially change the beta coefficient
+beta_w = mod_w_tv_phi_eonia.beta_T.copy()
+beta_bin = mod_bin_tv_phi_eonia.beta_T.copy()
+
+
+beta_w[0].shape
+
+mod_w_tv_phi_eonia.beta_T[0] = torch.ones(1,1, requires_grad=True) * (-3)
+mod_bin_tv_phi_eonia.beta_T[0] = torch.ones(1,1, requires_grad=True) * (-3)
+mod_w_tv_phi_eonia.roll_sd_filt_train()
+mod_bin_tv_phi_eonia.roll_sd_filt_train()
+
+#region
+ind_links = (Y_T[:, :, :T_1] > 0).float().mean(dim=2) > 0.05
+
+corr_w = lambda fit_sum, x_T: spearmanr(fit_sum.sum(dim=0), x_T)[0]
+
+def fit_sum_corr_and_plot(mod, x_T, id_type, T_in, T_fin, ind_links, sub, type_corr, ax):
+
+    mod.par_vec_id_type = id_type
+    mod.identify_par_seq_T(mod.phi_T)
+    all_fit_sum = get_seq_all_fit_sum(mod, ind_links)
+    all_corr = get_all_corr((all_fit_sum[:,  T_in:T_fin]), x_T[ T_in:T_fin], sub=sub)
+    
+    # ax.hist(all_corr[type_corr][2:], alpha=0.6, density=True)
+    plot_dens(all_corr[type_corr][2:], ax=ax)
+
+    return all_corr[type_corr]
+
+
+
+fig, ax = plt.subplots(2, 2, figsize=(24, 12))
+sub = ""
+plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
+
+# bin first period
+corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
+
+corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
+
+# all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
+# plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+
+ax[0, 0].set_title(f"binary first period - ks test p-val {ks_p_val}")
+
+
+
+
+# w first period
+corr_no_reg = fit_sum_corr_and_plot(mod_w_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[1, 0])
+
+corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[1, 0])
+
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+
+ax[1, 0].set_title(f"weighted first period - ks test p-val {ks_p_val}")
+
+
+# all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
+# plot_dens(all_corr[type_corr][2:], ax=ax[1, 0])
+
+
+
+# bin second period
+ind_links = (Y_T[:, :, T_1:T_train] > 0).float().mean(dim=2) > 0.01
+
+corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[0, 1])
+
+corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[0, 1])
+
+
+# all_corr = get_all_corr(torch.randn(ind_links.sum(), T_train-T_1), x_T[T_1:T_train], sub=sub)
+# plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+ax[0, 1].set_title(f"binary second period - ks test p-val {ks_p_val}")
+
+
+
+# w second period
+corr_no_reg = fit_sum_corr_and_plot(mod_w_tv_phi, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[1, 1])
+
+corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train, ind_links, sub, type_corr, ax[1, 1])
+
+ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
+
+ax[1, 1].set_title(f"weighted second period - ks test p-val {ks_p_val}")
+
+# ax[1, 1].legend([f"spearman global no reg = {corr_w_no_reg}", f"spearman global eonia  = {corr_w_eonia_reg}"])
+
+ax[0, 0].legend(["no reg", "reg = eonia"])
+[a.grid() for a in ax.flatten()]
+
+#endregion
+
+mod_w_tv_phi_eonia.beta_T[0] = torch.ones(1,1, requires_grad=True) * (3)
+mod_bin_tv_phi_eonia.beta_T[0] = torch.ones(1,1, requires_grad=True) * (3)
+mod_w_tv_phi_eonia.roll_sd_filt_train()
+mod_bin_tv_phi_eonia.roll_sd_filt_train()
 
 #region
 ind_links = (Y_T[:, :, :T_1] > 0).float().mean(dim=2) > 0.05
@@ -533,6 +734,7 @@ ax[0, 0].legend(["no reg", "reg = eonia"])
 
 
 # %%
+# %% plot beta score
 
 s_T_w = mod_w_tv_phi_eonia.get_score_T_train()
 s_T_bin = mod_bin_tv_phi_eonia.get_score_T_train()
@@ -546,24 +748,4 @@ mod_w_tv_phi_eonia.beta_T
 plt.plot(s_T_bin["beta"][0,0,:], ".")
 s_T_bin["beta"][0,0,:T_1].mean()
 s_T_bin["beta"][0,0,T_1:].mean()
-
-
-beta_w = copy.deepcopy(mod_w_tv_phi_eonia.beta_T.copy())
-beta_bin = copy.deepcopy(mod_bin_tv_phi_eonia.beta_T.copy())
-
-
-beta_w[0].shape
-
-mod_w_tv_phi_eonia.beta_T[0] = torch.ones(1,1, requires_grad=True) * (-1)
-mod_bin_tv_phi_eonia.beta_T[0] = torch.ones(1,1, requires_grad=True) * (-1)
-mod_w_tv_phi_eonia.roll_sd_filt_train()
-mod_bin_tv_phi_eonia.roll_sd_filt_train()
-
-
-mod_w_tv_phi_eonia.loglike_seq_T()
-s_T_w_2 = mod_w_tv_phi_eonia.get_score_T_train()
-plt.plot(s_T_w_2["beta"][0,0,:], ".")
-s_T_w_2["beta"][0,0,:T_1].mean()
-s_T_w_2["beta"][0,0,T_1:].mean()
-
 

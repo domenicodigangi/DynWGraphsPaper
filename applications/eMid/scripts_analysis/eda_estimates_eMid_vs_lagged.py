@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 
 #%% load allruns
 experiment = _get_and_set_experiment("emid est paper last")
+experiment = _get_and_set_experiment("emid runs paper dev")
+
 df_all_runs = get_df_exp(experiment, one_df=True)
 
 logger.info(f"Staus of experiment {experiment.name}: \n {df_all_runs['status'].value_counts()}")
@@ -68,7 +70,7 @@ if mod_sd.size_beta_t < 50:
     cov_beta = mod_sd.get_cov_mat_stat_est("beta")
     logger.info(f"{mod_sd.beta_T} +- {cov_beta.sqrt()*1.96}")
 
-mod_bin_tv_phi_eonia = mod_sd
+mod_bin_tv_phi_lag_reg = mod_sd
 
 sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "0", "beta_tv": beta_tv, "bin_or_w": "bin", "regressor_name": "Atm1", "train_fract": train_fract}
 
@@ -102,7 +104,7 @@ if mod_sd.size_beta_t < 50:
     cov_beta = mod_sd.get_cov_mat_stat_est("beta")
     logger.info(f"{mod_sd.beta_T} +- {cov_beta.sqrt()*1.96}")
 
-mod_w_tv_phi_eonia = mod_sd
+mod_w_tv_phi_lag_reg = mod_sd
 
 sel_dic = {"size_phi_t": "2N", "phi_tv": "1", "size_beta_t": "0", "beta_tv": beta_tv, "bin_or_w": "w", "regressor_name": "logYtm1", "train_fract": train_fract}
 
@@ -159,14 +161,23 @@ def plot_dens(data, ax=None):
 
 
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+mod_bin_tv_phi_lag_reg.lm_test_beta()
+
+s_T = mod_bin_tv_phi_lag_reg.get_score_T_train(rescaled=True)
+plt.plot(s_T["beta"])
+plot_acf(s_T["beta"])
+
+
+mod_w_tv_phi_lag_reg.lm_test_beta()
+
 #%%
 
-
-all_mods = [mod_bin_tv_phi, mod_bin_tv_phi_eonia, mod_w_tv_phi, mod_w_tv_phi_eonia]
+all_mods = [mod_bin_tv_phi, mod_bin_tv_phi_lag_reg, mod_w_tv_phi, mod_w_tv_phi_lag_reg]
 
 [mod.roll_sd_filt_all() for mod in  all_mods]
 
-net_stats.dates[T_1]
 
 type_corr = "spearman"
 
@@ -186,9 +197,9 @@ for sub in [""]:# ["in", "out"]:
     all_corr_no_reg = get_all_corr((phi_T[:, :]), strIO_from_tens_T(X_T_bin[:, :, :, :T_train]), sub=sub)
     plot_dens(all_corr_no_reg[type_corr][2:], ax=ax[0])
 
-    mod_bin_tv_phi_eonia.par_vec_id_type = id_type
-    mod_bin_tv_phi_eonia.identify_par_seq_T(mod_bin_tv_phi_eonia.phi_T)
-    phi_T, _, _ = mod_bin_tv_phi_eonia.get_time_series_latent_par(only_train=True)
+    mod_bin_tv_phi_lag_reg.par_vec_id_type = id_type
+    mod_bin_tv_phi_lag_reg.identify_par_seq_T(mod_bin_tv_phi_lag_reg.phi_T)
+    phi_T, _, _ = mod_bin_tv_phi_lag_reg.get_time_series_latent_par(only_train=True)
     all_corr_reg = get_all_corr((phi_T[:, :]), strIO_from_tens_T(X_T_bin[:, :, :, :T_train]), sub=sub)
     plot_dens(all_corr_reg[type_corr][2:], ax=ax[0])
     plt.suptitle("spearman: fit vs degrees (top) or strengths (bottom)")
@@ -205,9 +216,9 @@ for sub in [""]:# ["in", "out"]:
     all_corr_no_reg = get_all_corr((phi_T[:, :]), strIO_from_tens_T(X_T_w[:, :, :, :T_train]), sub=sub)
     plot_dens(all_corr_no_reg[type_corr][2:], ax=ax[1])
 
-    mod_w_tv_phi_eonia.par_vec_id_type = id_type
-    mod_w_tv_phi_eonia.identify_par_seq_T(mod_w_tv_phi_eonia.phi_T)
-    phi_T, _, _ = mod_w_tv_phi_eonia.get_time_series_latent_par(only_train=True)
+    mod_w_tv_phi_lag_reg.par_vec_id_type = id_type
+    mod_w_tv_phi_lag_reg.identify_par_seq_T(mod_w_tv_phi_lag_reg.phi_T)
+    phi_T, _, _ = mod_w_tv_phi_lag_reg.get_time_series_latent_par(only_train=True)
     all_corr_reg = get_all_corr((phi_T[:, :]), strIO_from_tens_T(X_T_w[:, :, :, :T_train]), sub=sub)
     plot_dens(all_corr_reg[type_corr][2:], ax=ax[1])
     ax[1].set_title("weighted ")
@@ -226,7 +237,7 @@ ax[0].legend(["no reg", "reg = lagged mats"])
 
 #%% Correlation of eonia with fit sums
 
-ind_links = (Y_T[:, :T_1] > 0).float().mean(dim=2) > 0.05
+ind_links = (Y_T[:, :] > 0).float().mean(dim=2) > 0.05
 
 corr_w = lambda fit_sum, x_T: spearmanr(fit_sum.sum(dim=0), x_T)[0]
 
@@ -242,9 +253,9 @@ all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi, ind_links)
 all_corr = get_all_corr((all_fit_sum[:, :T_1]), x_T[:T_1], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
 
-mod_bin_tv_phi_eonia.par_vec_id_type = id_type
-mod_bin_tv_phi_eonia.identify_par_seq_T(mod_bin_tv_phi_eonia.phi_T)
-all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi_eonia, ind_links)
+mod_bin_tv_phi_lag_reg.par_vec_id_type = id_type
+mod_bin_tv_phi_lag_reg.identify_par_seq_T(mod_bin_tv_phi_lag_reg.phi_T)
+all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi_lag_reg, ind_links)
 all_corr = get_all_corr((all_fit_sum[:, :T_1]), x_T[:T_1], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
 ax[0, 0].set_title("binary ")
@@ -258,9 +269,9 @@ all_corr = get_all_corr((all_fit_sum[:, :T_1]), x_T[:T_1], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[1, 0])
 
 
-mod_w_tv_phi_eonia.par_vec_id_type = id_type
-mod_w_tv_phi_eonia.identify_par_seq_T(mod_w_tv_phi_eonia.phi_T)
-all_fit_sum = get_seq_all_fit_sum(mod_w_tv_phi_eonia, ind_links)
+mod_w_tv_phi_lag_reg.par_vec_id_type = id_type
+mod_w_tv_phi_lag_reg.identify_par_seq_T(mod_w_tv_phi_lag_reg.phi_T)
+all_fit_sum = get_seq_all_fit_sum(mod_w_tv_phi_lag_reg, ind_links)
 corr_w_eonia_reg = corr_w(all_fit_sum[:, :T_1], x_T[:T_1])
 all_corr = get_all_corr((all_fit_sum[:, :T_1]), x_T[:T_1], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[1, 0])
@@ -280,9 +291,9 @@ all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi, ind_links)
 all_corr = get_all_corr((all_fit_sum[:, T_1:T_train]), x_T[T_1:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
 
-mod_bin_tv_phi_eonia.par_vec_id_type = id_type
-mod_bin_tv_phi_eonia.identify_par_seq_T(mod_bin_tv_phi_eonia.phi_T)
-all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi_eonia, ind_links)
+mod_bin_tv_phi_lag_reg.par_vec_id_type = id_type
+mod_bin_tv_phi_lag_reg.identify_par_seq_T(mod_bin_tv_phi_lag_reg.phi_T)
+all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi_lag_reg, ind_links)
 all_corr = get_all_corr((all_fit_sum[:, T_1:T_train]), x_T[T_1:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
 ax[0, 1].set_title("binary second period")
@@ -296,9 +307,9 @@ corr_w_no_reg = corr_w(all_fit_sum[:, T_1:T_train], x_T[T_1:T_train])
 all_corr = get_all_corr((all_fit_sum[:, T_1:T_train]), x_T[T_1:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[1, 1])
 
-mod_w_tv_phi_eonia.par_vec_id_type = id_type
-mod_w_tv_phi_eonia.identify_par_seq_T(mod_w_tv_phi_eonia.phi_T)
-all_fit_sum = get_seq_all_fit_sum(mod_w_tv_phi_eonia, ind_links)
+mod_w_tv_phi_lag_reg.par_vec_id_type = id_type
+mod_w_tv_phi_lag_reg.identify_par_seq_T(mod_w_tv_phi_lag_reg.phi_T)
+all_fit_sum = get_seq_all_fit_sum(mod_w_tv_phi_lag_reg, ind_links)
 corr_w_eonia_reg = corr_w(all_fit_sum[:, T_1:T_train], x_T[T_1:T_train])
 all_corr = get_all_corr((all_fit_sum[:, T_1:T_train]), x_T[T_1:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[1, 1])
@@ -328,9 +339,9 @@ all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi, ind_links)
 all_corr = get_all_corr((all_fit_sum[:, :T_train]), x_T[:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[0])
 
-mod_bin_tv_phi_eonia.par_vec_id_type = id_type
-mod_bin_tv_phi_eonia.identify_par_seq_T(mod_bin_tv_phi_eonia.phi_T)
-all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi_eonia, ind_links)
+mod_bin_tv_phi_lag_reg.par_vec_id_type = id_type
+mod_bin_tv_phi_lag_reg.identify_par_seq_T(mod_bin_tv_phi_lag_reg.phi_T)
+all_fit_sum = get_seq_all_fit_sum(mod_bin_tv_phi_lag_reg, ind_links)
 all_corr = get_all_corr((all_fit_sum[:, :T_train]), x_T[:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[0])
 ax[0].set_title("binary ")
@@ -344,9 +355,9 @@ all_corr = get_all_corr((all_fit_sum[:, :T_train]), x_T[:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[1])
 
 
-mod_w_tv_phi_eonia.par_vec_id_type = id_type
-mod_w_tv_phi_eonia.identify_par_seq_T(mod_w_tv_phi_eonia.phi_T)
-all_fit_sum = get_seq_all_fit_sum(mod_w_tv_phi_eonia, ind_links)
+mod_w_tv_phi_lag_reg.par_vec_id_type = id_type
+mod_w_tv_phi_lag_reg.identify_par_seq_T(mod_w_tv_phi_lag_reg.phi_T)
+all_fit_sum = get_seq_all_fit_sum(mod_w_tv_phi_lag_reg, ind_links)
 corr_w_eonia_reg = corr_w(all_fit_sum[:, :T_train], x_T[:T_train])
 all_corr = get_all_corr((all_fit_sum[:, :T_train]), x_T[:T_train], sub=sub)
 plot_dens(all_corr[type_corr][2:], ax=ax[1])
