@@ -31,13 +31,14 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option("--bin_or_w", type=str, default="bin")
 @click.option("--size_beta_t", type=str, default="0")
-@click.option("--beta_tv", type=float, default=0)
+@click.option("--beta_tv", type=float, default=0.0)
 @click.option("--size_phi_t", type=str, default="2N")
 @click.option("--phi_tv", type=float, default=1)
 @click.option("--max_opt_iter", default=3000, type=int)
 @click.option("--unit_meas", default=10000, type=float)
-@click.option("--T_0", default=0, type=int)
-@click.option("--T_train", default=0, type=int)
+@click.option("--t_0", default=0, type=int)
+@click.option("--t_train", default=0, type=int)
+@click.option("--train_fract", default=0.0, type=float)
 @click.option("--regressor_name", default="eonia", type=str)
 @click.option("--prev_mod_art_uri", default="none://", type=str)
 @click.option("--opt_n", default="ADAMHD", type=str)
@@ -53,8 +54,6 @@ def estimate_single_model_emid(**kwargs):
         kwargs["avoid_ovflw_fun_flag"] = False
    
   
-    kwargs["beta_tv"] = bool(kwargs["beta_tv"])
-
     with mlflow.start_run(nested=True) as run:
         check_and_tag_test_run(kwargs)
         mlflow.set_tag("is_estimate_run", "y")
@@ -67,20 +66,20 @@ def estimate_single_model_emid(**kwargs):
 
             N, _, T = Y_T.shape
 
-            if "train_fract" in kwargs.keys():
-                T_train = int(kwargs["train_fract"] * T)
-                kwargs["t_train"] = T_train
+            if kwargs["train_fract"] > 0:
+                t_train = int(kwargs["train_fract"] * T)
+                kwargs["t_train"] = t_train
             else:
                 if kwargs["t_train"] <= 0:
-                    kwargs["t_train"] = T - kwargs["t_train"]
+                    kwargs["t_train"] = T + kwargs["t_train"]
 
-                T_train = kwargs["t_train"] 
+                t_train = kwargs["t_train"] 
 
-            logger.info(kwargs)
+            logger.info(f"estimate_single_model_emid ==== {kwargs}")
             mlflow.log_params(kwargs)
            
 
-            filt_kwargs = {"T_train": T_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_phi_t": kwargs["size_phi_t"], "phi_tv": kwargs["phi_tv"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
+            filt_kwargs = {"T_train": t_train, "max_opt_iter": kwargs["max_opt_iter"], "opt_n": kwargs["opt_n"], "size_phi_t": kwargs["size_phi_t"], "phi_tv": kwargs["phi_tv"], "size_beta_t": kwargs["size_beta_t"], "avoid_ovflw_fun_flag": kwargs["avoid_ovflw_fun_flag"]}
             
             if kwargs["size_beta_t"] not in ["0", 0, None]:
                 filt_kwargs["X_T"] =  X_T
@@ -88,8 +87,10 @@ def estimate_single_model_emid(**kwargs):
 
             
             #estimate models and log parameters and hpar optimization
-            if kwargs["filter_ss_or_sd"] in ["ss", "sd"]:
+            if kwargs["filter_ss_or_sd"] == "sd":
                 mod = get_gen_fit_mod(kwargs["bin_or_w"], kwargs["filter_ss_or_sd"], Y_T, init_sd_type=kwargs["init_sd_type"], **filt_kwargs)
+            elif kwargs["filter_ss_or_sd"] == "ss":
+                mod = get_gen_fit_mod(kwargs["bin_or_w"], kwargs["filter_ss_or_sd"], Y_T, **filt_kwargs)
             else:
                 raise Exception("filter type not recognized")
 
@@ -124,9 +125,9 @@ def estimate_single_model_emid(**kwargs):
                 else:
                     logger.error(f"error in stimate of {k_filt}, par {drop_keys(filt_kwargs, ['X_T'])}, continuing")
 
-            mlflow.log_params({f"{k_filt}_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
-            mlflow.log_params({f"{k_filt}_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
-            mlflow.log_metrics({f"{k_filt}_{key}": val for key, val in opt_metrics.items()})
+            mlflow.log_params({f"opt_info_{key}": val for key, val in h_par_opt.items() if key != "X_T"})
+            mlflow.log_params({f"mod_info_{key}": val for key, val in mod.get_info_dict().items() if (key not in h_par_opt.keys()) and ( key != "X_T")})
+            mlflow.log_metrics({f"{key}": val for key, val in opt_metrics.items()})
 
             mod.save_parameters(save_path=tmp_fns.main)
             
@@ -135,12 +136,12 @@ def estimate_single_model_emid(**kwargs):
             
 
             # in sample gof measures 
-            in_sample_fit[f"{k_filt}_log_like_T"] = mod.loglike_seq_T().item()
-            in_sample_fit[f"{k_filt}_BIC"] = mod.get_BIC().item()
+            in_sample_fit[f"log_like_T"] = mod.loglike_seq_T().item()
+            in_sample_fit[f"BIC"] = mod.get_BIC().item()
             
             try:
                 for k, v in mod.out_of_sample_eval().items():
-                    out_sample_fit[f"{k_filt}_out_of_sample_{k}"] = v 
+                    out_sample_fit[f"out_of_sample_{k}"] = v 
             except:
                 logger.error("Error in computing out of sample performance")
 

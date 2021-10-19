@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option("--experiment_name", type=str, default="eMid_application" )
 @click.option("--load_path_emid", help="where is the original emid data located?", type=str, default="../../../../data/emid_data/juliaFiles/Weekly_eMid_Data_from_2009_06_22_to_2015_02_27.jld" )
-@click.option("--load_path_eonia", help="where is the eonia rate data located?", type=str, default="../../../../../data/emid_data/csvFiles/eonia_rates.csv" )
+@click.option("--load_path_eonia", help="where is the eonia rate data located?", type=str, default="../../../../data/emid_data/csvFiles/eonia_rates.csv" )
 
 def load_and_log_data(**kwargs):
 

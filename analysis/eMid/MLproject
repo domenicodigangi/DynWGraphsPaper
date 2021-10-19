@@ -22,7 +22,7 @@ entry_points:
       bin_or_w: {type: string, default: "bin"}
       max_opt_iter: {type: float, default: 3000}
       unit_meas: {type: float, default: 10000.0}
-      train_fract: {type: float, default: 0.8}
+      train_fract: {type: float, default: 0.0}
       regressor_name: {type: string, default: "eonia"}
       prev_mod_art_uri: {type: uri, default: none://}
       opt_n: {type: string, default: ADAMHD}
@@ -49,6 +49,22 @@ entry_points:
     # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=bin -P regressor_name="Atm1_eonia"     
     # mlflow run -e estimate_all_models_same_reg.py --no-conda --experiment-name "emid runs paper dev" . -P bin_or_w=w -P regressor_name="logYtm1_eonia" 
 
+
+
+  estimate_rolling_sd_model_no_reg:
+    parameters:
+      max_opt_iter: {type: float, default: 8000}
+      unit_meas: {type: float, default: 10000.0}
+      
+    command: "python estimate_rolling_sd_model_no_reg.py  --max_opt_iter {max_opt_iter} --unit_meas {unit_meas}"
+
+# mlflow run -e estimate_rolling_sd_model_no_reg --no-conda --experiment-name "emid est rolling" .  -P n_jobs=3 -P run_in_parallel=1 -P max_T_0=1  -P bin_or_w=w
+
+# mlflow run -e estimate_rolling_sd_model_no_reg --no-conda --experiment-name "emid est rolling" .  -P n_jobs=3 -P run_in_parallel=1 -P max_T_0=1  -P bin_or_w=w
+
+
+# mlflow run -e estimate_rolling_sd_model_no_reg --no-conda --experiment-name "emid est rolling" .    -P filter_ss_or_sd=ss  -P bin_or_w=bin
+# mlflow run -e estimate_rolling_sd_model_no_reg --no-conda --experiment-name "emid est rolling" .    -P filter_ss_or_sd=ss  -P bin_or_w=w
 
 
   estimate_all_regressors_comb_emid:

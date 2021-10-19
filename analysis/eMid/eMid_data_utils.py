@@ -69,22 +69,31 @@ def load_all_models_emid(Y_T, X_T, row_run):
 
     load_path = Path(uri_to_path(row_run["artifact_uri"]))
    
-    try:
-        mod_filt_ss = get_model_from_run_dict_emid(Y_T, X_T, row_run, "ss")
-        mod_filt_ss.load_par(str(load_path)) 
-    except:
-        logger.warning("ss model not found")    
-        mod_filt_ss = None
-    mod_filt_sd = get_model_from_run_dict_emid(Y_T, X_T, row_run, "sd")
-    mod_filt_sd.load_par(str(load_path)) 
-    mod_filt_sd.roll_sd_filt_train()
+    if "filter_ss_or_sd" in list(row_run.index.values):
+        mod = get_model_from_run_dict_emid(Y_T, X_T, row_run, row_run["filter_ss_or_sd"])
+        mod.load_par(str(load_path)) 
+    
+        if row_run["filter_ss_or_sd"] == "sd":
+            mod.roll_sd_filt_train()
+
+        return mod 
+    else:
+        try:
+            mod_filt_ss = get_model_from_run_dict_emid(Y_T, X_T, row_run, "ss")
+            mod_filt_ss.load_par(str(load_path)) 
+        except:
+            logger.warning("ss model not found")    
+            mod_filt_ss = None
+        mod_filt_sd = get_model_from_run_dict_emid(Y_T, X_T, row_run, "sd")
+        mod_filt_sd.load_par(str(load_path)) 
+        mod_filt_sd.roll_sd_filt_train()
 
 
-    return mod_filt_ss, mod_filt_sd
+        return mod_filt_ss, mod_filt_sd
 
 
 
-def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd):
+def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
     if run_d["size_beta_t"] in [0, "0", None]:
         X_T=None
@@ -94,9 +103,13 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd):
     T_train = int(float(run_d["train_fract"]) * T_all)
 
     mod_in_names = ["phi_tv", "beta_tv"]
-    mod_str = f"{ss_or_sd}"
-    mod_par_dict = {k: run_d[f"{mod_str}_{k}"] for k in mod_in_names}
+    if use_mod_str:
+        mod_str = f"{ss_or_sd}_"
+    else:
+        mod_str = f""
+    mod_par_dict = {k: run_d[f"{mod_str}{k}"] for k in mod_in_names}
     mod_in_names = ["size_phi_t", "size_beta_t"]
+
     mod_par_dict.update({k: run_d[f"{k}"] for k in mod_in_names})
     if ss_or_sd == "sd":
         mod_par_dict["init_sd_type"] = run_d["sd_init_sd_type"]
