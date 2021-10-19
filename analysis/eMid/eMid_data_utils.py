@@ -19,10 +19,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regressor_name):
-    Y_T = ld_data["YeMidWeekly_T"][:, :, 2:]/unit_meas
+def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regressor_name, T_0):
+
+    assert T_0 >= 0, "T0 must be positive"
+    Y_T = ld_data["YeMidWeekly_T"][:, :, T_0 + 2:]/unit_meas #drop the first observation because it's weird and the second because we are using lagged observations as regressors
     # lagged nets to be used as regressor
-    Ytm1_T = ld_data["YeMidWeekly_T"][:, :, 1:-1].unsqueeze(dim=2)/unit_meas
+    Ytm1_T = ld_data["YeMidWeekly_T"][:, :, T_0 + 1:-1].unsqueeze(dim=2)/unit_meas
     logYtm1_T = (torch.log(Ytm1_T)).nan_to_num(posinf=0, neginf=0)
     N, _, T = Y_T.shape
     X_T = torch.zeros(N, N, 1, T)
@@ -33,7 +35,7 @@ def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regressor_name):
         assert r in ["eonia", "logYtm1", "Atm1"], f"Invalid regressor name {r}"
 
     if "eonia" in regr_list_in:
-        X_eonia_T = tens(np.tile(ld_data["eonia_T"][:, 2:].numpy(), (N, N, 1, 1)))
+        X_eonia_T = tens(np.tile(ld_data["eonia_T"][:, T_0 + 2:].numpy(), (N, N, 1, 1)))
         X_T = torch.cat((X_T, X_eonia_T), dim=2)
         regr_list.append("eonia")
     if "logYtm1" in regr_list_in:
@@ -106,16 +108,22 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd):
 
 
 
-def get_data_from_data_run(unit_meas, regr_name):
-    load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
-    load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
+def get_data_from_data_run(unit_meas, regr_name, T_0):
 
-    load_file = Path(load_path) / "data" / "eMid_data.pkl" 
+    try:
+        load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
+        load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
+        load_file = Path(load_path) / "data" / "eMid_data.pkl" 
+        ld_data = pickle.load(open(load_file, "rb"))
+    except:
+        logger.error("unable to load from data run")
+        load_and_log_data_run = _get_or_run("load_and_log_data", None, None, use_cache=False)
+        load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
+        load_file = Path(load_path) / "data" / "eMid_data.pkl" 
+        ld_data = pickle.load(open(load_file, "rb"))
 
-    ld_data = pickle.load(open(load_file, "rb"))
 
-
-    return get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_name)
+    return get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_name, T_0)
 
 
 
