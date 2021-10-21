@@ -100,7 +100,8 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
     T_all = Y_T.shape[2]
 
-    T_train = int(float(run_d["train_fract"]) * T_all)
+    T_train = int(float(run_d["t_train"]))
+    # T_train = int(float(run_d["train_fract"]) * T_all)
 
     mod_in_names = ["phi_tv", "beta_tv"]
     if use_mod_str:
@@ -112,7 +113,10 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
     mod_par_dict.update({k: run_d[f"{k}"] for k in mod_in_names})
     if ss_or_sd == "sd":
-        mod_par_dict["init_sd_type"] = run_d["sd_init_sd_type"]
+        if "init_sd_type" in run_d.keys():
+            mod_par_dict["init_sd_type"] = run_d["init_sd_type"]
+        else:
+            mod_par_dict["init_sd_type"] = run_d["sd_init_sd_type"]
 
     out_mod =  get_gen_fit_mod(run_d["bin_or_w"], ss_or_sd, Y_T, X_T=X_T, T_train=T_train, **mod_par_dict)
 

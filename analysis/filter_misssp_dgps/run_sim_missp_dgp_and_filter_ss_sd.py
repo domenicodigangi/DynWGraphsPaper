@@ -324,7 +324,7 @@ def sample_estimate_and_log(mod_dgp_dict, run_par_dict, run_data_dict, parent_ru
                         mlflow.log_metrics(mse_dict) 
                         logger.warning(mse_dict)
 
-                        mlflow.log_metrics({f"filt_{bin_or_w}_{k_filt}_{key}": v for key, v in mod_filt.out_of_sample_eval().items()}) 
+                        # mlflow.log_metrics({f"filt_{bin_or_w}_{k_filt}_{key}": v for key, v in mod_filt.out_of_sample_eval().items()}) 
                     
                         # log plots that can be useful for quick visual diagnostic 
                         if mod_filt.phi_T is not None:

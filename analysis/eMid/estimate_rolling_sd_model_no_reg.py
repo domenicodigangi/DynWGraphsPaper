@@ -50,6 +50,7 @@ logger = logging.getLogger(__name__)
 @click.option("--filter_ss_or_sd", type=str, default="sd")
 @click.option("--t_train", type=int, default=100)
 @click.option("--max_T_0", type=int, default=190)
+@click.option("--min_T_0", type=int, default=0)
 @click.option("--run_in_parallel", type=int, default=1)
 
 
@@ -59,6 +60,7 @@ def estimate_mod_seq(**kwargs):
     kwargs = drop_keys(kwargs, ["experiment_name"])
     n_jobs = kwargs.pop("n_jobs")
     max_t_0 = kwargs.pop("max_t_0")
+    min_t_0 = kwargs.pop("min_t_0")
     run_in_parallel = bool(kwargs.pop("run_in_parallel"))
     check_and_tag_test_run(kwargs)
 
@@ -66,7 +68,7 @@ def estimate_mod_seq(**kwargs):
     run_par = {"size_phi_t": "2N", "phi_tv": 1.0, "size_beta_t": "0", "beta_tv": 0.0, **kwargs}
 
     if kwargs["filter_ss_or_sd"] == "sd":
-        T_0_list = list(range(max_t_0))
+        T_0_list = list(range(min_t_0, max_t_0))
         if run_in_parallel:
             Parallel(n_jobs=n_jobs)(delayed(one_run)(run_par, T_0) for T_0 in T_0_list)
         else:
