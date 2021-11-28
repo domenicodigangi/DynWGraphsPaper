@@ -28,12 +28,15 @@ import copy
 from scipy.stats import zscore, spearmanr
 from scipy.stats import gaussian_kde
 from statsmodels.graphics.tsaplots import plot_acf
-
-from eMid_data_utils import get_data_from_data_run, load_all_models_emid, get_model_from_run_dict_emid
+import ddg_utils
+from ddg_utils.eMid_data_utils import get_data_from_data_run, load_all_models_emid, get_model_from_run_dict_emid
+importlib.reload(ddg_utils)
 import logging
 importlib.reload(dynwgraphs)
 logger = logging.getLogger(__name__)
 
+current_path = os.getcwd()
+os.chdir(f"{current_path}/..")
 
 
 #%% load allruns
@@ -126,8 +129,9 @@ T = Y_T.shape[2]
 T_1 = 157
 x_T = X_T[0, 0, 0, :]
 L_T = (Y_T>0).sum(dim=(0,1))
-# S_T = Y_T.sum(dim=(0,1))
-S_T = Y_T.sum(dim=(0,1))/L_T
+# avg_w_T = Y_T.sum(dim=(0,1))
+tot_w_T = Y_T.sum(dim=(0,1))
+avg_w_T = tot_w_T/L_T
 
 
 #%% define useful functions
@@ -182,33 +186,63 @@ def plot_dens(data, ax=None):
 dates = net_stats.dates[2:]
 
 dates.shape
-
+plt.figure()
 plt.plot(dates, L_T)
 plt.grid()
 plt.ylabel("Number of links")
 
-plt.plot(dates, S_T/100)
+plt.figure()
+plt.plot(dates, avg_w_T/100)
 plt.grid()
 plt.ylabel("Avg. Weight Present Links [Mln]")
 
+plt.figure()
 plt.plot(dates, x_T)
 plt.grid()
 plt.ylabel("EONIA")
 
-plt.plot(dates, S_T)
-plt.grid()
-plt.plot(dates, x_T)
-plt.grid()
-plt.legend(["n links", "avg weight", "eonia"], fontsize=18)
+
+
+plt.figure()
 plt.loglog(x_T.numpy(), L_T, ".")
 plt.set_xlabel("eonia")
 plt.set_ylabel("n links")
-plt.loglog(x_T.numpy(), S_T, ".")
+plt.figure()
+plt.loglog(x_T.numpy(), avg_w_T, ".")
 plt.set_xlabel("eonia")
 plt.set_ylabel("avg weight")
 plt.legend([f"n links corr = {corr_finite(x_T, L_T)[0,1]:.2f}, spear = {spearmanr(x_T, L_T)[0]:.2f}"], fontsize=18)
-plt.legend([f"avg weight corr = {corr_finite(x_T, S_T)[0,1]:.2f}, spear = {spearmanr(x_T, S_T)[0]:.2f}"], fontsize=18)
+plt.legend([f"avg weight corr = {corr_finite(x_T, avg_w_T)[0,1]:.2f}, spear = {spearmanr(x_T, avg_w_T)[0]:.2f}"], fontsize=18)
 #endregion
+
+#%% aggregated regressions like Brunetti 
+# they use as regressors: 
+# - lagged stat: OK
+# - uncertainty index: maybe OK monthly
+# - surprise ind: NOT FOUND
+# - dow jones europ stocks index: OK monthly 
+# - Euribor overnight swaps index OSI spread: found euribor not OSI
+# - LTRO: checking
+# - MRO: checking
+# - OT: checking
+
+
+from sklearn.linear_model import LinearRegression
+eonia = x_T.unsqueeze(dim=1)
+
+# y_all = torch.log(avg_w_T)
+y_all = torch.log(tot_w_T)
+
+y_lag = y_all[:-1].unsqueeze(dim=1)
+y = y_all[1:]
+
+X = torch.cat((eonia[1:], y_lag), dim=1)
+
+reg = LinearRegression().fit(X, y)
+
+logger.info(f"\n coeff= {reg.coef_} \n intercept= {reg.intercept_} \n R^2 = {reg.score(X, y)}")
+
+
 
 
 #%% Correlation between eonia and network stats
@@ -221,36 +255,36 @@ T = Y_T.shape[2]
 T_1 = 157
 x_T = X_T[0, 0, 0, :]
 L_T = (Y_T>0).sum(dim=(0,1))
-# S_T = Y_T.sum(dim=(0,1))
-S_T = Y_T.sum(dim=(0,1))/L_T
+# avg_w_T = Y_T.sum(dim=(0,1))
+avg_w_T = Y_T.sum(dim=(0,1))/L_T
 
 fig, ax = plt.subplots(3, 2, figsize=(17, 17))
 ax[0, 0].plot(dates[:T_1], zscore(L_T)[:T_1])
-ax[0, 0].plot(dates[:T_1], zscore(S_T)[:T_1])
+ax[0, 0].plot(dates[:T_1], zscore(avg_w_T)[:T_1])
 ax[0, 0].plot(dates[:T_1], zscore(x_T)[:T_1])
 ax[0, 0].legend(["n links", "avg weight", "eonia"], fontsize=18)
 ax[1, 0].loglog(x_T[:T_1], L_T[:T_1], ".")
 ax[1, 0].set_xlabel("eonia")
 ax[1, 0].set_ylabel("n links")
-ax[2, 0].loglog(x_T[:T_1], S_T[:T_1], ".")
+ax[2, 0].loglog(x_T[:T_1], avg_w_T[:T_1], ".")
 ax[2, 0].set_xlabel("eonia")
 ax[2, 0].set_ylabel("avg weight")
 ax[1, 0].legend([f"n links corr = {corr_finite(x_T[:T_1], L_T[:T_1])[0,1]:.2f}, spear = {spearmanr(x_T[:T_1], L_T[:T_1])[0]:.2f}"], fontsize=18)
-ax[2, 0].legend([f"avg weight corr = {corr_finite(x_T[:T_1], S_T[:T_1])[0,1]:.2f}, spear = {spearmanr(x_T[:T_1], S_T[:T_1])[0]:.2f}"], fontsize=18)
+ax[2, 0].legend([f"avg weight corr = {corr_finite(x_T[:T_1], avg_w_T[:T_1])[0,1]:.2f}, spear = {spearmanr(x_T[:T_1], avg_w_T[:T_1])[0]:.2f}"], fontsize=18)
 
 
 ax[0, 1].plot(dates[T_1:], zscore(L_T)[T_1:])
-ax[0, 1].plot(dates[T_1:], zscore(S_T)[T_1:])
+ax[0, 1].plot(dates[T_1:], zscore(avg_w_T)[T_1:])
 ax[0, 1].plot(dates[T_1:], zscore(x_T)[T_1:])
 ax[0, 1].legend(["n links", "avg weight", "eonia"], fontsize=18)
 ax[1, 1].loglog(x_T[T_1:], L_T[T_1:], ".")
 ax[1, 1].set_ylabel("n links")
 ax[1, 1].set_xlabel("eonia")
-ax[2, 1].loglog(x_T[T_1:], S_T[T_1:], ".")
+ax[2, 1].loglog(x_T[T_1:], avg_w_T[T_1:], ".")
 ax[2, 1].set_ylabel("avg weight")
 ax[2, 1].set_xlabel("eonia")
 ax[1, 1].legend([f"n links corr = {corr_finite(x_T[T_1:], L_T[T_1:])[0,1]:.2f}, spear = {spearmanr(x_T[T_1:], L_T[T_1:])[0]:.2f}"], fontsize=18)
-ax[2, 1].legend([f"avg weight corr = {corr_finite(x_T[T_1:], S_T[T_1:])[0,1]:.2f}, spear = {spearmanr(x_T[T_1:], S_T[T_1:])[0]:.2f}"], fontsize=18)
+ax[2, 1].legend([f"avg weight corr = {corr_finite(x_T[T_1:], avg_w_T[T_1:])[0,1]:.2f}, spear = {spearmanr(x_T[T_1:], avg_w_T[T_1:])[0]:.2f}"], fontsize=18)
 
 #endregion
 
@@ -469,7 +503,8 @@ def fit_sum_corr_and_plot(mod, x_T, id_type, T_in, T_fin, ind_links, sub, type_c
 
 fig, ax = plt.subplots(2, 2, figsize=(24, 12))
 sub = ""
-plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
+# plt.suptitle(f"Distribution of  Spearman Rank Correlations Between EONIA and Fitness Sum" , fontsize=26)
+logger.info(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia")
 
 # bin first period
 corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
@@ -480,7 +515,8 @@ corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, ind
 # plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[0, 0].set_title(f"binary first period - ks test p-val {ks_p_val}")
+ax[0, 0].set_title(f"Binary Part, First Period", fontsize=26)
+logger.info(f"binary first period - ks test p-val {ks_p_val}")
 
 
 
@@ -492,7 +528,8 @@ corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, ind_l
 
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[1, 0].set_title(f"weighted first period - ks test p-val {ks_p_val}")
+ax[1, 0].set_title(f"Weighted Part, First Period", fontsize=26)
+logger.info(f"weighted first period - ks test p-val {ks_p_val}")
 
 
 # all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
@@ -511,7 +548,8 @@ corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_trai
 # all_corr = get_all_corr(torch.randn(ind_links.sum(), T_train-T_1), x_T[T_1:T_train], sub=sub)
 # plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
-ax[0, 1].set_title(f"binary second period - ks test p-val {ks_p_val}")
+ax[0, 1].set_title(f"Binary Part,  Second Period", fontsize=26)
+logger.info(f"binary second period - ks test p-val {ks_p_val}")
 
 
 
@@ -522,11 +560,12 @@ corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train,
 
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[1, 1].set_title(f"weighted second period - ks test p-val {ks_p_val}")
+ax[1, 1].set_title(f"Weighted Part, Second Period", fontsize=26)
+logger.info(f"weighted second period - ks test p-val {ks_p_val}")
 
 # ax[1, 1].legend([f"spearman global no reg = {corr_w_no_reg}", f"spearman global eonia  = {corr_w_eonia_reg}"])
 
-ax[0, 0].legend(["no reg", "reg = eonia"])
+[a.legend(["Corr. EONIA, Fit.-No Reg.", "Corr. EONIA, Fit.-Reg."], fontsize=18) for a in ax.flatten()]
 [a.grid() for a in ax.flatten()]
 
 #endregion
@@ -567,11 +606,6 @@ d_dBphi = s_T["phi"][:, 1:] * phi_T[:, :selfo.T_train-1]
 d_dAphi = s_T["phi"][:, 1:] * s_T["phi"][:, :selfo.T_train-1] 
 
 X = torch.cat((X, d_dwphi.T), dim = 1)
-# X = torch.cat((X, d_dBphi.T), dim = 1)
-# X = torch.cat((X, d_dAphi.T), dim = 1)
-
-
-X.shape
 
 if "distr_par_un" in s_T.keys():
     X = torch.cat([X, (s_T["distr_par_un"][1:]).unsqueeze(1)], dim=1)
@@ -591,34 +625,7 @@ ess = np.sum(sqrs)
 p_val = chi2.sf(ess, 1)
 logger.info(f"p_val chi2 {p_val}, ess = {ess}, n sqrs>1 = {(sqrs>1).sum()}")
 
-#%%
 
-plt.plot(X)
-
-plot_acf(s_T_resc["beta"])
-
-mod_bin_tv_phi_eonia.loglike_seq_T()
-
-
-mod_bin_tv_phi_eonia.lm_test_beta()
-
-#%%
-fig, ax = plt.subplots(2, 2, figsize=(24, 12))
-
-ax[0,0].set_title("binary")
-ax[0,0].plot(s_T_bin["beta"], "-")
-plot_acf(s_T_bin["beta"], ax=ax[0,1])
-s_T_bin["beta"].mean()
-s_T_bin["beta"].mean()
-
-mod_w_tv_phi_eonia.beta_T
-
-ax[1,0].set_title("weighted")
-ax[1,0].plot(s_T_w["beta"], "-")
-plot_acf(s_T_w["beta"], ax=ax[1,1])
-s_T_w["beta"].mean()
-s_T_w["beta"].mean()
-#endregion
 
 
 #%% Artificially change the beta coefficient
@@ -652,7 +659,7 @@ def fit_sum_corr_and_plot(mod, x_T, id_type, T_in, T_fin, ind_links, sub, type_c
 
 fig, ax = plt.subplots(2, 2, figsize=(24, 12))
 sub = ""
-plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
+# plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
 
 # bin first period
 corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
@@ -663,7 +670,8 @@ corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, ind
 # plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[0, 0].set_title(f"binary first period - ks test p-val {ks_p_val}")
+ax[0, 0].set_title(f"Binary Part, First Period", fontsize=26)
+logger.info(f"binary first period - ks test p-val {ks_p_val}")
 
 
 
@@ -675,7 +683,8 @@ corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, ind_l
 
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[1, 0].set_title(f"weighted first period - ks test p-val {ks_p_val}")
+ax[1, 0].set_title(f"Weighted Part, First Period", fontsize=26)
+logger.info(f"weighted first period - ks test p-val {ks_p_val}")
 
 
 # all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
@@ -694,7 +703,9 @@ corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_trai
 # all_corr = get_all_corr(torch.randn(ind_links.sum(), T_train-T_1), x_T[T_1:T_train], sub=sub)
 # plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
-ax[0, 1].set_title(f"binary second period - ks test p-val {ks_p_val}")
+ax[0, 1].set_title(f"Binary Part,  Second Period", fontsize=26)
+logger.info(f"binary second period - ks test p-val {ks_p_val}")
+
 
 
 
@@ -705,11 +716,12 @@ corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train,
 
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[1, 1].set_title(f"weighted second period - ks test p-val {ks_p_val}")
+ax[1, 1].set_title(f"Weighted Part, Second Period", fontsize=26)
+logger.info(f"weighted second period - ks test p-val {ks_p_val}")
 
 # ax[1, 1].legend([f"spearman global no reg = {corr_w_no_reg}", f"spearman global eonia  = {corr_w_eonia_reg}"])
 
-ax[0, 0].legend(["no reg", "reg = eonia"])
+[a.legend(["Corr. EONIA vs Fit., No Reg.", "Corr. EONIA vs Fit. Reg."], fontsize=18) for a in ax.flatten()]
 [a.grid() for a in ax.flatten()]
 
 #endregion
@@ -740,7 +752,7 @@ def fit_sum_corr_and_plot(mod, x_T, id_type, T_in, T_fin, ind_links, sub, type_c
 
 fig, ax = plt.subplots(2, 2, figsize=(24, 12))
 sub = ""
-plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
+# plt.suptitle(f"for each one of {ind_links.float().sum()} links compute spearman of its fitness sum vs eonia", fontsize=20)
 
 # bin first period
 corr_no_reg = fit_sum_corr_and_plot(mod_bin_tv_phi, x_T, id_type, 0, T_1, ind_links, sub, type_corr, ax[0, 0])
@@ -751,7 +763,8 @@ corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, 0, T_1, ind
 # plot_dens(all_corr[type_corr][2:], ax=ax[0, 0])
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[0, 0].set_title(f"binary first period - ks test p-val {ks_p_val}")
+ax[0, 0].set_title(f"Binary Part, First Period", fontsize=26)
+logger.info(f"binary first period - ks test p-val {ks_p_val}")
 
 
 
@@ -763,7 +776,8 @@ corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, 0, T_1, ind_l
 
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[1, 0].set_title(f"weighted first period - ks test p-val {ks_p_val}")
+ax[1, 0].set_title(f"Weighted Part, First Period", fontsize=26)
+logger.info(f"weighted first period - ks test p-val {ks_p_val}")
 
 
 # all_corr = get_all_corr(torch.randn(ind_links.sum(), T_1), x_T[:T_1], sub=sub)
@@ -782,7 +796,9 @@ corr_reg = fit_sum_corr_and_plot(mod_bin_tv_phi_eonia, x_T, id_type, T_1, T_trai
 # all_corr = get_all_corr(torch.randn(ind_links.sum(), T_train-T_1), x_T[T_1:T_train], sub=sub)
 # plot_dens(all_corr[type_corr][2:], ax=ax[0, 1])
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
-ax[0, 1].set_title(f"binary second period - ks test p-val {ks_p_val}")
+ax[0, 1].set_title(f"Binary Part,  Second Period", fontsize=26)
+logger.info(f"binary second period - ks test p-val {ks_p_val}")
+
 
 
 
@@ -793,11 +809,12 @@ corr_reg = fit_sum_corr_and_plot(mod_w_tv_phi_eonia, x_T, id_type, T_1, T_train,
 
 ks_p_val = scipy.stats.ks_2samp(corr_no_reg, corr_reg)[1]
 
-ax[1, 1].set_title(f"weighted second period - ks test p-val {ks_p_val}")
+ax[1, 1].set_title(f"Weighted Part, Second Period", fontsize=26)
+logger.info(f"weighted second period - ks test p-val {ks_p_val}")
 
 # ax[1, 1].legend([f"spearman global no reg = {corr_w_no_reg}", f"spearman global eonia  = {corr_w_eonia_reg}"])
 
-ax[0, 0].legend(["no reg", "reg = eonia"])
+[a.legend(["Corr. EONIA vs Fit., No Reg.", "Corr. EONIA vs Fit. Reg."], fontsize=18) for a in ax.flatten()]
 [a.grid() for a in ax.flatten()]
 
 #endregion

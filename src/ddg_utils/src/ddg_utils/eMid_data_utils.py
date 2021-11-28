@@ -100,8 +100,10 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
     T_all = Y_T.shape[2]
 
-    T_train = int(float(run_d["t_train"]))
-    # T_train = int(float(run_d["train_fract"]) * T_all)
+    if "t_train" in run_d.keys():
+        T_train = int(float(run_d["t_train"]))
+    else:
+        T_train = int(float(run_d["train_fract"]) * T_all)
 
     mod_in_names = ["phi_tv", "beta_tv"]
     if use_mod_str:
@@ -125,8 +127,10 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
 
 
-def get_data_from_data_run(unit_meas, regr_name, T_0):
+def get_data_from_data_run(unit_meas, regr_name, T_0=None):
 
+    if T_0 is None:
+        T_0 = 0
     try:
         load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
         load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)

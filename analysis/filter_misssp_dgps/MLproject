@@ -40,12 +40,12 @@ entry_points:
     command: "python run_sim_for_table.py"
 
 # for table 1 run
-# mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 1" .  -P n_sim=30 -P n_jobs=4 -P inds_to_run=0_1
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 1 col 1 AR" .  -P n_sim=30 -P n_jobs=4 -P inds_to_run=0_1
 # For tab 2 WN
 # mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 2" .  -P n_sim=30 -P n_jobs=4 -P inds_to_run=2_3_4
 # For tab 2 AR
-# mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 2" .  -P n_sim=30 -P n_jobs=4 -P inds_to_run=2_3_4
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 2 AR col" .  -P n_sim=20 -P n_jobs=4 -P inds_to_run=5_6_7
 # For tab 3 persistency
-# mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 3" .  -P n_sim=30 -P n_jobs=4 -P inds_to_run=5
+# mlflow run -e run_sim_for_table --no-conda  --experiment-name "dev Table 1 col 2" .  -P n_sim=30 -P n_jobs=4 -P inds_to_run=8
 
 

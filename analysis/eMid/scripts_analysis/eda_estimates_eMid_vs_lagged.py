@@ -26,7 +26,10 @@ import pickle
 import copy
 from scipy.stats import zscore, spearmanr
 from scipy.stats import gaussian_kde
-from eMid_data_utils import get_data_from_data_run, load_all_models_emid, get_model_from_run_dict_emid
+import ddg_utils
+
+from ddg_utils.eMid_data_utils import get_data_from_data_run, load_all_models_emid, get_model_from_run_dict_emid
+importlib.reload(ddg_utils)
 import logging
 importlib.reload(dynwgraphs)
 logger = logging.getLogger(__name__)
@@ -37,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 #%% load allruns
-experiment = _get_and_set_experiment("emid est paper last")
+# experiment = _get_and_set_experiment("emid est paper last")
 experiment = _get_and_set_experiment("emid runs paper dev")
 
 df_all_runs = get_df_exp(experiment, one_df=True)

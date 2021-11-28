@@ -65,7 +65,7 @@ def run_sim_seq(**kwargs):
             "ext_reg_dgp_set_type_tv_0": dgp_ext_reg_dgp_set_type_tv_cross,
             "ext_reg_dgp_set_type_tv_1": "AR",
             "ext_reg_dgp_set_type_tv_2": 1,
-            "ext_reg_dgp_set_type_tv_3": 0,
+            "ext_reg_dgp_set_type_tv_3": 0.98,
             "ext_reg_dgp_set_type_tv_4": 0.1,
             **kwargs
             },
@@ -91,7 +91,7 @@ def run_sim_seq(**kwargs):
             "ext_reg_dgp_set_type_tv_0": dgp_ext_reg_dgp_set_type_tv_cross,
             "ext_reg_dgp_set_type_tv_1": "AR",
             "ext_reg_dgp_set_type_tv_2": 1,
-            "ext_reg_dgp_set_type_tv_3": 0,
+            "ext_reg_dgp_set_type_tv_3": 0.98,
             "ext_reg_dgp_set_type_tv_4": 0.1,
             **kwargs
             },

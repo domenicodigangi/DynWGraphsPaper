@@ -36,9 +36,6 @@ def get_metric(res, method, metr):
     return np.array([r[metr] for r in res[method]])
 
 # To Do : 
-# check old oos eval and eventually update
-# diebold and mariano test
-# load SD estimates in roll analysis file
 # multi step forecast from sd
 
 #%% load allruns
