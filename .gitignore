@@ -36,3 +36,4 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+analysis/eMid/scripts_analysis/local_pred_data/
