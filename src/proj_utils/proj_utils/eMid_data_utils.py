@@ -63,8 +63,6 @@ def get_obs_and_regr_mat_eMid(ld_data, unit_meas, regressor_name, T_0):
 
     return Y_T, X_T, regr_list, net_stats
 
-
-
 def load_all_models_emid(Y_T, X_T, row_run):
 
     load_path = Path(uri_to_path(row_run["artifact_uri"]))
@@ -90,8 +88,6 @@ def load_all_models_emid(Y_T, X_T, row_run):
 
 
         return mod_filt_ss, mod_filt_sd
-
-
 
 def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
@@ -124,27 +120,26 @@ def get_model_from_run_dict_emid(Y_T, X_T, run_d, ss_or_sd, use_mod_str=False):
 
     return out_mod
 
-
-
-
-def get_data_from_data_run(unit_meas, regr_name, T_0=None):
+def get_data_from_data_run(unit_meas, regr_name, parent_mlruns_folder=None, T_0=None):
 
     if T_0 is None:
         T_0 = 0
     try:
         load_and_log_data_run = _get_or_run("load_and_log_data", None, None)
-        load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
-        load_file = Path(load_path) / "data" / "eMid_data.pkl" 
+        load_path_orig = uri_to_path(load_and_log_data_run.info.artifact_uri)
+        if parent_mlruns_folder is not None:
+            load_path = Path(parent_mlruns_folder) / Path(*Path(load_path_orig).parts[-3:])
+        else:
+            load_path = load_path_orig
+
+        load_file = Path(load_path) / "data" / "emid_data.pkl" 
         ld_data = pickle.load(open(load_file, "rb"))
     except:
         logger.error("unable to load from data run")
         load_and_log_data_run = _get_or_run("load_and_log_data", None, None, use_cache=False)
         load_path = uri_to_path(load_and_log_data_run.info.artifact_uri)
-        load_file = Path(load_path) / "data" / "eMid_data.pkl" 
+        load_file = Path(load_path) / "data" / "emid_data.pkl" 
         ld_data = pickle.load(open(load_file, "rb"))
 
 
     return get_obs_and_regr_mat_eMid(ld_data, unit_meas, regr_name, T_0)
-
-
-

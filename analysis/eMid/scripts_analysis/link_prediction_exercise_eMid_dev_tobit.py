@@ -17,12 +17,9 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 import os
-import matplotlib.pyplot as plt
-from scipy.stats import norm
 # matplotlib.rcParams['text.usetex'] = True
 from proj_utils.mlflow import _get_and_set_experiment,  get_df_exp
 from proj_utils import pd_filt_on
-from mlflow.tracking.client import MlflowClient
 import importlib
 import proj_utils
 from dynwgraphs.link_specific_models import get_ij_giraitis_reg, predict_kernel_tobit, apply_t, predict_ZA_regression
@@ -33,8 +30,8 @@ logger = logging.getLogger(__name__)
 from proj_utils import get_proj_fold
 
 #%% load allruns
-
-os.chdir(get_proj_fold() / "analysis" / "eMid" ) 
+current_folder = get_proj_fold() / "analysis" / "eMid"
+os.chdir(current_folder) 
 experiment = _get_and_set_experiment("emid est rolling")
 df_all_runs = get_df_exp(experiment, one_df=True)
 
@@ -55,10 +52,10 @@ else:
     row_run = df_sel.iloc[0, :]
     logger.error("more than one run")
 
-Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"], int(row_run.t_0))
+Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"], T_0 = int(row_run.t_0), parent_mlruns_folder= Path(current_folder / "mlruns") )
 
-#%%
 savepath = get_proj_fold() / "analysis" / "eMid" / "scripts_analysis" / "local_pred_data"
+n_jobs = 24
 
 #%% RunEstimates ZA regression
 
@@ -72,10 +69,10 @@ pred_fun = predict_ZA_regression
 max_links = 2
 run_estimates = True
 if run_estimates:
-    for T_train in [100, 150, 200]:
+    for T_train in [100, 200]:
         T_max = T_all - T_train - 3
 
-        par_res = Parallel(n_jobs=12)(delayed(apply_t)(t_0, Y_T, max_links, T_train, t_oos, pred_fun, ker_type=None, bandwidth=None) for t_0 in tqdm(range(1, T_max)))
+        par_res = Parallel(n_jobs=n_jobs)(delayed(apply_t)(t_0, Y_T, max_links, T_train, t_oos, pred_fun, ker_type=None, bandwidth=None) for t_0 in tqdm(range(1, T_max)))
 
         t_0_all = np.concatenate(np.array([p[0] for p in par_res]))
         fract_nnz_all = np.concatenate(np.array([p[1] for p in par_res]))
@@ -103,11 +100,11 @@ run_estimates = True
 T_train = 100
 ker_type = "exp"
 if run_estimates:
-    for T_train in [100, 150, 200]:
+    for T_train in [200]:
         T_max = T_all - T_train - 3
-        bandwidths_list = [int(b) for b in [10*sqrt(T_train), 2*sqrt(T_train), sqrt(T_train)]]
+        bandwidths_list = [int(b) for b in [10*sqrt(T_train), sqrt(T_train)]]
         for bandwidth in bandwidths_list:
-            par_res = Parallel(n_jobs=12)(delayed(apply_t)(t_0, Y_T, max_links, T_train, t_oos, pred_fun, ker_type=ker_type, bandwidth=bandwidth) for t_0 in tqdm(range(1, T_max)))
+            par_res = Parallel(n_jobs=n_jobs)(delayed(apply_t)(t_0, Y_T, max_links, T_train, t_oos, pred_fun, ker_type=ker_type, bandwidth=bandwidth) for t_0 in tqdm(range(1, T_max)))
 
             t_0_all = np.concatenate(np.array([p[0] for p in par_res]))
             fract_nnz_all = np.concatenate(np.array([p[1] for p in par_res]))
@@ -121,7 +118,6 @@ if run_estimates:
 
 #%% 
 
-savepath = Path("D:/pCloud/Dynamic_Networks/repos/DynWGraphsPaper/analysis/eMid/scripts_analysis/local_pred_data")
 
 T_train = 100
 max_links = None
