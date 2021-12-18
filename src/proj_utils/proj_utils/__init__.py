@@ -35,7 +35,7 @@ def pd_filt_on(df, filt_dict):
 
 def get_env_or_default(name):
     def_dict = {
-        'DYNWGRAPHS_PROJ_FOLD':  '/workspace/DynWGraphsPaper'
+        'DYNWGRAPHS_PROJ_FOLD':  '/data/digiandomenico/phd_proj/DynWGraphsPaper'
     }
 
     if name in os.environ.keys():

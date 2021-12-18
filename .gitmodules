@@ -1,3 +1,7 @@
 [submodule "src/dynwgraphs"]
 	path = src/dynwgraphs
 	url = https://github.com/domenicodigangi/dynwgraphs
+
+[submodule "docs/Time-Varying-Parameters-for-Sparse-Weighted-Dynamical-Networks"]
+	path = docs/Time-Varying-Parameters-for-Sparse-Weighted-Dynamical-Networks
+	url = https://github.com/domenicodigangi/Time-Varying-Parameters-for-Sparse-Weighted-Dynamical-Networks.git
