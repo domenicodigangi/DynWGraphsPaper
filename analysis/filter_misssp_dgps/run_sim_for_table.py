@@ -8,7 +8,7 @@ Created on Saturday August 21st 2021
 Run sequence of scripts to get table in filtering missp section of paper
 
 """
-from ddg_utils.mlflow import check_and_tag_test_run
+from proj_utils.mlflow import check_and_tag_test_run
 import click
 import mlflow
 import logging

@@ -13,8 +13,8 @@ import click
 import logging
 import tempfile
 from pathlib import Path
-from ddg_utils import drop_keys
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run, get_df_exp
+from proj_utils import drop_keys
+from proj_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run, get_df_exp
 import pandas as pd
 import numpy as np
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T

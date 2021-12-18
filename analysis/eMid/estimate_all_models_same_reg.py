@@ -15,9 +15,9 @@ import click
 import logging
 import tempfile
 from pathlib import Path
-from ddg_utils import drop_keys
+from proj_utils import drop_keys
 from joblib import Parallel, delayed
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run
+from proj_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD, dirBin1_sequence_ss, dirSpW1_sequence_ss
 import pickle

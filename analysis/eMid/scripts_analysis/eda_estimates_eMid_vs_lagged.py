@@ -18,18 +18,18 @@ import matplotlib.pyplot as plt
 import dynwgraphs
 from dynwgraphs.utils.tensortools import tens, splitVec, strIO_from_tens_T
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD
-from ddg_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run, get_df_exp
-from ddg_utils import pd_filt_on
+from proj_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run, get_df_exp
+from proj_utils import pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import importlib
 import pickle
 import copy
 from scipy.stats import zscore, spearmanr
 from scipy.stats import gaussian_kde
-import ddg_utils
+import proj_utils
 
-from ddg_utils.eMid_data_utils import get_data_from_data_run, load_all_models_emid, get_model_from_run_dict_emid
-importlib.reload(ddg_utils)
+from proj_utils.eMid_data_utils import get_data_from_data_run, load_all_models_emid, get_model_from_run_dict_emid
+importlib.reload(proj_utils)
 import logging
 importlib.reload(dynwgraphs)
 logger = logging.getLogger(__name__)

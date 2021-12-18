@@ -13,9 +13,9 @@ import importlib
 import mlflow
 import logging
 import dynwgraphs
-import ddg_utils
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
-from ddg_utils import drop_keys, pd_filt_on
+import proj_utils
+from proj_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
+from proj_utils import drop_keys, pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import pandas as pd
 import numpy as np
@@ -23,7 +23,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import trim_mean
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
-importlib.reload(ddg_utils)
+importlib.reload(proj_utils)
 
 
 # %% Table 1

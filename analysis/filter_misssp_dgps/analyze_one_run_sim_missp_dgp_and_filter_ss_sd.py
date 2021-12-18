@@ -5,21 +5,21 @@ import dynwgraphs
 from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
 import mlflow
 import logging
-import ddg_utils
-from ddg_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
+import proj_utils
+from proj_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
 from utils_missp_sim import load_all_models_missp_sim
-from ddg_utils import drop_keys, pd_filt_on
+from proj_utils import drop_keys, pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import pandas as pd
 from run_sim_missp_dgp_and_filter_ss_sd import get_filt_mod, filt_err
 import torch
 import numpy as np
 from matplotlib import pyplot as plt
-from ddg_utils.mlflow import dicts_from_run
+from proj_utils.mlflow import dicts_from_run
 
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
-importlib.reload(ddg_utils)
+importlib.reload(proj_utils)
 
 #%%
 

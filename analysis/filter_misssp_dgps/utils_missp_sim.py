@@ -12,7 +12,7 @@ from dynwgraphs.utils.tensortools import tens
 import numpy as np
 from types import SimpleNamespace
 from pathlib import Path
-from ddg_utils.mlflow import uri_to_path
+from proj_utils.mlflow import uri_to_path
 from dynwgraphs.dirGraphs1_dynNets import get_gen_fit_mod
 
 

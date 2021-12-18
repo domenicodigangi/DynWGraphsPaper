@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 import dynwgraphs
 from dynwgraphs.utils.tensortools import tens, splitVec
 from dynwgraphs.dirGraphs1_dynNets import dirBin1_SD, dirSpW1_SD
-from ddg_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run, get_df_exp
-from ddg_utils import pd_filt_on
+from proj_utils.mlflow import _get_and_set_experiment, uri_to_path, _get_or_run, get_df_exp
+from proj_utils import pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import importlib
 import pickle

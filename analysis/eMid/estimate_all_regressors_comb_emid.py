@@ -13,8 +13,8 @@ import mlflow
 import click
 import logging
 from joblib import Parallel, delayed
-from ddg_utils import drop_keys
-from ddg_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run
+from proj_utils import drop_keys
+from proj_utils.mlflow import _get_and_set_experiment, _get_or_run, uri_to_path, get_fold_namespace, check_and_tag_test_run
 
 logger = logging.getLogger(__name__)
 

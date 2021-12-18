@@ -24,7 +24,7 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 from pathlib import Path
-from ddg_utils.mlflow import _get_and_set_experiment, get_fold_namespace
+from proj_utils.mlflow import _get_and_set_experiment, get_fold_namespace
 import pandas as pd
 import pickle
 from dynwgraphs.utils.tensortools import tens

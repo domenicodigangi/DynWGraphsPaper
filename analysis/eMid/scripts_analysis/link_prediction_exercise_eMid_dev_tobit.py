@@ -20,17 +20,17 @@ import os
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 # matplotlib.rcParams['text.usetex'] = True
-from ddg_utils.mlflow import _get_and_set_experiment,  get_df_exp
-from ddg_utils import pd_filt_on
+from proj_utils.mlflow import _get_and_set_experiment,  get_df_exp
+from proj_utils import pd_filt_on
 from mlflow.tracking.client import MlflowClient
 import importlib
-import ddg_utils
+import proj_utils
 from dynwgraphs.link_specific_models import get_ij_giraitis_reg, predict_kernel_tobit, apply_t, predict_ZA_regression
-from ddg_utils.eMid_data_utils import get_data_from_data_run
-importlib.reload(ddg_utils)
+from proj_utils.eMid_data_utils import get_data_from_data_run
+importlib.reload(proj_utils)
 import logging
 logger = logging.getLogger(__name__)
-from ddg_utils import get_proj_fold
+from proj_utils import get_proj_fold
 
 #%% load allruns
 

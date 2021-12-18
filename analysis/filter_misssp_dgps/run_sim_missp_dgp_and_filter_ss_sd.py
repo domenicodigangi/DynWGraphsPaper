@@ -27,8 +27,8 @@ from torch import nn
 import logging
 import click
 from matplotlib import pyplot as plt
-from ddg_utils.mlflow import _get_and_set_experiment, check_and_tag_test_run
-from ddg_utils import drop_keys
+from proj_utils.mlflow import _get_and_set_experiment, check_and_tag_test_run
+from proj_utils import drop_keys
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
 

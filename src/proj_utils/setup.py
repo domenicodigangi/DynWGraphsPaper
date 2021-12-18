@@ -17,9 +17,9 @@ setup(
     install_requires=requirements,
     license="MIT license",
     include_package_data=True,
-    keywords='ddg_utils',
-    name='ddg_utils',
-    packages=find_packages(include=['ddg_utils', 'ddg_utils.*']),
+    keywords='proj_utils',
+    name='proj_utils',
+    packages=find_packages(include=['proj_utils', 'proj_utils.*']),
     version='0.1.0',
     zip_safe=False,
 )

@@ -13,7 +13,7 @@ from dynwgraphs.dirGraphs1_dynNets import get_gen_fit_mod
 import numpy as np
 from types import SimpleNamespace
 from pathlib import Path
-from ddg_utils.mlflow import uri_to_path, _get_or_run
+from proj_utils.mlflow import uri_to_path, _get_or_run
 import pickle
 import logging
 logger = logging.getLogger(__name__)

@@ -17,7 +17,7 @@ from mlflow.entities import RunStatus
 from mlflow.utils.logging_utils import eprint
 from mlflow.tracking.fluent import _get_experiment_id
 
-from ddg_utils.mlflow import _get_or_run, _get_and_set_experiment
+from proj_utils.mlflow import _get_or_run, _get_and_set_experiment
 # %%
 
 @click.command()
