@@ -33,19 +33,36 @@ def pd_filt_on(df, filt_dict):
             idx = idx & new_idx
     return df[idx]
 
-def get_env_or_default(name):
-    def_dict = {
-        'DYNWGRAPHS_PROJ_FOLD':  '/data/digiandomenico/phd_proj/DynWGraphsPaper'
-    }
+import yaml
 
+def read_yaml(file_path):
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)
+
+
+def get_env_or_conf_or_default(name):
+    def_dict = {
+        'PROJECT_FOLDER':  '/data/digiandomenico/phd_proj/DynWGraphsPaper'
+    }
+    value = None
     if name in os.environ.keys():
-        value =  os.environ[name]
+        value = os.environ[name]
         logger.info(f"getting env var for {name} =  {value}")
     else:
+        config_path = Path(__file__).parents[3] / "proj_config.yml"
+        if config_path.exists():
+            config = read_yaml(config_path)
+            if name in config.keys():
+                value = config[name]
+                logger.info(f"reading value from config file {name}  =  {value}")
+
+    if value is None:
         value = def_dict[name]
         logger.info(f"getting default value for {name}  =  {value}")
 
     return value
 
+
+
 def get_proj_fold():
-    return Path(get_env_or_default("DYNWGRAPHS_PROJ_FOLD"))
+    return Path(get_env_or_conf_or_default("PROJECT_FOLDER"))

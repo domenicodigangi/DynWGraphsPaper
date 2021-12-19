@@ -116,3 +116,5 @@ def main_giraitis(T_train_list):
 if __name__ == "__main__":
     T_train_list = [200]
     main_giraitis(T_train_list)
+
+# %%
