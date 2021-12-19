@@ -1,6 +1,5 @@
 git config --global user.email "emali@example.com"
 git config --global user.name "digangidomenico"
-git clone https://github.com/domenicodigangi/DynWGraphsPaper.git
 cd DynWGraphsPaper
 git submodule init
 git submodule update
