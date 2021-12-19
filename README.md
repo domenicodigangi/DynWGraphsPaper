@@ -1,8 +1,9 @@
 # DynWGraphsPaper
 Code for analysis of paper about dynmical sparse weighted graphs 
 
-# Setting up before running
-- create the conda enviroment described in config/conda_env.yml
-- install the local package in src/dynwgraphs via "pip install -e ./src/dynwgraphs/"
-- install mlflow via pip: "pip install mlflow"
-- run \config\tracking_config.py, to set the paths for moflow's tracking server
+# Enviroment Set Up
+- conda env create --file requirements_conda.yml 
+- conda activate dynwgraphs
+- install the local packages in src/ via:
+    "pip install -e ./src/dynwgraphs/"
+    "pip install -e ./src/proj_utils/"
