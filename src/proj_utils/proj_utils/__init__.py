@@ -64,5 +64,7 @@ def get_env_or_conf_or_default(name):
 
 
 
+
 def get_proj_fold():
-    return Path(get_env_or_conf_or_default("PROJECT_FOLDER"))
+    proj_fold = Path(__file__).parent.parent.parent.parent
+    return proj_fold
