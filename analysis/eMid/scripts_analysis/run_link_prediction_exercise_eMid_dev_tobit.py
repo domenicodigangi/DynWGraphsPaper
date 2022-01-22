@@ -35,7 +35,7 @@ import argh
 savepath_def = get_proj_fold() / "analysis" / "eMid" / "scripts_analysis" / "local_pred_data"
 
 #%%
-def load_obs():
+def load_obs(ret_additional_stats=False):
     current_folder = get_proj_fold() / "analysis" / "eMid"
     os.chdir(current_folder) 
     experiment = _get_and_set_experiment("emid est rolling")
@@ -59,8 +59,10 @@ def load_obs():
         logger.error("more than one run")
 
     Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"], T_0 = int(row_run.t_0), parent_mlruns_folder= Path(current_folder / "mlruns") )
-
-    return Y_T
+    if ret_additional_stats:
+        return Y_T, X_T, regr_list, net_stats
+    else:
+        return Y_T
 
 def run_ZA_regression(T_train_list=[100, 200], max_links: int = None, n_jobs = 2, savepath=savepath_def):
     """RunEstimates ZA regression"""
