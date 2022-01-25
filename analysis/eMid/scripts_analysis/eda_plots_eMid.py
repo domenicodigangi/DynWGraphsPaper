@@ -18,12 +18,57 @@ from run_link_prediction_exercise_eMid_dev_tobit import load_obs
 import numpy as np
 from datetime import datetime
 import pandas as pd
+
 #%% 
 Y_T, X_T, regr_list, net_stats = load_obs(ret_additional_stats=True)
 
 t = 0
-net_stats.dates[t].astype(object).year
+datetime(net_stats.dates[t]) 
+.year
+
+[d.astype(object).year for d in net_stats.dates]
+
 graphs = [nx.convert_matrix.from_numpy_matrix(Y_T[:,:, t].numpy()) for t in range(Y_T.shape[2])]
+
+
+#%%
+import seaborn as sns
+import scipy
+x = Y_T.numpy().flatten() * 10000
+x_nnz = x[x>0]
+
+s_T_in = Y_T.numpy().sum(axis=1) * 10000
+s_T_out = Y_T.numpy().sum(axis=0) * 10000
+nbanks_T = ((s_T_in>0) | (s_T_out>0)).sum(axis=0)
+nlinks_T = ( Y_T.numpy()>0).sum(axis=(0,1))
+
+avg_w_T = (s_T_in).sum(axis=0)/nlinks_T
+dens_T = nlinks_T/(nbanks_T*(nbanks_T-1)) 
+np.corrcoef(dens_T, avg_w_T)
+scipy.stats.spearmanr(dens_T, avg_w_T)
+
+ax = sns.lineplot(y=avg_w_T, x = net_stats.dates[2:])
+ax.set_ylabel("Avg. Weight Present Links")
+ax.grid()
+plt.figure()
+ax2 = sns.lineplot(y=dens_T, x = net_stats.dates[2:])
+ax2.set_ylabel("Network Density")
+ax2.grid()
+
+#%%
+
+s_tot_T = Y_T.numpy().sum(axis=(0,1))
+
+
+g = sns.histplot(s_T_out[s_T_out>0].flatten() * 10000, stat="probability", bins=25, log_scale=True)
+g.set_xlabel("Banks Outstanding Debt [Mln]")
+plt.figure()
+g = sns.histplot(s_T_in[s_T_in>0].flatten() * 10000, stat="probability", bins=25, log_scale=True)
+g.set_xlabel("Banks Outstanding Credits [Mln]")
+
+x_nnz.max()/1e6
+x_nnz.min()/1e6
+x_nnz.mean()/1e6
 
 #%%
 df = pd.DataFrame({"date": net_stats.dates[2:], "graph": graphs })

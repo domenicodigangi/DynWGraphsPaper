@@ -57,7 +57,7 @@ def load_obs(ret_additional_stats=False):
     else:
         row_run = df_sel.iloc[0, :]
         logger.error("more than one run")
-
+    print(row_run["unit_meas"])
     Y_T, X_T, regr_list, net_stats = get_data_from_data_run(float(row_run["unit_meas"]), row_run["regressor_name"], T_0 = int(row_run.t_0), parent_mlruns_folder= Path(current_folder / "mlruns") )
     if ret_additional_stats:
         return Y_T, X_T, regr_list, net_stats
