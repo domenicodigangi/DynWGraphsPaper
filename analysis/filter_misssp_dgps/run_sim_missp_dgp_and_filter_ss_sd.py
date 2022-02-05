@@ -239,7 +239,6 @@ def _run_parallel_simulations(**kwargs):
             run_data_dict["Y_reference"]["Y_reference_w"] = Y_reference_w
         
 
-
         run_par_dict = {"N": N, "T": T, "T_train": T_train, "dgp_par_bin": dgp_set_bin, "dgp_par_w": dgp_set_w, "filt_par_bin": filt_set_bin, "filt_par_w": filt_set_w}
 
 

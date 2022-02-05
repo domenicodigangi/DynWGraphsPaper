@@ -314,10 +314,10 @@ def run_sim_seq(**kwargs):
             **kwargs
             },
         {# dgp: SIN fit 0 reg : SD fit 0 reg - 
-            "phi_set_dgp_type_tv_0": "AR",
+            "phi_set_dgp_type_tv_0": "SIN",
             "phi_set_dgp_type_tv_1": "ref_mat",
-            "phi_set_dgp_type_tv_2": 0.98,
-            "phi_set_dgp_type_tv_3": 0.1,
+            "phi_set_dgp_type_tv_2": 1,
+            "phi_set_dgp_type_tv_3": 0.15,
             "phi_set_dgp_0": "2N",
             "phi_set_dgp_1": True,
             "phi_set_filt_0": "2N",
