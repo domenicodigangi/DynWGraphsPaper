@@ -36,32 +36,27 @@ importlib.reload(proj_utils)
 
 # %%
 
-experiment = _get_and_set_experiment("Table 3 last")
+experiment = _get_and_set_experiment("Default")
 
 all_runs = get_df_exp(experiment, one_df=True)
-MlflowClient().search_runs(experiment.experiment_id)
 
-run_id = "7138e6ac168647eb99e1d7e0749f2a97"
+run_id = "fb5a52151c38481caec5dba3f8317fd9"
 
 row_run = all_runs[all_runs.run_id == run_id].iloc[0]
 
 
 # %%
-mod_filt_sd_bin, mod_filt_sd_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run)
+mod_filt_sd_bin, mod_filt_sd_w, mod_filt_ss_bin, mod_filt_ss_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run)
 
 
 Y_reference["Y_reference_w"].sum()
 Y_reference["Y_reference_bin"].sum()
 
-(mod_dgp_w.X_T[:, :, 0, :] >0).sum()
-torch.log(mod_dgp_w.Y_T[:, :, 10])
-mod_dgp_w.sample_Y_T(A_T = mod_dgp_w.Y_T>0, use_lag_mat_as_reg=True)
+
+mod_dgp_w.beta_T
+mod_dgp_w.sample_Y_T(A_T = mod_dgp_w.Y_T>0)
 
 loss = mod_filt_sd_w.loglike_seq_T()
-loss.backward()
-mod_filt_sd_w.beta_T[0].grad
-mod_filt_sd_w.start_opt_from_current_par = False
-mod_filt_sd_w.estimate()
 
 
 # mod_filt_w_sd.estimate()
