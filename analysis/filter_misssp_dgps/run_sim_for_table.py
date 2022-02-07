@@ -285,62 +285,6 @@ def run_sim_seq(**kwargs):
             "use_lag_mat_as_reg": True,
             **kwargs
             },
-        {# dgp: AR fit 0 reg : SD fit 0 reg - 
-            "phi_set_dgp_type_tv_0": "AR",
-            "phi_set_dgp_type_tv_1": "const_unif_0.8",
-            "phi_set_dgp_type_tv_2": 0.98,
-            "phi_set_dgp_type_tv_3": 0.1,
-            "phi_set_dgp_0": "2N",
-            "phi_set_dgp_1": True,
-            "phi_set_filt_0": "2N",
-            "phi_set_filt_1": True,
-            "beta_set_dgp_type_tv_0": "",
-            "beta_set_dgp_type_tv_1": 0,
-            "beta_set_dgp_type_tv_2": 0,
-            "beta_set_dgp_type_tv_3": 0,
-            "beta_set_dgp_type_tv_un_mean_2": 0.0,
-            "beta_set_dgp_0": 0,
-            "beta_set_dgp_1": "0",
-            "beta_set_dgp_2": False,
-            "beta_set_filt_0": 0,
-            "beta_set_filt_1": "0",
-            "beta_set_filt_2": False,
-            "ext_reg_dgp_set_type_tv_0": None,
-            "ext_reg_dgp_set_type_tv_1": None,
-            "ext_reg_dgp_set_type_tv_2": 0,
-            "ext_reg_dgp_set_type_tv_3": 0,
-            "ext_reg_dgp_set_type_tv_4": 0,
-            "use_lag_mat_as_reg": False,
-            **kwargs
-            },
-        {# dgp: SIN fit 0 reg : SD fit 0 reg - 
-            "phi_set_dgp_type_tv_0": "SIN",
-            "phi_set_dgp_type_tv_1": "const_unif_0.8",
-            "phi_set_dgp_type_tv_2": 1,
-            "phi_set_dgp_type_tv_3": 0.15,
-            "phi_set_dgp_0": "2N",
-            "phi_set_dgp_1": True,
-            "phi_set_filt_0": "2N",
-            "phi_set_filt_1": True,
-            "beta_set_dgp_type_tv_0": "",
-            "beta_set_dgp_type_tv_1": 0,
-            "beta_set_dgp_type_tv_2": 0,
-            "beta_set_dgp_type_tv_3": 0,
-            "beta_set_dgp_type_tv_un_mean_2": 0.0,
-            "beta_set_dgp_0": 0,
-            "beta_set_dgp_1": "0",
-            "beta_set_dgp_2": False,
-            "beta_set_filt_0": 0,
-            "beta_set_filt_1": "0",
-            "beta_set_filt_2": False,
-            "ext_reg_dgp_set_type_tv_0": None,
-            "ext_reg_dgp_set_type_tv_1": None,
-            "ext_reg_dgp_set_type_tv_2": 0,
-            "ext_reg_dgp_set_type_tv_3": 0,
-            "ext_reg_dgp_set_type_tv_4": 0,
-            "use_lag_mat_as_reg": False,
-            **kwargs
-            }
         ]
 
     
@@ -356,7 +300,7 @@ def run_sim_seq(**kwargs):
 
 
 def one_run(par):
-    mlflow.run(".", "run_sim_missp_dgp_and_filter_ss_sd", parameters=par, use_conda=False)
+    mlflow.run(".", "run_sim_missp_dgp_and_filter_ss_sd_equal_dgp_bin_w", parameters=par, use_conda=False)
 
 
 
