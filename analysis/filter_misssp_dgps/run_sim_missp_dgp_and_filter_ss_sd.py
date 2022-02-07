@@ -325,14 +325,15 @@ def get_filt_mod(bin_or_w, Y_T, X_T_dgp, par_dict):
     elif par_dict["n_ext_reg"] > 0:
         par_dict["X_T"] = X_T_dgp[:, :, : par_dict["n_ext_reg"], :]
 
-    mod_in_dict = drop_keys(par_dict, ["n_ext_reg"])
+    mod_in_dict_sd = drop_keys(par_dict, ["n_ext_reg"])
+    mod_in_dict_ss = drop_keys(par_dict, ["n_ext_reg", "init_sd_type"])
 
     if bin_or_w == "bin":
-        mod_sd = dirBin1_SD(Y_T, **mod_in_dict)
-        mod_ss = dirBin1_sequence_ss(Y_T, **mod_in_dict)
+        mod_sd = dirBin1_SD(Y_T, **mod_in_dict_sd)
+        mod_ss = dirBin1_sequence_ss(Y_T, **mod_in_dict_ss)
     elif bin_or_w == "w":
-        mod_sd = dirSpW1_SD(Y_T, **mod_in_dict)
-        mod_ss = dirSpW1_sequence_ss(Y_T, **mod_in_dict)
+        mod_sd = dirSpW1_SD(Y_T, **mod_in_dict_sd)
+        mod_ss = dirSpW1_sequence_ss(Y_T, **mod_in_dict_ss)
     else:
         raise
 
