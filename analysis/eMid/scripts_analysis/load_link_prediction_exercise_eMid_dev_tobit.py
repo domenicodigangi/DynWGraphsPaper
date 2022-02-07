@@ -218,3 +218,5 @@ df_za = pd.read_parquet(filepath)
 fig, axs = density_eval_mod(df_za, smooth_wind, y_lims=(0.5, 5))
 fig.suptitle("Z.A. Regression")
 
+
+# %%
