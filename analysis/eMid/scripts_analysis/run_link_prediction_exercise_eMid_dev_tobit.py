@@ -43,7 +43,7 @@ def load_obs(ret_additional_stats=False):
 
     logger.info(f"Staus of experiment {experiment.name}: \n {df_all_runs['status'].value_counts()}")
 
-    df_reg = df_all_runs[(df_all_runs["status"].apply(lambda x: x in ["FINISHED"])) & (~np.isnan(df_all_runs["actual_n_opt_iter"]))]
+    df_reg = df_all_runs[(df_all_runs["status"].apply(lambda x: x in ["FINISHED"]))]
 
     log_cols = ["regressor_name", "size_phi_t", "phi_tv",  "size_beta_t", "beta_tv"]
 
