@@ -35,7 +35,7 @@ entry_points:
 
     command: "python run_sim_missp_dgp_and_filter_ss_sd.py --phi_set_dgp_type_tv {phi_set_dgp_type_tv_0} {phi_set_dgp_type_tv_1} {phi_set_dgp_type_tv_2} {phi_set_dgp_type_tv_3} --phi_set_dgp {phi_set_dgp_0} {phi_set_dgp_1} --phi_set_filt {phi_set_filt_0} {phi_set_filt_1} --beta_set_dgp_type_tv {beta_set_dgp_type_tv_0} {beta_set_dgp_type_tv_1} {beta_set_dgp_type_tv_2} {beta_set_dgp_type_tv_3} --beta_set_dgp_type_tv_un_mean_2 {beta_set_dgp_type_tv_un_mean_2} --beta_set_dgp {beta_set_dgp_0} {beta_set_dgp_1} {beta_set_dgp_2} --beta_set_filt {beta_set_filt_0} {beta_set_filt_1} {beta_set_filt_2} --ext_reg_dgp_set_type_tv {ext_reg_dgp_set_type_tv_0} {ext_reg_dgp_set_type_tv_1} {ext_reg_dgp_set_type_tv_2} {ext_reg_dgp_set_type_tv_3} {ext_reg_dgp_set_type_tv_4}"
 
-  run_sim_missp_dgp_and_filter_ss_sd_default_dgp_bin:
+  run_sim_missp_dgp_and_filter_ss_sd_default_dgp_bin_phi:
     parameters:
       phi_set_dgp_type_tv_0_w: {type: string, default: "AR"}
       phi_set_dgp_type_tv_1_w: {type: string, default: "ref_mat"}
@@ -45,8 +45,10 @@ entry_points:
       phi_set_dgp_type_tv_1_bin: {type: string, default: ""}
       phi_set_dgp_type_tv_2_bin: {type: float, default: 0.0}
       phi_set_dgp_type_tv_3_bin: {type: float, default: 0.0}
-      phi_set_dgp_0: {type: float, default: 1}
-      phi_set_dgp_1: {type: string, default: True}
+      phi_set_dgp_0_w: {type: float, default: 1}
+      phi_set_dgp_1_w: {type: string, default: True}
+      phi_set_dgp_0_bin: {type: float, default: 1}
+      phi_set_dgp_1_bin: {type: string, default: False}
       phi_set_filt_0: {type: string, default: "2N"}
       phi_set_filt_1: {type: string, default: True}
       beta_set_dgp_type_tv_0: {type: string, default: "AR"}
@@ -66,7 +68,7 @@ entry_points:
       ext_reg_dgp_set_type_tv_3: {type: float, default: 0}
       ext_reg_dgp_set_type_tv_4: {type: float, default: 0.1}
 
-    command: "python run_sim_missp_dgp_and_filter_ss_sd.py --phi_set_dgp_type_tv_w {phi_set_dgp_type_tv_0_w} {phi_set_dgp_type_tv_1_w} {phi_set_dgp_type_tv_2_w} {phi_set_dgp_type_tv_3_w} --phi_set_dgp_type_tv_bin {phi_set_dgp_type_tv_0_bin} {phi_set_dgp_type_tv_1_bin} {phi_set_dgp_type_tv_2_bin} {phi_set_dgp_type_tv_3_bin} --phi_set_dgp {phi_set_dgp_0} {phi_set_dgp_1} --phi_set_filt {phi_set_filt_0} {phi_set_filt_1} --beta_set_dgp_type_tv {beta_set_dgp_type_tv_0} {beta_set_dgp_type_tv_1} {beta_set_dgp_type_tv_2} {beta_set_dgp_type_tv_3} --beta_set_dgp_type_tv_un_mean_2 {beta_set_dgp_type_tv_un_mean_2} --beta_set_dgp {beta_set_dgp_0} {beta_set_dgp_1} {beta_set_dgp_2} --beta_set_filt {beta_set_filt_0} {beta_set_filt_1} {beta_set_filt_2} --ext_reg_dgp_set_type_tv {ext_reg_dgp_set_type_tv_0} {ext_reg_dgp_set_type_tv_1} {ext_reg_dgp_set_type_tv_2} {ext_reg_dgp_set_type_tv_3} {ext_reg_dgp_set_type_tv_4}"
+    command: "python run_sim_missp_dgp_and_filter_ss_sd.py --phi_set_dgp_type_tv_w {phi_set_dgp_type_tv_0_w} {phi_set_dgp_type_tv_1_w} {phi_set_dgp_type_tv_2_w} {phi_set_dgp_type_tv_3_w} --phi_set_dgp_type_tv_bin {phi_set_dgp_type_tv_0_bin} {phi_set_dgp_type_tv_1_bin} {phi_set_dgp_type_tv_2_bin} {phi_set_dgp_type_tv_3_bin} --phi_set_w_dgp {phi_set_dgp_0_w} {phi_set_dgp_1_w} --phi_set_bin_dgp {phi_set_dgp_0_bin} {phi_set_dgp_1_bin} --phi_set_filt {phi_set_filt_0} {phi_set_filt_1} --beta_set_dgp_type_tv {beta_set_dgp_type_tv_0} {beta_set_dgp_type_tv_1} {beta_set_dgp_type_tv_2} {beta_set_dgp_type_tv_3} --beta_set_dgp_type_tv_un_mean_2 {beta_set_dgp_type_tv_un_mean_2} --beta_set_dgp {beta_set_dgp_0} {beta_set_dgp_1} {beta_set_dgp_2} --beta_set_filt {beta_set_filt_0} {beta_set_filt_1} {beta_set_filt_2} --ext_reg_dgp_set_type_tv {ext_reg_dgp_set_type_tv_0} {ext_reg_dgp_set_type_tv_1} {ext_reg_dgp_set_type_tv_2} {ext_reg_dgp_set_type_tv_3} {ext_reg_dgp_set_type_tv_4}"
 
 
   run_sim_for_table:

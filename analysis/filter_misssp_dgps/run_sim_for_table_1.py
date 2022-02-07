@@ -52,8 +52,10 @@ def run_sim_seq(**kwargs):
             "phi_set_dgp_type_tv_1_bin": "",
             "phi_set_dgp_type_tv_2_bin": 0.0,
             "phi_set_dgp_type_tv_3_bin": 0.0,
-            "phi_set_dgp_0": "2N",
-            "phi_set_dgp_1": False,
+            "phi_set_dgp_0_w": "2N",
+            "phi_set_dgp_1_w": True,
+            "phi_set_dgp_0_bin": "2N",
+            "phi_set_dgp_1_bin": False,
             "phi_set_filt_0": "2N",
             "phi_set_filt_1": True,
             "beta_set_dgp_type_tv_0": "",
@@ -84,8 +86,10 @@ def run_sim_seq(**kwargs):
             "phi_set_dgp_type_tv_1_bin": "",
             "phi_set_dgp_type_tv_2_bin": 0.0,
             "phi_set_dgp_type_tv_3_bin": 0.0,
-            "phi_set_dgp_0": "2N",
-            "phi_set_dgp_1": False,
+            "phi_set_dgp_0_w": "2N",
+            "phi_set_dgp_1_w": True,
+            "phi_set_dgp_0_bin": "2N",
+            "phi_set_dgp_1_bin": False,
             "phi_set_filt_0": "2N",
             "phi_set_filt_1": True,
             "beta_set_dgp_type_tv_0": "",
@@ -122,7 +126,7 @@ def run_sim_seq(**kwargs):
 
 
 def one_run(par):
-    mlflow.run(".", "run_sim_missp_dgp_and_filter_ss_sd_default_dgp_bin", parameters=par, use_conda=False)
+    mlflow.run(".", "run_sim_missp_dgp_and_filter_ss_sd_default_dgp_bin_phi", parameters=par, use_conda=False)
 
 
 
