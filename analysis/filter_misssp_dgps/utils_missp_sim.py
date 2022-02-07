@@ -82,9 +82,10 @@ def get_model_from_run_dict(dgp_or_filt, bin_or_w, Y_T, X_T, run_d):
         mod_str = f"filt_{bin_or_w}"
         mod_par_dict.update({k: run_d[f"{mod_str}_{k}"] for k in mod_in_names})
         n_ext_reg = int(run_d[f"filt_{bin_or_w}_n_ext_reg"])
+        if ss_or_sd == "sd":
+            mod_par_dict["init_sd_type"] = run_d["init_sd_type"]
     else:
         raise
-
 
     out_mod = get_gen_fit_mod(
         bin_or_w,
