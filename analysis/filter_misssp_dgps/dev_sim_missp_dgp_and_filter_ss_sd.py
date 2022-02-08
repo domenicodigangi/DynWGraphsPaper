@@ -24,8 +24,6 @@ from torch import nn
 import logging
 import click
 from matplotlib import pyplot as plt
-from proj_utils.mlflow import _get_and_set_experiment, check_test_exp
-from proj_utils import drop_keys
 from run_sim_missp_dgp_and_filter_ss_sd import get_filt_mod, get_dgp_mod_and_par, get_dgp_and_filt_set_from_cli_options, filt_err
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)

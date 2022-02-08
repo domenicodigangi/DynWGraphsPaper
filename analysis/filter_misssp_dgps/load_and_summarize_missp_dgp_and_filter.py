@@ -25,7 +25,7 @@ importlib.reload(proj_utils)
 
 # %% Table 1
 
-experiment = _get_and_set_experiment("Default")
+experiment = _get_and_set_experiment("Table_1_temp")
 
 dfs = get_df_exp(experiment)
 
@@ -43,13 +43,17 @@ df_i = dfs["info"][ind_fin]
 df_p = dfs["par"][ind_fin]
 df_m = dfs["metrics"][ind_fin]
 
-#%%
+
+
+
+#%% Table 1
 group_cols = [
     "beta_set_bin_dgp",
     "phi_set_bin_dgp",
     "beta_set_bin_filt",
     "phi_set_bin_filt",
     "phi_set_dgp_type_tv_w",
+    "phi_set_dgp_type_tv_bin",
 ]
 # check that each group contains elements with the same settings for non grouping columns
 df = df_p.drop(columns=["run_id", "n_sim", "n_jobs"]).groupby(group_cols).nunique() > 1
@@ -64,38 +68,16 @@ else:
 
 df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
 
-eval_cols = lambda ss_or_sd: [
-    f"bin_mse_phi_{ss_or_sd}",
-    f"w_mse_phi_{ss_or_sd}",
-    f"bin_mse_beta_{ss_or_sd}",
-    f"w_mse_beta_{ss_or_sd}",
-    f"w_mse_phi_{ss_or_sd}",
+eval_cols = [
+    "bin_mse_phi_ss",
+    "bin_mse_phi_sd",
+    "w_mse_phi_ss",
+    "w_mse_phi_sd",
 ]
 
-beta_cols = lambda ss_or_sd: [f"bin_avg_beta_{ss_or_sd}", f"w_avg_beta_{ss_or_sd}"]
-
-ss_or_sd = "sd"
-
-# Drop 1% tails
-all_cols = eval_cols(ss_or_sd)
-df[all_cols].clip(
-    lower=df[all_cols].quantile(0.01), upper=df[all_cols].quantile(0.99), axis=1
-)
+df.groupby(group_cols).mean()[eval_cols]
 
 
-df_avg = df.groupby(group_cols).mean()[eval_cols(ss_or_sd)]
-
-df.groupby(group_cols).count()[eval_cols(ss_or_sd)]
-[d[["filt_bin_sd_optimizer"]].value_counts() for k, d in df.groupby(group_cols)]
-df.groupby(group_cols).mean()[eval_cols("sd")]
-df.groupby(group_cols).mean()[eval_cols("ss")]
-
-# [d[eval_cols(ss_or_sd)].hist() for k, d in df.groupby(group_cols)]
-# [d[beta_cols(ss_or_sd)].hist() for k, d in df.groupby(group_cols)]
-# [d[beta_cols(ss_or_sd)].hist() for k, d in df.groupby(group_cols)]
-# [print((k, d[avg_cols ])) for k, d in df.groupby(group_cols)]
-
-df_avg
 # %% Table 2
 
 experiment = _get_and_set_experiment("dev Table 2 AR col")
