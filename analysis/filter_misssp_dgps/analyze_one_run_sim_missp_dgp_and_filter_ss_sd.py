@@ -34,7 +34,7 @@ df_m = dfs["metrics"][ind_fin]
 
 df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
 # %%
-inds = df["phi_set_dgp_type_tv_bin"] == '(\'const_unif_0.8\', "\'\'", 0.0, 0.0)'
+inds = df["phi_set_dgp_type_tv_bin"] == "('SIN', 'ref_mat', 1.0, 0.15)"
 
 
 i=1

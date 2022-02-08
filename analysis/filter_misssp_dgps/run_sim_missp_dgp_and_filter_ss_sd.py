@@ -430,7 +430,7 @@ def _run_parallel_simulations(**kwargs):
                         parent_runs_par,
                     )
                 except Exception as e:
-                    logger.warning(f"Run failed : \n {e}")
+                    logger.error(f"Run failed : \n {e}", exc_info=True)
 
         Parallel(n_jobs=kwargs["n_jobs"])(
             delayed(try_one_run)(

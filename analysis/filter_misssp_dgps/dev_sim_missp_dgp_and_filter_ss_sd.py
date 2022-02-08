@@ -35,7 +35,7 @@ click_args = {}
 click_args["max_opt_iter"] = 10000
 click_args["n_nodes"] = 50
 click_args["n_time_steps"] = 150
-click_args["frac_time_steps_train"] = 0.9
+click_args["frac_time_steps_train"] = 1
 
 
 click_args["phi_set_dgp_type_tv"] = ("AR", "ref_mat", 0.98, 0.1)
