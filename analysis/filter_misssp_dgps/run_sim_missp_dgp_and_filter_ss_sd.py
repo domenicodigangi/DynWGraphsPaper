@@ -51,7 +51,7 @@ importlib.reload(dynwgraphs)
     "--frac_time_steps_train",
     help="Number of time steps used for training",
     type=float,
-    default=0.9,
+    default=0.99,
 )
 @click.option(
     "--phi_set_dgp_type_tv",
