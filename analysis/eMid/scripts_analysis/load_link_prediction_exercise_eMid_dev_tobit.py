@@ -127,7 +127,7 @@ df_for_paper.to_latex()
 # %%
 
 
-def density_eval_mod(df, smooth_wind, y_lims=(0.5, 8), non_over_wind_w=50):
+def density_eval_mod(df, smooth_wind, y_lims=(0.5, 8), non_over_wind_w=50, figaxs=None):
     SMALL_SIZE = 18
     MEDIUM_SIZE = 22
     BIGGER_SIZE = 28
@@ -161,7 +161,11 @@ def density_eval_mod(df, smooth_wind, y_lims=(0.5, 8), non_over_wind_w=50):
 
     df_smooth_w = df_avg_non_over_w.rolling(window=smooth_wind).mean()
 
-    fig, axs = plt.subplots(2, 1, figsize=(25, 15))
+    if figaxs is None:
+        fig, axs = plt.subplots(2, 1, figsize=(14, 9))
+    else:
+        fig, axs = figaxs
+
     axs[0].plot(df_smooth_w["fract_nnz_train"], df_smooth_w["se"])
     axs[0].set_ylim(*y_lims)
     axs[0].set_ylabel("Log MSE")
@@ -201,11 +205,8 @@ filepath = (
 )
 df = pd.read_parquet(filepath)
 
-fig, axs = density_eval_mod(df, smooth_wind, y_lims=(0.5, 5))
-fig.suptitle("Local Tobit")
+figaxs = density_eval_mod(df, smooth_wind, y_lims=(0.5, 5))
 
-
-#%%
 pred_method = "ZA_regression"
 ker_type = np.nan
 bandwidth = np.nan
@@ -215,8 +216,10 @@ filepath = (
 )
 df_za = pd.read_parquet(filepath)
 
-fig, axs = density_eval_mod(df_za, smooth_wind, y_lims=(0.5, 5))
-fig.suptitle("Z.A. Regression")
+fig, axs = density_eval_mod(df_za, smooth_wind, y_lims=(0.5, 5), figaxs=figaxs)
+axs[0].legend(("Local Tobit", "Z.A. Regression"))
+axs[0].grid()
+axs[1].grid()
 
 
 # %%

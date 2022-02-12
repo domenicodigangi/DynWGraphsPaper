@@ -37,10 +37,10 @@ df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
 inds = df["phi_set_dgp_type_tv_bin"] == "('SIN', 'ref_mat', 1.0, 0.25)"
 
 
-i=0
-fig, ax = plt.subplots(figsize=(15, 10))
-for r, row_run in df.loc[inds, :].iloc[:44, :].iterrows():
-    mod_filt_sd_bin, mod_filt_sd_w, mod_filt_ss_bin, mod_filt_ss_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run)
+i=5
+fig, ax = plt.subplots(figsize=(8, 4))
+for r, row_run in df.loc[inds, :].drop(30).iterrows():
+    mod_filt_sd_bin, mod_filt_sd_w, mod_filt_ss_bin, mod_filt_ss_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run, log=False)
 
     phi_w_T_sd = mod_filt_sd_w.get_ts_phi()
     phi_w_T_ss = mod_filt_ss_w.get_ts_phi()
@@ -50,7 +50,5 @@ for r, row_run in df.loc[inds, :].iloc[:44, :].iterrows():
 
 ax.plot(phi_w_T_dgp[i, :], "-k", linewidth=4)
 ax.grid()
-# %%
-
 
 # %%

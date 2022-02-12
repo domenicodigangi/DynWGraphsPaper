@@ -16,7 +16,7 @@ from proj_utils.mlflow import uri_to_path
 from dynwgraphs.dirGraphs1_dynNets import get_gen_fit_mod
 
 
-def load_all_models_missp_sim(row_run):
+def load_all_models_missp_sim(row_run, log=True):
     load_path = Path(uri_to_path(row_run["artifact_uri"]))
 
     obs = torch.load(load_path / "dgp" / "obs_T_dgp.pt")
@@ -25,22 +25,22 @@ def load_all_models_missp_sim(row_run):
     Y_T, X_T = obs
 
     mod_filt_sd_bin = get_model_from_run_dict("filt_sd", "bin", Y_T, X_T, row_run)
-    mod_filt_sd_bin.load_par(str(load_path))
+    mod_filt_sd_bin.load_par(str(load_path), log=log)
     mod_filt_sd_bin.roll_sd_filt_train()
     mod_filt_sd_w = get_model_from_run_dict("filt_sd", "w", Y_T, X_T, row_run)
-    mod_filt_sd_w.load_par(str(load_path))
+    mod_filt_sd_w.load_par(str(load_path), log=log)
     mod_filt_sd_w.roll_sd_filt_train()  
     
     mod_filt_ss_bin = get_model_from_run_dict("filt_ss", "bin", Y_T, X_T, row_run)
-    mod_filt_ss_bin.load_par(str(load_path))
+    mod_filt_ss_bin.load_par(str(load_path), log=log)
     mod_filt_ss_w = get_model_from_run_dict("filt_ss", "w", Y_T, X_T, row_run)
-    mod_filt_ss_w.load_par(str(load_path))
+    mod_filt_ss_w.load_par(str(load_path), log=log)
  
     mod_dgp_w = get_model_from_run_dict("dgp", "w", Y_T, X_T, row_run)
-    mod_dgp_w.load_par(str(load_path / "dgp"))
+    mod_dgp_w.load_par(str(load_path / "dgp"), log=log)
 
     mod_dgp_bin = get_model_from_run_dict("dgp", "bin", Y_T, X_T, row_run)
-    mod_dgp_bin.load_par(str(load_path / "dgp"))
+    mod_dgp_bin.load_par(str(load_path / "dgp"), log=log)
 
     return (
         mod_filt_sd_bin,
