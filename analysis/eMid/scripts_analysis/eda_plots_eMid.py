@@ -21,13 +21,6 @@ import pandas as pd
 
 #%% 
 Y_T, X_T, regr_list, net_stats = load_obs(ret_additional_stats=True)
-
-t = 0
-datetime(net_stats.dates[t]) 
-.year
-
-[d.astype(object).year for d in net_stats.dates]
-
 graphs = [nx.convert_matrix.from_numpy_matrix(Y_T[:,:, t].numpy()) for t in range(Y_T.shape[2])]
 
 
@@ -37,6 +30,7 @@ import scipy
 x = Y_T.numpy().flatten() * 10000
 x_nnz = x[x>0]
 
+T = Y_T.shape[2]
 s_T_in = Y_T.numpy().sum(axis=1) * 10000
 s_T_out = Y_T.numpy().sum(axis=0) * 10000
 nbanks_T = ((s_T_in>0) | (s_T_out>0)).sum(axis=0)
@@ -57,14 +51,14 @@ ax2.grid()
 
 #%%
 
-s_tot_T = Y_T.numpy().sum(axis=(0,1))
+s_tot_T = Y_T.numpy().mean(axis=(0,1))
 
 
-g = sns.histplot(s_T_out[s_T_out>0].flatten() * 10000, stat="probability", bins=25, log_scale=True)
-g.set_xlabel("Banks Outstanding Debt [Mln]")
+g = sns.histplot(s_T_out[s_T_out>0].flatten()/T, stat="probability", bins=25, log_scale=True)
+g.set_xlabel("Avg. Banks Outstanding Debt [Euro]")
 plt.figure()
-g = sns.histplot(s_T_in[s_T_in>0].flatten() * 10000, stat="probability", bins=25, log_scale=True)
-g.set_xlabel("Banks Outstanding Credits [Mln]")
+g = sns.histplot(s_T_in[s_T_in>0].flatten()/T , stat="probability", bins=25, log_scale=True)
+g.set_xlabel("Avg. Banks Outstanding Credits [Euro]")
 
 x_nnz.max()/1e6
 x_nnz.min()/1e6
