@@ -24,8 +24,6 @@ from torch import nn
 import logging
 import click
 from matplotlib import pyplot as plt
-from proj_utils.mlflow import _get_and_set_experiment, check_test_exp
-from proj_utils import drop_keys
 from run_sim_missp_dgp_and_filter_ss_sd import get_filt_mod, get_dgp_mod_and_par, get_dgp_and_filt_set_from_cli_options, filt_err
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
@@ -37,7 +35,7 @@ click_args = {}
 click_args["max_opt_iter"] = 10000
 click_args["n_nodes"] = 50
 click_args["n_time_steps"] = 150
-click_args["frac_time_steps_train"] = 0.9
+click_args["frac_time_steps_train"] = 1
 
 
 click_args["phi_set_dgp_type_tv"] = ("AR", "ref_mat", 0.98, 0.1)

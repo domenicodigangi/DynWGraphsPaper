@@ -1,42 +1,20 @@
 # %%
-from pathlib import Path
 import importlib
 import dynwgraphs
-from dynwgraphs.utils.tensortools import splitVec, strIO_from_tens_T
-import mlflow
 import logging
 import proj_utils
-from proj_utils.mlflow import _get_and_set_experiment, check_test_exp, get_df_exp, uri_to_path
+from proj_utils.mlflow import _get_and_set_experiment, get_df_exp
 from utils_missp_sim import load_all_models_missp_sim
-from proj_utils import drop_keys, pd_filt_on
-from mlflow.tracking.client import MlflowClient
-import pandas as pd
-from run_sim_missp_dgp_and_filter_ss_sd import get_filt_mod, filt_err
-import torch
-import numpy as np
 from matplotlib import pyplot as plt
-from proj_utils.mlflow import dicts_from_run
+
+from dynwgraphs.utils.dgps import get_test_w_seq, _test_w_data_
 
 logger = logging.getLogger(__name__)
 importlib.reload(dynwgraphs)
 importlib.reload(proj_utils)
 
 #%%
-
-# import pickle
-# file_name = mod_dgp.file_names(load_path / "dgp")["parameters"]
-        
-# par_dict = pickle.load(open(file_name, "rb"))
-
-# par_dict["phi_T"]
-# mod_dgp.set_par_val_from_dict(par_dict)
-
-
-
-
-# %%
-
-experiment = _get_and_set_experiment("Default")
+experiment = _get_and_set_experiment("Table_1_temp")
 
 dfs = get_df_exp(experiment)
 
@@ -56,20 +34,21 @@ df_m = dfs["metrics"][ind_fin]
 
 df = df_i.merge(df_p, on="run_id").merge(df_m, on="run_id")
 # %%
-row_run = df.iloc[0, :]
-row_run.init_sd_type
-
-mod_filt_sd_bin, mod_filt_sd_w, mod_filt_ss_bin, mod_filt_ss_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run)
+inds = df["phi_set_dgp_type_tv_bin"] == "('SIN', 'ref_mat', 1.0, 0.25)"
 
 
-Y_reference["Y_reference_w"].sum()
-Y_reference["Y_reference_bin"].sum()
+i=5
+fig, ax = plt.subplots(figsize=(8, 4))
+for r, row_run in df.loc[inds, :].drop(30).iterrows():
+    mod_filt_sd_bin, mod_filt_sd_w, mod_filt_ss_bin, mod_filt_ss_w, mod_dgp_bin, mod_dgp_bin, mod_dgp_w, obs, Y_reference = load_all_models_missp_sim(row_run, log=False)
 
-phi_w_T_sd = mod_filt_sd_w.get_ts_phi()
-phi_w_T_ss = mod_filt_ss_w.get_ts_phi()
-phi_w_T_dgp = mod_dgp_w.get_ts_phi()
+    phi_w_T_sd = mod_filt_sd_w.get_ts_phi()
+    phi_w_T_ss = mod_filt_ss_w.get_ts_phi()
+    phi_w_T_dgp = mod_dgp_w.get_ts_phi()
+    ax.plot(phi_w_T_ss[i, :], ".b", markersize=2)
+    ax.plot(phi_w_T_sd[i, :], "-r", linewidth=0.5)
 
-i=10
-plt.plot(phi_w_T_dgp[i, :], "-k")
-plt.plot(phi_w_T_sd[i, :], "-r")
-plt.plot(phi_w_T_ss[i, :], ".b")
+ax.plot(phi_w_T_dgp[i, :], "-k", linewidth=4)
+ax.grid()
+
+# %%

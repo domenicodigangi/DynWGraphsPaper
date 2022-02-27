@@ -51,7 +51,7 @@ importlib.reload(dynwgraphs)
     "--frac_time_steps_train",
     help="Number of time steps used for training",
     type=float,
-    default=0.9,
+    default=0.99,
 )
 @click.option(
     "--phi_set_dgp_type_tv",
@@ -430,7 +430,7 @@ def _run_parallel_simulations(**kwargs):
                         parent_runs_par,
                     )
                 except Exception as e:
-                    logger.warning(f"Run failed : \n {e}")
+                    logger.error(f"Run failed : \n {e}", exc_info=True)
 
         Parallel(n_jobs=kwargs["n_jobs"])(
             delayed(try_one_run)(
