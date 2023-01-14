@@ -1,5 +1,7 @@
 # DynWGraphsPaper
-Code for analysis of paper about dynmical sparse weighted graphs 
+Code used for the analysis of [Score-driven generalized fitness model for sparse and weighted temporal networks](https://www.sciencedirect.com/science/article/abs/pii/S0020025522009446)
+
+
 
 # Enviroment Set Up
 - If you need to install conda, do:
